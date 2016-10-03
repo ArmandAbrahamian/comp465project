@@ -14,15 +14,27 @@ Armand Abrahamian
 # define __Windows__
 # include "../includes465/include465.hpp"
 
+/* Constants: */
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1;
 // constants for models:  file names, vertex count, model display size
 const int nModels = 3;  // number of models in this scene
-char * modelFile[nModels] = { "FacePlanet.tri", "WaterPlanet.tri", "spaceShip-bs100.tri" };
-float modelBR[nModels];       // model's bounding radius
-float scaleValue[nModels];    // model's scaling "size" value
 const int nVertices[nModels] = { 264 * 3, 264 * 3, 996 * 3 };
+
+/* Global Variables: */
+int Index = 0;  // global variable indexing into VBO arrays
+
+// display state and "state strings" for title display
+bool perspective = true;
+
+char fpsStr[15], timerStr[20] = " interval timer";
+char baseStr[50] = "Warbird Simulator Phase 1, Use q to quit.";
+char titleStr[100];
+
+char * modelFile[nModels] = { "FacePlanet.tri", "WaterPlanet.tri", "spaceShip-bs100.tri" };
 char * vertexShaderFile = "simpleVertex.glsl";
 char * fragmentShaderFile = "simpleFragment.glsl";
+float modelBR[nModels];       // model's bounding radius
+float scaleValue[nModels];    // model's scaling "size" value
 GLuint shaderProgram;
 GLuint VAO[nModels];      // Vertex Array Objects
 GLuint buffer[nModels];   // Vertex Buffer Objects
@@ -43,45 +55,13 @@ glm::vec3 eye, at, up; // vectors and values for lookAt.
 
 // rotational variables
 GLfloat rotateRadian = 0.0f;
+float eyeDistanceMultiplier = 10.0f;
+float eyeDistance;
 glm::mat4 identity(1.0f); // initialized identity matrix.
 glm::mat4 rotation;
-
-// Indicates what action should be taken when the window is resized.
-void reshape(int width, int height) {
-	float aspectRatio = (GLfloat)width / (GLfloat)height;
-	float FOVY = glm::radians(60.0f);
-
-	glViewport(0, 0, width, height);
-	projectionMatrix = glm::perspective(FOVY, aspectRatio, 1.0f, 100000.0f);
-	printf("reshape: FOVY = %5.2f, width = %4d height = %4d aspect = %5.2f \n",
-		FOVY, width, height, aspectRatio);
-}
-
-/* 
-Display callback is required by freeglut. 
-It is invoked whenever OpenGL determines a window has to be redrawn.
-*/
-void display() 
-{
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Actually clears the window to color specified in glClearColor().
-
-	/* Final step in preparing the data for processing by OpenGL is to specify which vertex 
-	attributes will be issued to the graphics pipeline. */
-
-	rotation = glm::rotate(identity, rotateRadian, glm::vec3(0, 1, 0)); // yaw rotation
-
-	// Associate shader variables with vertex arrays:
-	for (int m = 0; m < nModels; m++) {
-		modelMatrix = glm::translate(glm::mat4(), translate[m]) *
-			glm::scale(glm::mat4(), glm::vec3(scale[m]));
-
-		ModelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix;
-		glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
-		glBindVertexArray(VAO[m]);
-		glDrawArrays(GL_TRIANGLES, 0, nVertices[m]);  // Initializes vertex shader, for contiguous groups of vertices.
-	}
-	glutSwapBuffers();
-}
+int timerDelay = 40, frameCount = 0;
+double currentTime, lastTime, timeInterval;
+bool idleTimerFlag = false;  // interval or idle timer ?
 
 // To maximize efficiency, operations that only need to be called once are called in init().
 void init()
@@ -93,12 +73,14 @@ void init()
 	// generate VAOs and VBOs
 	glGenVertexArrays(nModels, VAO);
 	glGenBuffers(nModels, buffer);
+
 	// load the buffers from the model files
 	for (int i = 0; i < nModels; i++) {
 		modelBR[i] = loadModelBuffer(modelFile[i], nVertices[i], VAO[i], buffer[i], shaderProgram,
 			vPosition[i], vColor[i], vNormal[i], "vPosition", "vColor", "vNormal");
+
 		// set scale for models given bounding radius  
-		scale[i] = glm::vec3(modelSize[i] * 1.0f/modelBR[i]);
+		scale[i] = glm::vec3(modelSize[i] * 1.0f / modelBR[i]);
 
 		if (modelBR[i] == -1.0f) {
 			printf("loadTriModel error:  returned -1.0f \n");
@@ -112,18 +94,90 @@ void init()
 
 	printf("Shader program variable locations:\n");
 	printf("  vPosition = %d  vColor = %d  vNormal = %d MVP = %d\n",
-	glGetAttribLocation( shaderProgram, "vPosition" ),
-	glGetAttribLocation( shaderProgram, "vColor" ),
-	glGetAttribLocation( shaderProgram, "vNormal" ), MVP);
+		glGetAttribLocation(shaderProgram, "vPosition"),
+		glGetAttribLocation(shaderProgram, "vColor"),
+		glGetAttribLocation(shaderProgram, "vNormal"), MVP);
 
 	viewMatrix = glm::lookAt(
 		glm::vec3(50.0f, 50.0f, 200.0f),  // eye position
 		glm::vec3(0),                   // look at position
-		glm::vec3(0.0f, 1.0f, 0.0f) ); // up vect0r
+		glm::vec3(0.0f, 1.0f, 0.0f)); // up vect0r
 
-	// set render state values
+									  // set render state values
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.7f, 0.7f, 0.7f, 1.0f); // Establishes what color the window will be cleared to.
+
+	lastTime = glutGet(GLUT_ELAPSED_TIME);  // get elapsed system time
+}
+
+/*
+	Display callback is required by freeglut.
+	It is invoked whenever OpenGL determines a window has to be redrawn.
+*/
+void display()
+{
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Actually clears the window to color specified in glClearColor().
+
+														/* Final step in preparing the data for processing by OpenGL is to specify which vertex
+														attributes will be issued to the graphics pipeline. */
+
+	rotation = glm::rotate(identity, rotateRadian, glm::vec3(0, 1, 0)); // yaw rotation
+
+																		// Associate shader variables with vertex arrays:
+	for (int m = 0; m < nModels; m++) 
+	{
+		modelMatrix = glm::translate(glm::mat4(), translate[m]) *
+			glm::scale(glm::mat4(), glm::vec3(scale[m]));
+
+		ModelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix * rotation;
+		glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
+		glBindVertexArray(VAO[m]);
+		glDrawArrays(GL_TRIANGLES, 0, nVertices[m]);  // Initializes vertex shader, for contiguous groups of vertices.
+	}
+	glutSwapBuffers();
+
+	frameCount++;
+	// see if a second has passed to set estimated fps information
+	currentTime = glutGet(GLUT_ELAPSED_TIME);  // get elapsed system time
+	timeInterval = currentTime - lastTime;
+	if (timeInterval >= 1000) 
+	{
+		sprintf(fpsStr, " fps %4d", (int)(frameCount / (timeInterval / 1000.0f)));
+		lastTime = currentTime;
+		frameCount = 0;
+	}
+}
+
+// Indicates what action should be taken when the window is resized.
+void reshape(int width, int height) 
+{
+	float aspectRatio = (GLfloat)width / (GLfloat)height;
+	float FOVY = glm::radians(60.0f);
+
+	glViewport(0, 0, width, height);
+	projectionMatrix = glm::perspective(FOVY, aspectRatio, 1.0f, 100000.0f);
+	printf("reshape: FOVY = %5.2f, width = %4d height = %4d aspect = %5.2f \n",
+		FOVY, width, height, aspectRatio);
+}
+
+// for use with Idle and intervalTimer functions 
+// to set rotation
+void update(void)
+{
+	rotateRadian += 0.1f;
+	if (rotateRadian >  2 * PI) rotateRadian = 0.0f;
+	rotation = glm::rotate(identity, rotateRadian, glm::vec3(0, 1, 0));
+	glutPostRedisplay();
+}
+
+// Estimate FPS, use for fixed interval timer driven animation
+void intervalTimer(int i) 
+{
+	glutTimerFunc(timerDelay, intervalTimer, 1);
+	if (!idleTimerFlag)
+	{
+		update();  // fixed interval timer
+	}
 }
 
 void keyboard(unsigned char key, int x, int y)
@@ -134,10 +188,6 @@ void keyboard(unsigned char key, int x, int y)
 		exit(EXIT_SUCCESS);
 		break;
 	}
-	//if (key == 'q' || key == 'Q')
-	//{
-	//	exit(EXIT_SUCCESS);
-	//}
 }
 
 /*
@@ -158,7 +208,7 @@ int main(int argc, char** argv)
 	// set OpenGL and GLSL versions to 3.3 for Comp 465/L, comment to see highest versions.
 	glutInitContextVersion(3, 3);
 	glutInitContextProfile(GLUT_CORE_PROFILE);
-	glutCreateWindow("Warbird Simulator Phase 1, Use q to quit.");
+	glutCreateWindow(baseStr);
 
 	/*
 	GLEW manages function pointers for OpenGL so we want to
@@ -181,6 +231,9 @@ int main(int argc, char** argv)
 	glutDisplayFunc(display); // Continuously called for interacting with the window. 
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(keyboard);
+
+	glutIdleFunc(NULL);  // start with intervalTimer
+	glutTimerFunc(timerDelay, intervalTimer, 1);
 
 	glutMainLoop();  // This call passes control to GLUT.
 
