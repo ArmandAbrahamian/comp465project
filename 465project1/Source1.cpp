@@ -40,7 +40,7 @@ GLuint shaderProgram;
 GLuint VAO[nModels];      // Vertex Array Objects
 GLuint buffer[nModels];   // Vertex Buffer Objects
 
-						  // Shader handles, matrices, etc
+// Shader handles, matrices, etc
 GLuint MVP;  // Model View Projection matrix's handle
 GLuint vPosition[nModels], vColor[nModels], vNormal[nModels];   // vPosition, vColor, vNormal handles for models
 																// model, view, projection matrices and values to create modelMatrix.
@@ -62,7 +62,7 @@ int maxCameras = 5;
 
 glm::vec3 eye, at, up; // vectors and values for lookAt.
 
-					   // rotational variables
+// rotational variables
 GLfloat rotateRadian = 0.0f;
 float eyeDistanceMultiplier = 10.0f;
 float eyeDistance;
@@ -71,17 +71,6 @@ glm::mat4 rotation;
 int timerDelay = 40, frameCount = 0;
 double currentTime, lastTime, timeInterval;
 bool idleTimerFlag = false;  // interval or idle timer ?
-
-// Indicates what action should be taken when the window is resized.
-void reshape(int width, int height) {
-	float aspectRatio = (GLfloat)width / (GLfloat)height;
-	float FOVY = glm::radians(60.0f);
-
-	glViewport(0, 0, width, height);
-	projectionMatrix = glm::perspective(FOVY, aspectRatio, 1.0f, 100000.0f);
-	printf("reshape: FOVY = %5.2f, width = %4d height = %4d aspect = %5.2f \n",
-		FOVY, width, height, aspectRatio);
-}
 
 /*
 Display callback is required by freeglut.
@@ -101,12 +90,35 @@ void display()
 		modelMatrix = glm::translate(glm::mat4(), translate[m]) *
 			glm::scale(glm::mat4(), glm::vec3(scale[m]));
 
-		ModelViewProjectionMatrix = projectionMatrix * mainCamera * modelMatrix;
+		ModelViewProjectionMatrix = projectionMatrix * mainCamera * modelMatrix * rotation;
 		glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
 		glBindVertexArray(VAO[m]);
 		glDrawArrays(GL_TRIANGLES, 0, nVertices[m]);  // Initializes vertex shader, for contiguous groups of vertices.
 	}
 	glutSwapBuffers();
+
+	frameCount++;
+	// see if a second has passed to set estimated fps information
+	currentTime = glutGet(GLUT_ELAPSED_TIME);  // get elapsed system time
+	timeInterval = currentTime - lastTime;
+	if (timeInterval >= 1000)
+	{
+		sprintf(fpsStr, " fps %4d", (int)(frameCount / (timeInterval / 1000.0f)));
+		lastTime = currentTime;
+		frameCount = 0;
+	}
+}
+
+// Indicates what action should be taken when the window is resized.
+void reshape(int width, int height)
+{
+	float aspectRatio = (GLfloat)width / (GLfloat)height;
+	float FOVY = glm::radians(60.0f);
+
+	glViewport(0, 0, width, height);
+	projectionMatrix = glm::perspective(FOVY, aspectRatio, 1.0f, 100000.0f);
+	printf("reshape: FOVY = %5.2f, width = %4d height = %4d aspect = %5.2f \n",
+		FOVY, width, height, aspectRatio);
 }
 
 // To maximize efficiency, operations that only need to be called once are called in init().
@@ -204,56 +216,6 @@ void switchCamera(int camera)
 	}
 	printf("Current Camera: %s\n", cameraNames[camera]);
 	display();
-}
-
-/*
-	Display callback is required by freeglut.
-	It is invoked whenever OpenGL determines a window has to be redrawn.
-*/
-void display()
-{
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Actually clears the window to color specified in glClearColor().
-
-														/* Final step in preparing the data for processing by OpenGL is to specify which vertex
-														attributes will be issued to the graphics pipeline. */
-
-	rotation = glm::rotate(identity, rotateRadian, glm::vec3(0, 1, 0)); // yaw rotation
-
-																		// Associate shader variables with vertex arrays:
-	for (int m = 0; m < nModels; m++) 
-	{
-		modelMatrix = glm::translate(glm::mat4(), translate[m]) *
-			glm::scale(glm::mat4(), glm::vec3(scale[m]));
-
-		ModelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix * rotation;
-		glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
-		glBindVertexArray(VAO[m]);
-		glDrawArrays(GL_TRIANGLES, 0, nVertices[m]);  // Initializes vertex shader, for contiguous groups of vertices.
-	}
-	glutSwapBuffers();
-
-	frameCount++;
-	// see if a second has passed to set estimated fps information
-	currentTime = glutGet(GLUT_ELAPSED_TIME);  // get elapsed system time
-	timeInterval = currentTime - lastTime;
-	if (timeInterval >= 1000) 
-	{
-		sprintf(fpsStr, " fps %4d", (int)(frameCount / (timeInterval / 1000.0f)));
-		lastTime = currentTime;
-		frameCount = 0;
-	}
-}
-
-// Indicates what action should be taken when the window is resized.
-void reshape(int width, int height) 
-{
-	float aspectRatio = (GLfloat)width / (GLfloat)height;
-	float FOVY = glm::radians(60.0f);
-
-	glViewport(0, 0, width, height);
-	projectionMatrix = glm::perspective(FOVY, aspectRatio, 1.0f, 100000.0f);
-	printf("reshape: FOVY = %5.2f, width = %4d height = %4d aspect = %5.2f \n",
-		FOVY, width, height, aspectRatio);
 }
 
 // for use with Idle and intervalTimer functions 
