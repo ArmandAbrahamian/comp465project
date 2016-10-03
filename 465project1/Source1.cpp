@@ -18,6 +18,7 @@ const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1;
 // constants for models:  file names, vertex count, model display size
 const int nModels = 3;  // number of models in this scene
 char * modelFile[nModels] = { "FacePlanet.tri", "WaterPlanet.tri", "spaceShip-bs100.tri" };
+char * cameraNames[5] = { "Front Camera", "Top Camera", "Ship Camera", "Unum Camera", "Duo Camera" };
 float modelBR[nModels];       // model's bounding radius
 float scaleValue[nModels];    // model's scaling "size" value
 const int nVertices[nModels] = { 264 * 3, 264 * 3, 996 * 3 };
@@ -27,7 +28,7 @@ GLuint shaderProgram;
 GLuint VAO[nModels];      // Vertex Array Objects
 GLuint buffer[nModels];   // Vertex Buffer Objects
 
-// Shader handles, matrices, etc
+						  // Shader handles, matrices, etc
 GLuint MVP;  // Model View Projection matrix's handle
 GLuint vPosition[nModels], vColor[nModels], vNormal[nModels];   // vPosition, vColor, vNormal handles for models
 																// model, view, projection matrices and values to create modelMatrix.
@@ -35,13 +36,21 @@ float modelSize[nModels] = { 25.0f, 30.0f, 50.0f };   // size of model
 glm::vec3 scale[nModels];       // set in init()
 glm::vec3 translate[nModels] = { glm::vec3(0,0,0), glm::vec3(50, -50, 0), glm::vec3(-150, -50, -50) };
 glm::mat4 modelMatrix;          // set in display()
-glm::mat4 viewMatrix;           // set in init()
+glm::mat4 mainCamera;           // set in init()
+glm::mat4 frontCamera;
+glm::mat4 topCamera;
+glm::mat4 shipCamera;
+glm::mat4 unumCamera;
+glm::mat4 duoCamera;
 glm::mat4 projectionMatrix;     // set in reshape()
 glm::mat4 ModelViewProjectionMatrix; // set in display();
 
+int currentCamera = 0;
+int maxCameras = 5;
+
 glm::vec3 eye, at, up; // vectors and values for lookAt.
 
-// rotational variables
+					   // rotational variables
 GLfloat rotateRadian = 0.0f;
 glm::mat4 identity(1.0f); // initialized identity matrix.
 glm::mat4 rotation;
@@ -57,25 +66,25 @@ void reshape(int width, int height) {
 		FOVY, width, height, aspectRatio);
 }
 
-/* 
-Display callback is required by freeglut. 
+/*
+Display callback is required by freeglut.
 It is invoked whenever OpenGL determines a window has to be redrawn.
 */
-void display() 
+void display()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Actually clears the window to color specified in glClearColor().
 
-	/* Final step in preparing the data for processing by OpenGL is to specify which vertex 
-	attributes will be issued to the graphics pipeline. */
+														/* Final step in preparing the data for processing by OpenGL is to specify which vertex
+														attributes will be issued to the graphics pipeline. */
 
 	rotation = glm::rotate(identity, rotateRadian, glm::vec3(0, 1, 0)); // yaw rotation
 
-	// Associate shader variables with vertex arrays:
+																		// Associate shader variables with vertex arrays:
 	for (int m = 0; m < nModels; m++) {
 		modelMatrix = glm::translate(glm::mat4(), translate[m]) *
 			glm::scale(glm::mat4(), glm::vec3(scale[m]));
 
-		ModelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix;
+		ModelViewProjectionMatrix = projectionMatrix * mainCamera * modelMatrix;
 		glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
 		glBindVertexArray(VAO[m]);
 		glDrawArrays(GL_TRIANGLES, 0, nVertices[m]);  // Initializes vertex shader, for contiguous groups of vertices.
@@ -97,8 +106,8 @@ void init()
 	for (int i = 0; i < nModels; i++) {
 		modelBR[i] = loadModelBuffer(modelFile[i], nVertices[i], VAO[i], buffer[i], shaderProgram,
 			vPosition[i], vColor[i], vNormal[i], "vPosition", "vColor", "vNormal");
-		// set scale for models given bounding radius  
-		scale[i] = glm::vec3(modelSize[i] * 1.0f/modelBR[i]);
+		// set scale for models given bounding radius
+		scale[i] = glm::vec3(modelSize[i] * 1.0f / modelBR[i]);
 
 		if (modelBR[i] == -1.0f) {
 			printf("loadTriModel error:  returned -1.0f \n");
@@ -112,18 +121,68 @@ void init()
 
 	printf("Shader program variable locations:\n");
 	printf("  vPosition = %d  vColor = %d  vNormal = %d MVP = %d\n",
-	glGetAttribLocation( shaderProgram, "vPosition" ),
-	glGetAttribLocation( shaderProgram, "vColor" ),
-	glGetAttribLocation( shaderProgram, "vNormal" ), MVP);
+		glGetAttribLocation(shaderProgram, "vPosition"),
+		glGetAttribLocation(shaderProgram, "vColor"),
+		glGetAttribLocation(shaderProgram, "vNormal"), MVP);
 
-	viewMatrix = glm::lookAt(
-		glm::vec3(50.0f, 50.0f, 200.0f),  // eye position
+	//THE PLANETS ARE TOO SMALL. If you want to see them, decrease the
+	//10000 and 20000 to 1000 and 2000 or smaller
+	frontCamera = glm::lookAt(
+		glm::vec3(0.0f, 10000.0f, 20000.0f),  // eye position
 		glm::vec3(0),                   // look at position
-		glm::vec3(0.0f, 1.0f, 0.0f) ); // up vect0r
+		glm::vec3(0.0f, 1.0f, 0.0f)); // up vect0r
+
+	topCamera = glm::lookAt(
+		glm::vec3(0, 20000.0f, 0),  // eye position
+		glm::vec3(0),                   // look at position
+		glm::vec3(1.0f, 0.0f, 0.0f)); // up vect0r
+
+	shipCamera = glm::lookAt(
+		glm::vec3(0, 300, 1000),  // eye position
+		glm::vec3(0, 300, 0),                   // look at position
+		glm::vec3(0.0f, 1.0f, 0.0f)); // up vect0r
+
+	unumCamera = glm::lookAt(
+		glm::vec3(0, 0.0f, -800),  // eye position
+		glm::vec3(vPosition[0]), // Looks at unum, assuming [0] is unum
+		glm::vec3(0.0f, 1.0f, 0.0f)); // up vect0r
+
+	duoCamera = glm::lookAt(
+		glm::vec3(0, 0.0f, -800),  // eye position
+		glm::vec3(vPosition[1]), //Looks at duo, assuming [1] is duo
+		glm::vec3(0.0f, 1.0f, 0.0f)); // up vect0r
+
+	mainCamera = frontCamera;
 
 	// set render state values
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.7f, 0.7f, 0.7f, 1.0f); // Establishes what color the window will be cleared to.
+}
+
+void switchCamera(int camera)
+{
+	switch (camera)
+	{
+	case 0:
+		mainCamera = frontCamera;
+		break;
+	case 1:
+		mainCamera = topCamera;
+		break;
+	case 2:
+		mainCamera = shipCamera;
+		break;
+	case 3:
+		mainCamera = unumCamera;
+		break;
+	case 4:
+		mainCamera = duoCamera;
+		break;
+	default:
+		return;
+	}
+	printf("Current Camera: %s\n", cameraNames[camera]);
+	display();
 }
 
 void keyboard(unsigned char key, int x, int y)
@@ -133,11 +192,20 @@ void keyboard(unsigned char key, int x, int y)
 	case 033: case'q': case'Q':
 		exit(EXIT_SUCCESS);
 		break;
+	case 'v': case 'V':
+		currentCamera = (currentCamera + 1) % maxCameras;
+		switchCamera(currentCamera);
+		break;
+	case 'x': case 'X':
+		if (currentCamera == 0)
+		{
+			currentCamera = 5;
+		}
+		currentCamera = (currentCamera - 1) % maxCameras;
+		switchCamera(currentCamera);
+		break;
 	}
-	//if (key == 'q' || key == 'Q')
-	//{
-	//	exit(EXIT_SUCCESS);
-	//}
+
 }
 
 /*
