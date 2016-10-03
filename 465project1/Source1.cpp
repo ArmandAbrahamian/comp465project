@@ -1,0 +1,189 @@
+/*
+
+Source1.cpp
+
+465 utility include files:  shader465.hpp, triModel465.hpp
+
+Shaders:  simpleVertex.glsl and simpleFragment.glsl
+provide flat shading with a fixed light position
+
+Armand Abrahamian
+9/23/16
+*/
+
+# define __Windows__
+# include "../includes465/include465.hpp"
+
+const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1;
+// constants for models:  file names, vertex count, model display size
+const int nModels = 3;  // number of models in this scene
+char * modelFile[nModels] = { "FacePlanet.tri", "WaterPlanet.tri", "spaceShip-bs100.tri" };
+float modelBR[nModels];       // model's bounding radius
+float scaleValue[nModels];    // model's scaling "size" value
+const int nVertices[nModels] = { 264 * 3, 264 * 3, 996 * 3 };
+char * vertexShaderFile = "simpleVertex.glsl";
+char * fragmentShaderFile = "simpleFragment.glsl";
+GLuint shaderProgram;
+GLuint VAO[nModels];      // Vertex Array Objects
+GLuint buffer[nModels];   // Vertex Buffer Objects
+
+// Shader handles, matrices, etc
+GLuint MVP;  // Model View Projection matrix's handle
+GLuint vPosition[nModels], vColor[nModels], vNormal[nModels];   // vPosition, vColor, vNormal handles for models
+																// model, view, projection matrices and values to create modelMatrix.
+float modelSize[nModels] = { 25.0f, 30.0f, 50.0f };   // size of model
+glm::vec3 scale[nModels];       // set in init()
+glm::vec3 translate[nModels] = { glm::vec3(0,0,0), glm::vec3(50, -50, 0), glm::vec3(-150, -50, -50) };
+glm::mat4 modelMatrix;          // set in display()
+glm::mat4 viewMatrix;           // set in init()
+glm::mat4 projectionMatrix;     // set in reshape()
+glm::mat4 ModelViewProjectionMatrix; // set in display();
+
+glm::vec3 eye, at, up; // vectors and values for lookAt.
+
+// rotational variables
+GLfloat rotateRadian = 0.0f;
+glm::mat4 identity(1.0f); // initialized identity matrix.
+glm::mat4 rotation;
+
+// Indicates what action should be taken when the window is resized.
+void reshape(int width, int height) {
+	float aspectRatio = (GLfloat)width / (GLfloat)height;
+	float FOVY = glm::radians(60.0f);
+
+	glViewport(0, 0, width, height);
+	projectionMatrix = glm::perspective(FOVY, aspectRatio, 1.0f, 100000.0f);
+	printf("reshape: FOVY = %5.2f, width = %4d height = %4d aspect = %5.2f \n",
+		FOVY, width, height, aspectRatio);
+}
+
+/* 
+Display callback is required by freeglut. 
+It is invoked whenever OpenGL determines a window has to be redrawn.
+*/
+void display() 
+{
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Actually clears the window to color specified in glClearColor().
+
+	/* Final step in preparing the data for processing by OpenGL is to specify which vertex 
+	attributes will be issued to the graphics pipeline. */
+
+	rotation = glm::rotate(identity, rotateRadian, glm::vec3(0, 1, 0)); // yaw rotation
+
+	// Associate shader variables with vertex arrays:
+	for (int m = 0; m < nModels; m++) {
+		modelMatrix = glm::translate(glm::mat4(), translate[m]) *
+			glm::scale(glm::mat4(), glm::vec3(scale[m]));
+
+		ModelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix;
+		glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
+		glBindVertexArray(VAO[m]);
+		glDrawArrays(GL_TRIANGLES, 0, nVertices[m]);  // Initializes vertex shader, for contiguous groups of vertices.
+	}
+	glutSwapBuffers();
+}
+
+// To maximize efficiency, operations that only need to be called once are called in init().
+void init()
+{
+	// load the shader programs
+	shaderProgram = loadShaders(vertexShaderFile, fragmentShaderFile);
+	glUseProgram(shaderProgram);
+
+	// generate VAOs and VBOs
+	glGenVertexArrays(nModels, VAO);
+	glGenBuffers(nModels, buffer);
+	// load the buffers from the model files
+	for (int i = 0; i < nModels; i++) {
+		modelBR[i] = loadModelBuffer(modelFile[i], nVertices[i], VAO[i], buffer[i], shaderProgram,
+			vPosition[i], vColor[i], vNormal[i], "vPosition", "vColor", "vNormal");
+		// set scale for models given bounding radius  
+		scale[i] = glm::vec3(modelSize[i] * 1.0f/modelBR[i]);
+
+		if (modelBR[i] == -1.0f) {
+			printf("loadTriModel error:  returned -1.0f \n");
+			system("pause");
+		}
+		else
+			printf("loaded %s model with %7.2f bounding radius \n", modelFile[i], modelBR[i]);
+	}
+
+	MVP = glGetUniformLocation(shaderProgram, "ModelViewProjection");
+
+	printf("Shader program variable locations:\n");
+	printf("  vPosition = %d  vColor = %d  vNormal = %d MVP = %d\n",
+	glGetAttribLocation( shaderProgram, "vPosition" ),
+	glGetAttribLocation( shaderProgram, "vColor" ),
+	glGetAttribLocation( shaderProgram, "vNormal" ), MVP);
+
+	viewMatrix = glm::lookAt(
+		glm::vec3(50.0f, 50.0f, 200.0f),  // eye position
+		glm::vec3(0),                   // look at position
+		glm::vec3(0.0f, 1.0f, 0.0f) ); // up vect0r
+
+	// set render state values
+	glEnable(GL_DEPTH_TEST);
+	glClearColor(0.7f, 0.7f, 0.7f, 1.0f); // Establishes what color the window will be cleared to.
+}
+
+void keyboard(unsigned char key, int x, int y)
+{
+	switch (key)
+	{
+	case 033: case'q': case'Q':
+		exit(EXIT_SUCCESS);
+		break;
+	}
+	//if (key == 'q' || key == 'Q')
+	//{
+	//	exit(EXIT_SUCCESS);
+	//}
+}
+
+/*
+The main() has a number of tasks:
+* Initialize and open a window
+* Initialize the buffers and parameters by calling init()
+* Specify the callback functions for events
+* Enter an infinite event loop
+*/
+int main(int argc, char** argv)
+{
+	glutInit(&argc, argv); // Initializes GLUT.
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH); // Configure  GLUT options.
+	glutInitWindowSize(1024, 800);
+	glutInitContextVersion(3, 3);
+	glutInitContextProfile(GLUT_CORE_PROFILE);
+
+	// set OpenGL and GLSL versions to 3.3 for Comp 465/L, comment to see highest versions.
+	glutInitContextVersion(3, 3);
+	glutInitContextProfile(GLUT_CORE_PROFILE);
+	glutCreateWindow("Warbird Simulator Phase 1, Use q to quit.");
+
+	/*
+	GLEW manages function pointers for OpenGL so we want to
+	initialize GLEW before we call any OpenGL functions.
+	*/
+	glewExperimental = GL_TRUE;  // Set true to use more modern techniques for managing OpenGL functionality.
+	GLenum err = glewInit(); // Initialize GLEW
+	if (GLEW_OK != err) // Check for any errors. (Must be done after GLUT has been inititalized)
+		printf("GLEW Error: %s \n", glewGetErrorString(err));
+	else {
+		printf("Using GLEW %s \n", glewGetString(GLEW_VERSION));
+		printf("OpenGL %s, GLSL %s\n",
+			glGetString(GL_VERSION),
+			glGetString(GL_SHADING_LANGUAGE_VERSION));
+	}
+	// initialize scene
+	init();
+
+	// set glut callback functions
+	glutDisplayFunc(display); // Continuously called for interacting with the window. 
+	glutReshapeFunc(reshape);
+	glutKeyboardFunc(keyboard);
+
+	glutMainLoop();  // This call passes control to GLUT.
+
+	printf("done\n");
+	return 0;
+}
