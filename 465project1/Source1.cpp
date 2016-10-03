@@ -1,4 +1,5 @@
 /*
+Description: First Phase of Warbird Simulator
 
 Source1.cpp
 
@@ -7,8 +8,12 @@ Source1.cpp
 Shaders:  simpleVertex.glsl and simpleFragment.glsl
 provide flat shading with a fixed light position
 
+Team Members:
 Armand Abrahamian
-9/23/16
+Ben Villalobos
+Bryant 
+
+10/9/16
 */
 
 # define __Windows__
@@ -27,8 +32,8 @@ int Index = 0;  // global variable indexing into VBO arrays
 bool perspective = true;
 
 char fpsStr[15], timerStr[20] = " interval timer";
-char baseStr[50] = "Warbird Simulator Phase 1, Use q to quit.";
-char titleStr[100];
+char baseStr[50];
+char titleStr[100] = "Warbird Simulator Phase 1, Use q to quit, press v or x to switch cameras.";
 
 char * modelFile[nModels] = { "FacePlanet.tri", "WaterPlanet.tri", "spaceShip-bs100.tri" };
 char * cameraNames[5] = { "Front Camera", "Top Camera", "Ship Camera", "Unum Camera", "Duo Camera" };
@@ -85,8 +90,9 @@ void display()
 
 	rotation = glm::rotate(identity, rotateRadian, glm::vec3(0, 1, 0)); // yaw rotation
 
-																		// Associate shader variables with vertex arrays:
-	for (int m = 0; m < nModels; m++) {
+	// Associate shader variables with vertex arrays:
+	for (int m = 0; m < nModels; m++) 
+	{
 		modelMatrix = glm::translate(glm::mat4(), translate[m]) *
 			glm::scale(glm::mat4(), glm::vec3(scale[m]));
 
@@ -133,19 +139,23 @@ void init()
 	glGenBuffers(nModels, buffer);
 
 	// load the buffers from the model files
-	for (int i = 0; i < nModels; i++) {
+	for (int i = 0; i < nModels; i++) 
+	{
 		modelBR[i] = loadModelBuffer(modelFile[i], nVertices[i], VAO[i], buffer[i], shaderProgram,
-			vPosition[i], vColor[i], vNormal[i], "vPosition", "vColor", "vNormal");
+		vPosition[i], vColor[i], vNormal[i], "vPosition", "vColor", "vNormal");
 
 		// set scale for models given bounding radius  
 		scale[i] = glm::vec3(modelSize[i] * 1.0f / modelBR[i]);
 
-		if (modelBR[i] == -1.0f) {
+		if (modelBR[i] == -1.0f) 
+		{
 			printf("loadTriModel error:  returned -1.0f \n");
 			system("pause");
 		}
 		else
+		{
 			printf("loaded %s model with %7.2f bounding radius \n", modelFile[i], modelBR[i]);
+		}
 	}
 
 	MVP = glGetUniformLocation(shaderProgram, "ModelViewProjection");
@@ -223,7 +233,10 @@ void switchCamera(int camera)
 void update(void)
 {
 	rotateRadian += 0.1f;
-	if (rotateRadian >  2 * PI) rotateRadian = 0.0f;
+	if (rotateRadian > 2 * PI)
+	{
+		rotateRadian = 0.0f;
+	}
 	rotation = glm::rotate(identity, rotateRadian, glm::vec3(0, 1, 0));
 	glutPostRedisplay();
 }
@@ -258,7 +271,6 @@ void keyboard(unsigned char key, int x, int y)
 		switchCamera(currentCamera);
 		break;
 	}
-
 }
 
 /*
@@ -279,7 +291,7 @@ int main(int argc, char** argv)
 	// set OpenGL and GLSL versions to 3.3 for Comp 465/L, comment to see highest versions.
 	glutInitContextVersion(3, 3);
 	glutInitContextProfile(GLUT_CORE_PROFILE);
-	glutCreateWindow(baseStr);
+	glutCreateWindow(titleStr);
 
 	/*
 	GLEW manages function pointers for OpenGL so we want to
@@ -288,12 +300,15 @@ int main(int argc, char** argv)
 	glewExperimental = GL_TRUE;  // Set true to use more modern techniques for managing OpenGL functionality.
 	GLenum err = glewInit(); // Initialize GLEW
 	if (GLEW_OK != err) // Check for any errors. (Must be done after GLUT has been inititalized)
+	{
 		printf("GLEW Error: %s \n", glewGetErrorString(err));
-	else {
+	}
+	else 
+	{
 		printf("Using GLEW %s \n", glewGetString(GLEW_VERSION));
 		printf("OpenGL %s, GLSL %s\n",
-			glGetString(GL_VERSION),
-			glGetString(GL_SHADING_LANGUAGE_VERSION));
+		glGetString(GL_VERSION),
+		glGetString(GL_SHADING_LANGUAGE_VERSION));
 	}
 	// initialize scene
 	init();
