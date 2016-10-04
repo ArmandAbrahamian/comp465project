@@ -23,7 +23,7 @@ Bryant
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1;
 // constants for models:  file names, vertex count, model display size
 const int nModels = 3;  // number of models in this scene
-const int nVertices[nModels] = { 264 * 3, 264 * 3, 996 * 3 };
+const int nVertices[nModels] = { 264 * 3, 312 * 3, 996 * 3 };
 
 /* Global Variables: */
 int Index = 0;  // global variable indexing into VBO arrays
@@ -35,12 +35,11 @@ char fpsStr[15], timerStr[20] = " interval timer";
 char baseStr[50];
 char titleStr[100] = "Warbird Simulator Phase 1, Use q to quit, press v or x to switch cameras.";
 
-char * modelFile[nModels] = { "FacePlanet.tri", "WaterPlanet.tri", "spaceShip-bs100.tri" };
+char * modelFile[nModels] = { "Sun.tri", "RingPlanet.tri", "spaceShip-bs100.tri" };
 char * cameraNames[5] = { "Front Camera", "Top Camera", "Ship Camera", "Unum Camera", "Duo Camera" };
 char * vertexShaderFile = "simpleVertex.glsl";
 char * fragmentShaderFile = "simpleFragment.glsl";
-float modelBR[nModels];       // model's bounding radius
-float scaleValue[nModels];    // model's scaling "size" value
+
 GLuint shaderProgram;
 GLuint VAO[nModels];      // Vertex Array Objects
 GLuint buffer[nModels];   // Vertex Buffer Objects
@@ -49,9 +48,10 @@ GLuint buffer[nModels];   // Vertex Buffer Objects
 GLuint MVP;  // Model View Projection matrix's handle
 GLuint vPosition[nModels], vColor[nModels], vNormal[nModels];   // vPosition, vColor, vNormal handles for models
 																// model, view, projection matrices and values to create modelMatrix.
-float modelSize[nModels] = { 25.0f, 30.0f, 50.0f };   // size of model
+float modelBR[nModels];       // model's bounding radius
+float modelSize[nModels] = { 100.0f, 100.0f, 50.0f };   // size of model
 glm::vec3 scale[nModels];       // set in init()
-glm::vec3 translate[nModels] = { glm::vec3(0,0,0), glm::vec3(50, -50, 0), glm::vec3(-150, -50, -50) };
+glm::vec3 translate[nModels] = { glm::vec3(0,0,0), glm::vec3(200, -50, 0), glm::vec3(-250, -50, -50) };
 glm::mat4 modelMatrix;          // set in display()
 glm::mat4 mainCamera;           // set in init()
 glm::mat4 frontCamera;
