@@ -22,8 +22,8 @@ Bryant
 /* Constants: */
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1;
 // constants for models:  file names, vertex count, model display size
-const int nModels = 3;  // number of models in this scene
-const int nVertices[nModels] = { 264 * 3, 312 * 3, 996 * 3 };
+const int nModels = 5;  // number of models in this scene
+const int nVertices[nModels] = { 264 * 3, 312 * 3, 996 * 3, 264*3, 264*3 };
 
 /* Global Variables: */
 int Index = 0;  // global variable indexing into VBO arrays
@@ -34,8 +34,8 @@ bool perspective = true;
 char fpsStr[15], timerStr[20] = " interval timer";
 char baseStr[50];
 char titleStr[100] = "Warbird Simulator Phase 1, Use q to quit, press v or x to switch cameras.";
-
-char * modelFile[nModels] = { "Sun.tri", "RingPlanet.tri", "spaceShip-bs100.tri" };
+//								Ruber		Unum										Duo					primus
+char * modelFile[nModels] = { "Sun.tri", "RingPlanet.tri", "spaceShip-bs100.tri", "FacePlanet.tri", "WaterPlanet.tri" };
 char * cameraNames[5] = { "Front Camera", "Top Camera", "Ship Camera", "Unum Camera", "Duo Camera" };
 char * vertexShaderFile = "simpleVertex.glsl";
 char * fragmentShaderFile = "simpleFragment.glsl";
@@ -49,9 +49,10 @@ GLuint MVP;  // Model View Projection matrix's handle
 GLuint vPosition[nModels], vColor[nModels], vNormal[nModels];   // vPosition, vColor, vNormal handles for models
 																// model, view, projection matrices and values to create modelMatrix.
 float modelBR[nModels];       // model's bounding radius
-float modelSize[nModels] = { 100.0f, 100.0f, 50.0f };   // size of model
+float modelSize[nModels] = { 2000.0f, 200.0f, 100.0f, 400.0f, 100.0f };   // size of model
 glm::vec3 scale[nModels];       // set in init()
-glm::vec3 translate[nModels] = { glm::vec3(0,0,0), glm::vec3(200, -50, 0), glm::vec3(-250, -50, -50) };
+//									ruber				unum					ship						duo						primus
+glm::vec3 translate[nModels] = { glm::vec3(0,0,0), glm::vec3(4000, -50, 0), glm::vec3(5000, 1000, 5000), glm::vec3(9000, 0, 0), glm::vec3(8100, 0, 0) };
 glm::mat4 modelMatrix;          // set in display()
 glm::mat4 mainCamera;           // set in init()
 glm::mat4 frontCamera;
@@ -179,18 +180,18 @@ void init()
 		glm::vec3(1.0f, 0.0f, 0.0f)); // up vect0r
 
 	shipCamera = glm::lookAt(
-		glm::vec3(0, 300, 1000),  // eye position
-		glm::vec3(0, 300, 0),                   // look at position
+		glm::vec3(5200, 1100, 5000),  // eye position
+		glm::vec3(0, 0, 0),                   // look at position
 		glm::vec3(0.0f, 1.0f, 0.0f)); // up vect0r
 
 	unumCamera = glm::lookAt(
-		glm::vec3(0, 0.0f, -800),  // eye position
-		glm::vec3(vPosition[0]), // Looks at unum, assuming [0] is unum
+		glm::vec3(0, 0.0f, -8000),  // eye position
+		glm::vec3(translate[1]), // Looks at unum assuming [1] is unum
 		glm::vec3(0.0f, 1.0f, 0.0f)); // up vect0r
 
 	duoCamera = glm::lookAt(
-		glm::vec3(0, 0.0f, -800),  // eye position
-		glm::vec3(vPosition[1]), //Looks at duo, assuming [1] is duo
+		glm::vec3(0, 0.0f, -8000),  // eye position
+		glm::vec3(translate[3]), //Looks at duo, assuming [3] is duo
 		glm::vec3(0.0f, 1.0f, 0.0f)); // up vect0r
 
 	mainCamera = frontCamera;
