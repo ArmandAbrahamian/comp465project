@@ -11,7 +11,7 @@ provide flat shading with a fixed light position
 Team Members:
 Armand Abrahamian
 Ben Villalobos
-Bryant 
+Bryant Barron
 
 10/9/16
 */
@@ -22,16 +22,16 @@ Bryant
 
 /* Constants: */
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1;
-const int nModels = 5;  // number of models in this scene
-const int nVertices[nModels] = { 264 * 3, 312 * 3, 264 * 3, 264 * 3, 996 * 3 }; // vertex count
+const int nModels = 7;  // number of models in this scene
+const int nVertices[nModels] = { 264 * 3, 312 * 3, 264 * 3, 264 * 3, 264 * 3, 996 * 3, 14 * 3}; // vertex count
 
 SpaceBody * spaceBody[nModels];
 
 /* Models: */
 float modelBR[nModels];       // model's bounding radius
-float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 100.0f };   // size of model
-//								Ruber		Unum			Duo					primus
-char * modelFile[nModels] = { "Sun.tri", "RingPlanet.tri", "FacePlanet.tri", "WaterPlanet.tri", "spaceShip-bs100.tri", };
+	float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 100.0f, 25.0f};   // size of model
+	//								Ruber		Unum			Duo					primus		secundus
+char * modelFile[nModels] = { "Sun.tri", "RingPlanet.tri", "FacePlanet.tri", "WaterPlanet.tri", "BlownUpPlanet.tri", "spaceShip-bs100.tri", "obelisk-10-20-10.tri"};
 glm::vec3 scale[nModels];       // set in init()
 glm::mat4 translationMatrix[nModels];
 
@@ -45,8 +45,8 @@ char cameraStr[20] = ", Front Camera";
 GLuint MVP;  // Model View Projection matrix's handle
 GLuint vPosition[nModels], vColor[nModels], vNormal[nModels];   // vPosition, vColor, vNormal handles for models
 																// model, view, projection matrices and values to create modelMatrix.
-//										ruber				unum					duo						primus					ship
-glm::vec3 translatePosition[nModels] = { glm::vec3(0,0,0), glm::vec3(4000, -50, 0), glm::vec3(9000, 0, 0), glm::vec3(8100, 0, 0), glm::vec3(5000, 1000, 5000) };
+//										ruber				unum					duo						primus					secundus			ship						missle
+glm::vec3 translatePosition[nModels] = { glm::vec3(0,0,0), glm::vec3(4000, -50, 0), glm::vec3(9000, 0, 0), glm::vec3(8100, 0, 0),glm::vec3(7250,0,0), glm::vec3(5000, 1000, 5000), glm::vec3(4900,1000,4850)};
 glm::mat4 modelMatrix[nModels];          // set in display()
 glm::mat4 projectionMatrix;     // set in reshape()
 glm::mat4 ModelViewProjectionMatrix; // set in display();
@@ -75,6 +75,7 @@ glm::vec3 eye, at, up; // vectors and values for lookAt.
 /* Rotational variables */
 GLfloat radians = 0.004f;
 GLfloat radians2 = 0.002f;
+
 glm::mat4 identityMatrix(1.0f); // initialized identity matrix.
 glm::mat4 rotationMatrix;
 glm::vec3 rotationalAxis(0.0f, 1.0f, 0.0f);
@@ -219,19 +220,31 @@ void display()
 		glBindVertexArray(VAO[m]); // set model for its instance. Have to rebind everytime its changed.
 		translationMatrix[m] = glm::translate(identityMatrix, translatePosition[m]);
 		// If it's the ship or sun model don't apply an orbital rotation.
-		if (m == nModels - 1 || m == 0)
+		if (m == nModels - 1 || m == 0 || m == 6 || m == 5)
 		{
 			modelMatrix[m] = translationMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m])); 
 		}
-		// If its one of the moons, orbit around planet.
-		else if(m == 3)
+		else if (m == 2)
 		{
-			transformMatrix[m] = transformMatrix[2] * moonRotationMatrix * glm::translate(identityMatrix, (translatePosition[m] - translatePosition[m - 1]) );
+			transformMatrix[m] = moonRotationMatrix * translationMatrix[m];
+			modelMatrix[m] = transformMatrix[m] *
+				glm::scale(identityMatrix, glm::vec3(scale[m]));
+		}
+		// If its one of the moons, orbit around planet.
+		else if(m == 3 )
+		{
+			transformMatrix[m] = transformMatrix[2] * rotationMatrix * glm::translate(identityMatrix, (translatePosition[m] - translatePosition[m - 1]) );
 			modelMatrix[m] = transformMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m]));
 			//showMat4("rotation", moonRotationMatrix);
-			//showMat4("transform", transformMatrix);
+			//showMat4("transform", transformMatrix[m]);
+		}
+		else if (m == 4)
+		{
+			transformMatrix[m] = transformMatrix[2] * moonRotationMatrix * glm::translate(identityMatrix, (translatePosition[m] - translatePosition[m - 1]));
+			modelMatrix[m] = transformMatrix[m] *
+				glm::scale(identityMatrix, glm::vec3(scale[m]));
 		}
 		else
 		{
@@ -239,7 +252,7 @@ void display()
 			modelMatrix[m] = transformMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m])); // oribital rotation = rotationMatrix * translationMatrix
 			//showMat4("rotation", rotationMatrix);
-			//showMat4("transform", transformMatrix);
+			//showMat4("transform", transformMatrix[m]);
 		}
 
 		ModelViewProjectionMatrix = projectionMatrix * mainCamera * modelMatrix[m];
@@ -267,7 +280,7 @@ void update(int i)
 {
 	glutTimerFunc(timerDelay, update, 1); // glutTimerFunc(time, fn, arg). This sets fn() to be called after time millisecond with arg as an argument to fn().
 	rotationMatrix = glm::rotate(rotationMatrix, radians, rotationalAxis);
-	moonRotationMatrix = glm::rotate(moonRotationMatrix, radians, rotationalAxis);
+	moonRotationMatrix = glm::rotate(moonRotationMatrix, radians2, rotationalAxis);
 	//for (int i = 0; i < nModels; i++)
 	//{
 	//	spaceBody[i]->update(radians, rotationalAxis);
