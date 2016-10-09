@@ -19,7 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source1.cpp" />
+    <ClCompile Include="Source.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="SpaceBody.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{12087D28-1F55-43F5-84FE-AB2C584607BA}</ProjectGuid>
