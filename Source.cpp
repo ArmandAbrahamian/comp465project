@@ -11,7 +11,7 @@ provide flat shading with a fixed light position
 Team Members:
 Armand Abrahamian
 Ben Villalobos
-Bryant 
+Bryant Barron
 
 10/9/16
 */
