@@ -36,10 +36,10 @@ glm::vec3 scale[nModels];       // set in init()
 glm::mat4 translationMatrix[nModels];
 
 /* Display state and "state strings" for title display */
-char titleStr[120];
-char fpsStr[15], timerStr[20] = ", U/S 200";
-char baseStr[60] = "Warbird Simulator: q = quit, v or x = switch cameras";
-char cameraStr[20] = ", Front Camera";
+char titleStr[160];
+char fpsStr[15], timerStr[20] = "| U/S 200 ";
+char baseStr[90] = "Warbird Simulator: {v(next), x(previous) camera} | Warbird ? | Unum ? | Secundus ? ";
+char cameraStr[30] = "| View: Front Camera";
 
 /* Shader handles, matrices, etc */
 GLuint MVP;  // Model View Projection matrix's handle
@@ -267,7 +267,7 @@ void display()
 	timeInterval = currentTime - lastTime;
 	if (timeInterval >= 1000)
 	{
-		sprintf(fpsStr, ", F/S %4d", (int)(frameCount / (timeInterval / 1000.0f)));
+		sprintf(fpsStr, "| F/S %4d ", (int)(frameCount / (timeInterval / 1000.0f)));
 		lastTime = currentTime;
 		frameCount = 0;
 		updateTitle();
@@ -320,7 +320,7 @@ void switchCamera(int camera)
 	default:
 		return;
 	}
-	sprintf(cameraStr, ", %s", cameraNames[camera]);
+	sprintf(cameraStr, "| View: %s", cameraNames[camera]);
 	printf("Current Camera: %s\n", cameraNames[camera]);
 	display();
 }
@@ -329,9 +329,6 @@ void keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
-	case 033: case'q': case'Q':
-		exit(EXIT_SUCCESS);
-		break;
 	case 'v': case 'V':
 		currentCamera = (currentCamera + 1) % maxCameras;
 		switchCamera(currentCamera);
