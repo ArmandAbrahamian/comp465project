@@ -1,8 +1,10 @@
 /*
-Description: First Phase of Warbird Simulator
+Second Phase of Warbird Simulator.
 
-Source1.cpp
+Description: The Warbird's camera, movement, and warp capabilities, gravity, missle sites, 
+and intelligens-semita missles are added to the simulation in this phase.
 
+File: Source1.cpp
 465 utility include files:  shader465.hpp, triModel465.hpp
 
 Shaders:  simpleVertex.glsl and simpleFragment.glsl
@@ -13,7 +15,8 @@ Armand Abrahamian
 Ben Villalobos
 Bryant Barron
 
-10/9/16
+COMP 465 - Fall 2016
+11/20/16
 */
 
 # define __Windows__
@@ -24,16 +27,20 @@ Bryant Barron
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1;
 const int nModels = 7;  // number of models in this scene
 const int nVertices[nModels] = { 264 * 3, 312 * 3, 264 * 3, 264 * 3, 264 * 3, 996 * 3, 14 * 3}; // vertex count
+const int numOfDynamicCameras = 3;
 
 SpaceBody * spaceBody[nModels];
 
 /* Models: */
 float modelBR[nModels];       // model's bounding radius
-	float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 100.0f, 25.0f};   // size of model
-	//								Ruber		Unum			Duo					primus		secundus
+float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 100.0f, 25.0f};   // size of model
+//								Ruber		Unum			Duo					primus			secundus				SpaceShip				missle
 char * modelFile[nModels] = { "Sun.tri", "RingPlanet.tri", "FacePlanet.tri", "WaterPlanet.tri", "BlownUpPlanet.tri", "spaceShip-bs100.tri", "obelisk-10-20-10.tri"};
 glm::vec3 scale[nModels];       // set in init()
 glm::mat4 translationMatrix[nModels];
+//										ruber				unum					duo						primus					secundus			ship						missle
+glm::vec3 translatePosition[nModels] = { glm::vec3(0,0,0), glm::vec3(4000, -50, 0), glm::vec3(9000, 0, 0), glm::vec3(8100, 0, 0),glm::vec3(7250,0,0), glm::vec3(5000, 1000, 5000), glm::vec3(4900,1000,4850) };
+glm::vec3 newTranslatePosititon[nModels];
 
 /* Display state and "state strings" for title display */
 char titleStr[160];
@@ -45,11 +52,11 @@ char cameraStr[30] = "| View: Front Camera";
 GLuint MVP;  // Model View Projection matrix's handle
 GLuint vPosition[nModels], vColor[nModels], vNormal[nModels];   // vPosition, vColor, vNormal handles for models
 																// model, view, projection matrices and values to create modelMatrix.
-//										ruber				unum					duo						primus					secundus			ship						missle
-glm::vec3 translatePosition[nModels] = { glm::vec3(0,0,0), glm::vec3(4000, -50, 0), glm::vec3(9000, 0, 0), glm::vec3(8100, 0, 0),glm::vec3(7250,0,0), glm::vec3(5000, 1000, 5000), glm::vec3(4900,1000,4850)};
 glm::mat4 modelMatrix[nModels];          // set in display()
+glm::mat4 viewMatrix;
 glm::mat4 projectionMatrix;     // set in reshape()
 glm::mat4 ModelViewProjectionMatrix; // set in display();
+
 
 char * vertexShaderFile = "simpleVertex.glsl";
 char * fragmentShaderFile = "simpleFragment.glsl";
@@ -66,6 +73,7 @@ glm::mat4 topCamera;
 glm::mat4 shipCamera;
 glm::mat4 unumCamera;
 glm::mat4 duoCamera;
+glm::mat4 dynamicCameras[3] = { shipCamera, unumCamera, duoCamera };
 
 int currentCamera = 0;
 int maxCameras = 5;
@@ -76,16 +84,16 @@ glm::vec3 eye, at, up; // vectors and values for lookAt.
 GLfloat radians = 0.004f;
 GLfloat radians2 = 0.002f;
 
-glm::mat4 identityMatrix(1.0f); // initialized identity matrix.
-glm::mat4 rotationMatrix;
-glm::vec3 rotationalAxis(0.0f, 1.0f, 0.0f);
 float eyeDistanceMultiplier = 10.0f;
 float eyeDistance;
+
+glm::mat4 identityMatrix(1.0f); // initialized identity matrix.
 glm::mat4 moonRotationMatrix;
 glm::mat4 transformMatrix[nModels];
+glm::mat4 rotationMatrix;
+glm::vec3 rotationalAxis(0.0f, 1.0f, 0.0f);
 
 int timerDelay = 5, frameCount = 0; // A delay of 5 milliseconds is 200 updates / second
-// int timerDelay = 40, frameCount = 0; // A delay of 40 milliseconds is 25 updates / second
 double currentTime, lastTime, timeInterval;
 bool idleTimerFlag = false;  // interval or idle timer ?
 
@@ -237,6 +245,7 @@ void display()
 			transformMatrix[m] = transformMatrix[2] * rotationMatrix * glm::translate(identityMatrix, (translatePosition[m] - translatePosition[m - 1]) );
 			modelMatrix[m] = transformMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m]));
+			// For Debugging:
 			//showMat4("rotation", moonRotationMatrix);
 			//showMat4("transform", transformMatrix[m]);
 		}
@@ -251,6 +260,7 @@ void display()
 			transformMatrix[m] = rotationMatrix * translationMatrix[m];
 			modelMatrix[m] = transformMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m])); // oribital rotation = rotationMatrix * translationMatrix
+			// For Debugging:
 			//showMat4("rotation", rotationMatrix);
 			//showMat4("transform", transformMatrix[m]);
 		}
@@ -281,6 +291,10 @@ void update(int i)
 	glutTimerFunc(timerDelay, update, 1); // glutTimerFunc(time, fn, arg). This sets fn() to be called after time millisecond with arg as an argument to fn().
 	rotationMatrix = glm::rotate(rotationMatrix, radians, rotationalAxis);
 	moonRotationMatrix = glm::rotate(moonRotationMatrix, radians2, rotationalAxis);
+	//for (int index = 0; index < num; index++)
+	//{
+
+	//}
 	//for (int i = 0; i < nModels; i++)
 	//{
 	//	spaceBody[i]->update(radians, rotationalAxis);
@@ -325,6 +339,11 @@ void switchCamera(int camera)
 	display();
 }
 
+void handleCameraLogic(int camera)
+{
+	;
+}
+
 void keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
@@ -341,6 +360,38 @@ void keyboard(unsigned char key, int x, int y)
 		currentCamera = (currentCamera - 1) % maxCameras;
 		switchCamera(currentCamera);
 		break;
+	
+	}
+}
+
+void handleSpecialKeypress(int key, int x, int y)
+{
+	switch (key)
+	{
+		case GLUT_KEY_UP:
+			if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
+			{
+				;
+			}
+			break;
+		case GLUT_KEY_DOWN:
+			if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
+			{
+				;
+			}
+			break;
+		case GLUT_KEY_LEFT:
+			if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
+			{
+				;
+			}
+			break;
+		case GLUT_KEY_RIGHT:
+			if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
+			{
+				;
+			}
+			break;
 	}
 }
 
@@ -388,11 +439,12 @@ int main(int argc, char** argv)
 	glutDisplayFunc(display); // Continuously called for interacting with the window. 
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(keyboard);
+	glutSpecialFunc(handleSpecialKeypress);
 
 	glutIdleFunc(NULL); // start with intervalTimer
 	glutTimerFunc(timerDelay, update, 1); // glutTimerFunc(time, fn, arg). This sets fn() to be called after time millisecond with arg as an argument to fn().
 
-	glutMainLoop();  // This call passes control to GLUT.
+	glutMainLoop();  // This call passes control to enter GLUT event processing cycle.
 
 	printf("done\n");
 	return 0;
