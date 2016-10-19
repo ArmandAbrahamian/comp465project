@@ -40,7 +40,6 @@ glm::vec3 scale[nModels];       // set in init()
 glm::mat4 translationMatrix[nModels];
 //										ruber				unum					duo						primus					secundus			ship						missle
 glm::vec3 translatePosition[nModels] = { glm::vec3(0,0,0), glm::vec3(4000, -50, 0), glm::vec3(9000, 0, 0), glm::vec3(8100, 0, 0),glm::vec3(7250,0,0), glm::vec3(5000, 1000, 5000), glm::vec3(4900,1000,4850) };
-glm::vec3 newTranslatePosititon[nModels];
 
 /* Display state and "state strings" for title display */
 char titleStr[160];
@@ -56,7 +55,6 @@ glm::mat4 modelMatrix[nModels];          // set in display()
 glm::mat4 viewMatrix;
 glm::mat4 projectionMatrix;     // set in reshape()
 glm::mat4 ModelViewProjectionMatrix; // set in display();
-
 
 char * vertexShaderFile = "simpleVertex.glsl";
 char * fragmentShaderFile = "simpleFragment.glsl";
@@ -227,19 +225,20 @@ void display()
 	{
 		glBindVertexArray(VAO[m]); // set model for its instance. Have to rebind everytime its changed.
 		translationMatrix[m] = glm::translate(identityMatrix, translatePosition[m]);
-		// If it's the ship or sun model don't apply an orbital rotation.
-		if (m == nModels - 1 || m == 0 || m == 6 || m == 5)
+		// If it's Ruber, SpaceShip, or missle model don't apply an orbital rotation.
+		if (m == 0 || m == 5 || m == 6 )
 		{
 			modelMatrix[m] = translationMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m])); 
 		}
+		// If it's Duo:
 		else if (m == 2)
 		{
 			transformMatrix[m] = moonRotationMatrix * translationMatrix[m];
 			modelMatrix[m] = transformMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m]));
 		}
-		// If its one of the moons, orbit around planet.
+		// If its Primus, one of the moons, orbit around planet Duo.
 		else if(m == 3 )
 		{
 			transformMatrix[m] = transformMatrix[2] * rotationMatrix * glm::translate(identityMatrix, (translatePosition[m] - translatePosition[m - 1]) );
@@ -249,11 +248,13 @@ void display()
 			//showMat4("rotation", moonRotationMatrix);
 			//showMat4("transform", transformMatrix[m]);
 		}
+		// If its Secundus, one of the moons, orbit around planet Duo.
 		else if (m == 4)
 		{
 			transformMatrix[m] = transformMatrix[2] * moonRotationMatrix * glm::translate(identityMatrix, (translatePosition[m] - translatePosition[m - 1]));
 			modelMatrix[m] = transformMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m]));
+
 		}
 		else
 		{
@@ -264,7 +265,6 @@ void display()
 			//showMat4("rotation", rotationMatrix);
 			//showMat4("transform", transformMatrix[m]);
 		}
-
 		ModelViewProjectionMatrix = projectionMatrix * mainCamera * modelMatrix[m];
 		glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
 		glDrawArrays(GL_TRIANGLES, 0, nVertices[m]);  // Initializes vertex shader, for contiguous groups of vertices.
@@ -291,10 +291,6 @@ void update(int i)
 	glutTimerFunc(timerDelay, update, 1); // glutTimerFunc(time, fn, arg). This sets fn() to be called after time millisecond with arg as an argument to fn().
 	rotationMatrix = glm::rotate(rotationMatrix, radians, rotationalAxis);
 	moonRotationMatrix = glm::rotate(moonRotationMatrix, radians2, rotationalAxis);
-	//for (int index = 0; index < num; index++)
-	//{
-
-	//}
 	//for (int i = 0; i < nModels; i++)
 	//{
 	//	spaceBody[i]->update(radians, rotationalAxis);
