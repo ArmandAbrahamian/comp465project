@@ -23,16 +23,11 @@ COMP 465 - Fall 2016
 # include "../includes465/include465.hpp"
 # include "SpaceBody.h"
 
-/* Constants: */
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1;
-const int nModels = 7;  // number of models in this scene
-const int nVertices[nModels] = { 264 * 3, 312 * 3, 264 * 3, 264 * 3, 264 * 3, 996 * 3, 14 * 3}; // vertex count
-const glm::vec3 upVector(0.0f, 1.0f, 0.0f);
-const glm::vec3 topVector(1.0f, 0.0f, 0.0f);
-
-SpaceBody * spaceBody[nModels];
 
 /* Models: */
+const int nModels = 7;  // number of models in this scene
+const int nVertices[nModels] = { 264 * 3, 312 * 3, 264 * 3, 264 * 3, 264 * 3, 996 * 3, 14 * 3 }; // vertex count
 float modelBR[nModels];       // model's bounding radius
 float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 100.0f, 25.0f};   // size of model
 //								Ruber		Unum			Duo					primus			secundus				SpaceShip				missle
@@ -41,6 +36,7 @@ glm::vec3 scale[nModels];       // set in init()
 glm::mat4 translationMatrix[nModels];
 //										ruber				unum					duo						primus					secundus			ship						missle
 glm::vec3 translatePosition[nModels] = { glm::vec3(0,0,0), glm::vec3(4000, -50, 0), glm::vec3(9000, 0, 0), glm::vec3(8100, 0, 0),glm::vec3(7250,0,0), glm::vec3(5000, 1000, 5000), glm::vec3(4900,1000,4850) };
+SpaceBody * spaceBody[nModels];
 
 /* Display state and "state strings" for title display */
 char titleStr[160];
@@ -76,7 +72,8 @@ glm::mat4 duoCamera;
 int currentCamera = 0;
 int maxCameras = 5;
 
-glm::vec3 eye, at, up; // vectors and values for lookAt.
+const glm::vec3 upVector(0.0f, 1.0f, 0.0f);
+const glm::vec3 topVector(1.0f, 0.0f, 0.0f);
 glm::vec3 shipCamEyePosition(5000, 1300, 6000);
 glm::vec3 planetCamEyePosition(0, 0.0f, -8000);
 glm::vec3 topCamEyePosition(0, 20000.0f, 0);
@@ -141,29 +138,29 @@ void init()
 	//THE PLANETS ARE TOO SMALL. If you want to see them, decrease the
 	//10000 and 20000 to 1000 and 2000 or smaller
 	frontCamera = glm::lookAt(
-		glm::vec3(0.0f, 10000.0f, 20000.0f),  // eye position (in world space)
-		glm::vec3(0),                   // look at position (looks at the origin)
-		glm::vec3(0.0f, 1.0f, 0.0f)); // up vect0r (head is up, set to 0,-1,0 to look upside down)
+		frontCamEyePosition,  // eye position (in world space)
+		translatePosition[0],                   // look at position (looks at the origin)
+		upVector); // up vect0r (head is up, set to 0,-1,0 to look upside down)
 
 	topCamera = glm::lookAt(
-		glm::vec3(0, 20000.0f, 0),  // eye position
-		glm::vec3(0),                   // look at position
-		glm::vec3(1.0f, 0.0f, 0.0f)); // up vect0r
+		topCamEyePosition,  // eye position
+		translatePosition[0],                   // look at position
+		topVector); // up vect0r
 
 	unumCamera = glm::lookAt(
-		glm::vec3(0, 0.0f, -8000),  // eye position
-		glm::vec3(translatePosition[1]), // Looks at unum assuming [1] is unum
-		glm::vec3(0.0f, 1.0f, 0.0f)); // up vect0r
+		planetCamEyePosition,  // eye position
+		translatePosition[1], // Looks at unum assuming [1] is unum
+		upVector); // up vect0r
 
 	duoCamera = glm::lookAt(
-		glm::vec3(0, 0.0f, -8000),  // eye position
-		glm::vec3(translatePosition[3]), //Looks at duo, assuming [3] is duo
-		glm::vec3(0.0f, 1.0f, 0.0f)); // up vect0r
+		planetCamEyePosition,  // eye position
+		translatePosition[3], //Looks at duo, assuming [3] is duo
+		upVector); // up vect0r
 
 	shipCamera = glm::lookAt(
-		glm::vec3(5000, 1300, 6000),  // eye position
-		glm::vec3(translatePosition[5]),           // look at position
-		glm::vec3(0.0f, 1.0f, 0.0f)); // up vect0r
+		shipCamEyePosition,  // eye position
+		translatePosition[5],           // look at position
+		upVector); // up vect0r
 
 	mainCamera = frontCamera;
 
@@ -241,7 +238,13 @@ void display()
 			transformMatrix[m] = moonRotationMatrix * translationMatrix[m];
 			modelMatrix[m] = transformMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m]));
-			duoCamera = glm::lookAt(getPosition(transformMatrix[m]);
+
+			// Update Duo's Camera:
+			if(currentCamera == 4)
+			{
+				duoCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[2], planetCamEyePosition)), getPosition(transformMatrix[2]), upVector);
+				mainCamera = duoCamera;
+			}
 		}
 		// If its Primus, one of the moons, orbit around planet Duo.
 		else if(m == 3 )
@@ -270,6 +273,7 @@ void display()
 			//showMat4("rotation", rotationMatrix);
 			//showMat4("transform", transformMatrix[m]);
 		}
+
 		viewMatrix = &mainCamera;
 		ModelViewProjectionMatrix = projectionMatrix * *viewMatrix * modelMatrix[m];
 		glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
@@ -341,7 +345,7 @@ void switchCamera(int camera)
 	display();
 }
 
-void handleCameraLogic(int camera)
+void updateCamera(int camera)
 {
 	;
 }
