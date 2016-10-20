@@ -22,6 +22,11 @@
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\includes465\glmUtils465.hpp" />
+    <ClInclude Include="..\includes465\include465.hpp" />
+    <ClInclude Include="..\includes465\shader465.hpp" />
+    <ClInclude Include="..\includes465\texture.hpp" />
+    <ClInclude Include="..\includes465\triModel465.hpp" />
     <ClInclude Include="SpaceBody.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

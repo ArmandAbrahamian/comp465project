@@ -27,7 +27,8 @@ COMP 465 - Fall 2016
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1;
 const int nModels = 7;  // number of models in this scene
 const int nVertices[nModels] = { 264 * 3, 312 * 3, 264 * 3, 264 * 3, 264 * 3, 996 * 3, 14 * 3}; // vertex count
-const int numOfDynamicCameras = 3;
+const glm::vec3 upVector(0.0f, 1.0f, 0.0f);
+const glm::vec3 topVector(1.0f, 0.0f, 0.0f);
 
 SpaceBody * spaceBody[nModels];
 
@@ -52,7 +53,7 @@ GLuint MVP;  // Model View Projection matrix's handle
 GLuint vPosition[nModels], vColor[nModels], vNormal[nModels];   // vPosition, vColor, vNormal handles for models
 																// model, view, projection matrices and values to create modelMatrix.
 glm::mat4 modelMatrix[nModels];          // set in display()
-glm::mat4 viewMatrix;
+glm::mat4 * viewMatrix;
 glm::mat4 projectionMatrix;     // set in reshape()
 glm::mat4 ModelViewProjectionMatrix; // set in display();
 
@@ -71,12 +72,15 @@ glm::mat4 topCamera;
 glm::mat4 shipCamera;
 glm::mat4 unumCamera;
 glm::mat4 duoCamera;
-glm::mat4 dynamicCameras[3] = { shipCamera, unumCamera, duoCamera };
 
 int currentCamera = 0;
 int maxCameras = 5;
 
 glm::vec3 eye, at, up; // vectors and values for lookAt.
+glm::vec3 shipCamEyePosition(5000, 1300, 6000);
+glm::vec3 planetCamEyePosition(0, 0.0f, -8000);
+glm::vec3 topCamEyePosition(0, 20000.0f, 0);
+glm::vec3 frontCamEyePosition(0.0f, 10000.0f, 20000.0f);
 
 /* Rotational variables */
 GLfloat radians = 0.004f;
@@ -157,8 +161,8 @@ void init()
 		glm::vec3(0.0f, 1.0f, 0.0f)); // up vect0r
 
 	shipCamera = glm::lookAt(
-		glm::vec3(5200, 1100, 5000),  // eye position
-		glm::vec3(0, 0, 0),                   // look at position
+		glm::vec3(5000, 1300, 6000),  // eye position
+		glm::vec3(translatePosition[5]),           // look at position
 		glm::vec3(0.0f, 1.0f, 0.0f)); // up vect0r
 
 	mainCamera = frontCamera;
@@ -237,6 +241,7 @@ void display()
 			transformMatrix[m] = moonRotationMatrix * translationMatrix[m];
 			modelMatrix[m] = transformMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m]));
+			duoCamera = glm::lookAt(getPosition(transformMatrix[m]);
 		}
 		// If its Primus, one of the moons, orbit around planet Duo.
 		else if(m == 3 )
@@ -265,7 +270,8 @@ void display()
 			//showMat4("rotation", rotationMatrix);
 			//showMat4("transform", transformMatrix[m]);
 		}
-		ModelViewProjectionMatrix = projectionMatrix * mainCamera * modelMatrix[m];
+		viewMatrix = &mainCamera;
+		ModelViewProjectionMatrix = projectionMatrix * *viewMatrix * modelMatrix[m];
 		glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
 		glDrawArrays(GL_TRIANGLES, 0, nVertices[m]);  // Initializes vertex shader, for contiguous groups of vertices.
 	}
@@ -369,9 +375,17 @@ void handleSpecialKeypress(int key, int x, int y)
 			{
 				;
 			}
+			else
+			{
+				;
+			}
 			break;
 		case GLUT_KEY_DOWN:
 			if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
+			{
+				;
+			}
+			else
 			{
 				;
 			}
@@ -381,9 +395,17 @@ void handleSpecialKeypress(int key, int x, int y)
 			{
 				;
 			}
+			else
+			{
+				;
+			}
 			break;
 		case GLUT_KEY_RIGHT:
 			if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
+			{
+				;
+			}
+			else
 			{
 				;
 			}

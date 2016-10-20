@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="includes465">
+      <UniqueIdentifier>{1299e823-404a-460a-acf1-731510eebf84}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -22,6 +25,21 @@
   <ItemGroup>
     <ClInclude Include="SpaceBody.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\includes465\triModel465.hpp">
+      <Filter>includes465</Filter>
+    </ClInclude>
+    <ClInclude Include="..\includes465\glmUtils465.hpp">
+      <Filter>includes465</Filter>
+    </ClInclude>
+    <ClInclude Include="..\includes465\include465.hpp">
+      <Filter>includes465</Filter>
+    </ClInclude>
+    <ClInclude Include="..\includes465\shader465.hpp">
+      <Filter>includes465</Filter>
+    </ClInclude>
+    <ClInclude Include="..\includes465\texture.hpp">
+      <Filter>includes465</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
