@@ -1,7 +1,7 @@
 /*
 Second Phase of Warbird Simulator.
 
-Description: The Warbird's camera, movement, and warp capabilities, gravity, missle sites, 
+Description: The Warbird's camera, movement, and warp capabilities, gravity, missle sites,
 and intelligens-semita missles are added to the simulation in this phase.
 
 File: Source1.cpp
@@ -23,15 +23,17 @@ COMP 465 - Fall 2016
 # include "../includes465/include465.hpp"
 # include "SpaceBody.h"
 
-const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1;
+const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1,
+RUBERINDEX = 0, UNUMINDEX = 1, DUOINDEX = 2, PRIMUSINDEX = 3, SECUNDUSINDEX = 4, SHIPINDEX = 5, MISSILEINDEX = 6,
+FRONTCAMERAINDEX = 0, TOPCAMERAINDEX = 1, SHIPCAMERAINDEX = 2, UNUMCAMERAINDEX = 3, DUOCAMERAINDEX = 4;
 
 /* Models: */
 const int nModels = 7;  // number of models in this scene
 const int nVertices[nModels] = { 264 * 3, 312 * 3, 264 * 3, 264 * 3, 264 * 3, 996 * 3, 14 * 3 }; // vertex count
 float modelBR[nModels];       // model's bounding radius
-float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 100.0f, 25.0f};   // size of model
-//								Ruber		Unum			Duo					primus			secundus				SpaceShip				missle
-char * modelFile[nModels] = { "Sun.tri", "RingPlanet.tri", "FacePlanet.tri", "WaterPlanet.tri", "BlownUpPlanet.tri", "spaceShip-bs100.tri", "obelisk-10-20-10.tri"};
+float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 100.0f, 25.0f };   // size of model
+																						 //								Ruber		Unum			Duo					primus			secundus				SpaceShip				missle
+char * modelFile[nModels] = { "Sun.tri", "RingPlanet.tri", "FacePlanet.tri", "WaterPlanet.tri", "BlownUpPlanet.tri", "spaceShip-bs100.tri", "obelisk-10-20-10.tri" };
 glm::vec3 scale[nModels];       // set in init()
 glm::mat4 translationMatrix[nModels];
 //										ruber				unum					duo						primus					secundus			ship						missle
@@ -60,7 +62,7 @@ GLuint shaderProgram;
 GLuint VAO[nModels];      // Vertex Array Objects
 GLuint buffer[nModels];   // Vertex Buffer Objects
 
-/* Camera: */
+						  /* Camera: */
 char * cameraNames[5] = { "Front Camera", "Top Camera", "Ship Camera", "Unum Camera", "Duo Camera" };
 glm::mat4 mainCamera;           // set in init()
 glm::mat4 frontCamera;
@@ -96,7 +98,7 @@ int timerDelay = 5, frameCount = 0; // A delay of 5 milliseconds is 200 updates 
 double currentTime, lastTime, timeInterval;
 bool idleTimerFlag = false;  // interval or idle timer ?
 
-// To maximize efficiency, operations that only need to be called once are called in init().
+							 // To maximize efficiency, operations that only need to be called once are called in init().
 void init()
 {
 	// load the shader programs
@@ -139,27 +141,27 @@ void init()
 	//10000 and 20000 to 1000 and 2000 or smaller
 	frontCamera = glm::lookAt(
 		frontCamEyePosition,  // eye position (in world space)
-		translatePosition[0],                   // look at position (looks at the origin)
+		translatePosition[RUBERINDEX],                   // look at position (looks at the origin)
 		upVector); // up vect0r (head is up, set to 0,-1,0 to look upside down)
 
 	topCamera = glm::lookAt(
 		topCamEyePosition,  // eye position
-		translatePosition[0],                   // look at position
+		translatePosition[RUBERINDEX],                   // look at position
 		topVector); // up vect0r
 
 	unumCamera = glm::lookAt(
 		planetCamEyePosition,  // eye position
-		translatePosition[1], // Looks at unum assuming [1] is unum
+		translatePosition[UNUMINDEX], // Looks at unum assuming [1] is unum
 		upVector); // up vect0r
 
 	duoCamera = glm::lookAt(
 		planetCamEyePosition,  // eye position
-		translatePosition[3], //Looks at duo, assuming [3] is duo
+		translatePosition[DUOINDEX], //Looks at duo, assuming [3] is duo
 		upVector); // up vect0r
 
 	shipCamera = glm::lookAt(
 		shipCamEyePosition,  // eye position
-		translatePosition[5],           // look at position
+		translatePosition[SHIPINDEX],           // look at position
 		upVector); // up vect0r
 
 	mainCamera = frontCamera;
@@ -168,10 +170,10 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.7f, 0.7f, 0.7f, 1.0f); // Establishes what color the window will be cleared to.
 
-	// Create spaceBody objects
+										  // Create spaceBody objects
 	for (int i = 0; i < nModels; i++)
 	{
-		if (i == 0 || i == nModels-1)
+		if (i == 0 || i == nModels - 1)
 		{
 			spaceBody[i] = new SpaceBody(false, false);
 		}
@@ -201,7 +203,7 @@ void reshape(int width, int height)
 }
 
 // update and display animation state in window title
-void updateTitle() 
+void updateTitle()
 {
 	strcpy(titleStr, baseStr);
 	strcat(titleStr, timerStr);
@@ -211,8 +213,8 @@ void updateTitle()
 }
 
 /*
-	Display() callback is required by freeglut.
-	It is invoked whenever OpenGL determines a window has to be redrawn.
+Display() callback is required by freeglut.
+It is invoked whenever OpenGL determines a window has to be redrawn.
 */
 void display()
 {
@@ -221,35 +223,42 @@ void display()
 														/* Final step in preparing the data for processing by OpenGL is to specify which vertex
 														attributes will be issued to the graphics pipeline. */
 
-	// Associate shader variables with vertex arrays:
-	for (int m = 0; m < nModels; m++) 
+														// Associate shader variables with vertex arrays:
+	for (int m = 0; m < nModels; m++)
 	{
 		glBindVertexArray(VAO[m]); // set model for its instance. Have to rebind everytime its changed.
 		translationMatrix[m] = glm::translate(identityMatrix, translatePosition[m]);
 		// If it's Ruber, SpaceShip, or missle model don't apply an orbital rotation.
-		if (m == 0 || m == 5 || m == 6 )
+		if (m == RUBERINDEX || m == SHIPINDEX || m == MISSILEINDEX)
 		{
 			modelMatrix[m] = translationMatrix[m] *
-				glm::scale(identityMatrix, glm::vec3(scale[m])); 
+				glm::scale(identityMatrix, glm::vec3(scale[m]));
 		}
 		// If it's Duo:
-		else if (m == 2)
+		else if (m == DUOINDEX)
 		{
 			transformMatrix[m] = moonRotationMatrix * translationMatrix[m];
 			modelMatrix[m] = transformMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m]));
 
-			// Update Duo's Camera:
-			if(currentCamera == 4)
+			//If we're on ship camera
+			if (currentCamera == SHIPCAMERAINDEX)
 			{
-				duoCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[2], planetCamEyePosition)), getPosition(transformMatrix[2]), upVector);
+				//																								any idea why this position is the sun?											
+				shipCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[SHIPINDEX], shipCamEyePosition)), getPosition(transformMatrix[SHIPINDEX]), upVector);
+				mainCamera = shipCamera;
+			}
+			// Update Duo's Camera:
+			if (currentCamera == DUOCAMERAINDEX)
+			{
+				duoCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[DUOINDEX], planetCamEyePosition)), getPosition(transformMatrix[DUOINDEX]), upVector);
 				mainCamera = duoCamera;
 			}
 		}
 		// If its Primus, one of the moons, orbit around planet Duo.
-		else if(m == 3 )
+		else if (m == PRIMUSINDEX)
 		{
-			transformMatrix[m] = transformMatrix[2] * rotationMatrix * glm::translate(identityMatrix, (translatePosition[m] - translatePosition[m - 1]) );
+			transformMatrix[m] = transformMatrix[DUOINDEX] * rotationMatrix * glm::translate(identityMatrix, (translatePosition[m] - translatePosition[m - 1]));
 			modelMatrix[m] = transformMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m]));
 			// For Debugging:
@@ -257,9 +266,9 @@ void display()
 			//showMat4("transform", transformMatrix[m]);
 		}
 		// If its Secundus, one of the moons, orbit around planet Duo.
-		else if (m == 4)
+		else if (m == SECUNDUSINDEX)
 		{
-			transformMatrix[m] = transformMatrix[2] * moonRotationMatrix * glm::translate(identityMatrix, (translatePosition[m] - translatePosition[m - 1]));
+			transformMatrix[m] = transformMatrix[DUOINDEX] * moonRotationMatrix * glm::translate(identityMatrix, (translatePosition[m] - translatePosition[m - 1]));
 			modelMatrix[m] = transformMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m]));
 
@@ -269,9 +278,9 @@ void display()
 			transformMatrix[m] = rotationMatrix * translationMatrix[m];
 			modelMatrix[m] = transformMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m])); // oribital rotation = rotationMatrix * translationMatrix
-			// For Debugging:
-			//showMat4("rotation", rotationMatrix);
-			//showMat4("transform", transformMatrix[m]);
+																 // For Debugging:
+																 //showMat4("rotation", rotationMatrix);
+																 //showMat4("transform", transformMatrix[m]);
 		}
 
 		viewMatrix = &mainCamera;
@@ -322,19 +331,19 @@ void switchCamera(int camera)
 {
 	switch (camera)
 	{
-	case 0:
+	case FRONTCAMERAINDEX:
 		mainCamera = frontCamera;
 		break;
-	case 1:
+	case TOPCAMERAINDEX:
 		mainCamera = topCamera;
 		break;
-	case 2:
+	case SHIPCAMERAINDEX:
 		mainCamera = shipCamera;
 		break;
-	case 3:
+	case UNUMCAMERAINDEX:
 		mainCamera = unumCamera;
 		break;
-	case 4:
+	case DUOCAMERAINDEX:
 		mainCamera = duoCamera;
 		break;
 	default:
@@ -366,7 +375,7 @@ void keyboard(unsigned char key, int x, int y)
 		currentCamera = (currentCamera - 1) % maxCameras;
 		switchCamera(currentCamera);
 		break;
-	
+
 	}
 }
 
@@ -374,46 +383,46 @@ void handleSpecialKeypress(int key, int x, int y)
 {
 	switch (key)
 	{
-		case GLUT_KEY_UP:
-			if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
-			{
-				;
-			}
-			else
-			{
-				;
-			}
-			break;
-		case GLUT_KEY_DOWN:
-			if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
-			{
-				;
-			}
-			else
-			{
-				;
-			}
-			break;
-		case GLUT_KEY_LEFT:
-			if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
-			{
-				;
-			}
-			else
-			{
-				;
-			}
-			break;
-		case GLUT_KEY_RIGHT:
-			if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
-			{
-				;
-			}
-			else
-			{
-				;
-			}
-			break;
+	case GLUT_KEY_UP:
+		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
+		{
+			;
+		}
+		else
+		{
+			;
+		}
+		break;
+	case GLUT_KEY_DOWN:
+		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
+		{
+			;
+		}
+		else
+		{
+			;
+		}
+		break;
+	case GLUT_KEY_LEFT:
+		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
+		{
+			;
+		}
+		else
+		{
+			;
+		}
+		break;
+	case GLUT_KEY_RIGHT:
+		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
+		{
+			;
+		}
+		else
+		{
+			;
+		}
+		break;
 	}
 }
 
@@ -447,12 +456,12 @@ int main(int argc, char** argv)
 	{
 		printf("GLEW Error: %s \n", glewGetErrorString(err));
 	}
-	else 
+	else
 	{
 		printf("Using GLEW %s \n", glewGetString(GLEW_VERSION));
 		printf("OpenGL %s, GLSL %s\n",
-		glGetString(GL_VERSION),
-		glGetString(GL_SHADING_LANGUAGE_VERSION));
+			glGetString(GL_VERSION),
+			glGetString(GL_SHADING_LANGUAGE_VERSION));
 	}
 	// initialize scene
 	init();
