@@ -76,7 +76,9 @@ int maxCameras = 5;
 
 const glm::vec3 upVector(0.0f, 1.0f, 0.0f);
 const glm::vec3 topVector(1.0f, 0.0f, 0.0f);
-glm::vec3 shipCamEyePosition(5000, 1300, 6000);
+glm::vec3 camPosition;
+glm::vec3 shipPosition;
+glm::vec3 shipCamEyePosition(0, 200, 500);
 glm::vec3 planetCamEyePosition(0, 0.0f, -8000);
 glm::vec3 topCamEyePosition(0, 20000.0f, 0);
 glm::vec3 frontCamEyePosition(0.0f, 10000.0f, 20000.0f);
@@ -90,6 +92,8 @@ float eyeDistance;
 
 glm::mat4 identityMatrix(1.0f); // initialized identity matrix.
 glm::mat4 moonRotationMatrix;
+glm::mat4 shipRotationMatrix;
+glm::mat4 shipTranslationMatrix;
 glm::mat4 transformMatrix[nModels];
 glm::mat4 rotationMatrix;
 glm::vec3 rotationalAxis(0.0f, 1.0f, 0.0f);
@@ -229,7 +233,7 @@ void display()
 		glBindVertexArray(VAO[m]); // set model for its instance. Have to rebind everytime its changed.
 		translationMatrix[m] = glm::translate(identityMatrix, translatePosition[m]);
 		// If it's Ruber, SpaceShip, or missle model don't apply an orbital rotation.
-		if (m == RUBERINDEX || m == SHIPINDEX || m == MISSILEINDEX)
+		if (m == RUBERINDEX || m == MISSILEINDEX)
 		{
 			modelMatrix[m] = translationMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m]));
@@ -241,13 +245,6 @@ void display()
 			modelMatrix[m] = transformMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m]));
 
-			//If we're on ship camera
-			if (currentCamera == SHIPCAMERAINDEX)
-			{
-				//																								any idea why this position is the sun?											
-				shipCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[SHIPINDEX], shipCamEyePosition)), getPosition(transformMatrix[SHIPINDEX]), upVector);
-				mainCamera = shipCamera;
-			}
 			// Update Duo's Camera:
 			if (currentCamera == DUOCAMERAINDEX)
 			{
@@ -272,6 +269,20 @@ void display()
 			modelMatrix[m] = transformMatrix[m] *
 				glm::scale(identityMatrix, glm::vec3(scale[m]));
 
+		}
+		else if (m == SHIPINDEX)
+		{
+			modelMatrix[m] = shipTranslationMatrix * translationMatrix[m] * shipRotationMatrix *
+				glm::scale(identityMatrix, glm::vec3(scale[m]));
+
+			//If we're on ship camera
+			if (currentCamera == SHIPCAMERAINDEX)
+			{
+				camPosition = getPosition(glm::translate(modelMatrix[SHIPINDEX], shipCamEyePosition));
+				shipPosition = getPosition(modelMatrix[SHIPINDEX]);
+				shipCamera = glm::lookAt(camPosition, glm::vec3(shipPosition.x, camPosition.y, shipPosition.z), upVector);
+				mainCamera = shipCamera;
+			}
 		}
 		else
 		{
@@ -310,6 +321,7 @@ void update(int i)
 	glutTimerFunc(timerDelay, update, 1); // glutTimerFunc(time, fn, arg). This sets fn() to be called after time millisecond with arg as an argument to fn().
 	rotationMatrix = glm::rotate(rotationMatrix, radians, rotationalAxis);
 	moonRotationMatrix = glm::rotate(moonRotationMatrix, radians2, rotationalAxis);
+
 	//for (int i = 0; i < nModels; i++)
 	//{
 	//	spaceBody[i]->update(radians, rotationalAxis);
@@ -375,7 +387,12 @@ void keyboard(unsigned char key, int x, int y)
 		currentCamera = (currentCamera - 1) % maxCameras;
 		switchCamera(currentCamera);
 		break;
-
+	case 'a': case 'A':
+		shipRotationMatrix = glm::rotate(shipRotationMatrix, 0.2f, rotationalAxis);
+		break;
+	case 'd': case 'D':
+		shipRotationMatrix = glm::rotate(shipRotationMatrix, -0.2f, rotationalAxis);
+		break;
 	}
 }
 
@@ -384,9 +401,12 @@ void handleSpecialKeypress(int key, int x, int y)
 	switch (key)
 	{
 	case GLUT_KEY_UP:
+		//test code to move the ship
+		
+		shipTranslationMatrix = glm::translate(shipTranslationMatrix, glm::vec3(0, 0, -shipPosition.z));
 		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
 		{
-			;
+			
 		}
 		else
 		{
@@ -394,6 +414,8 @@ void handleSpecialKeypress(int key, int x, int y)
 		}
 		break;
 	case GLUT_KEY_DOWN:
+		//test code to move the ship
+		shipTranslationMatrix = glm::translate(shipTranslationMatrix, glm::vec3(0, 0, 10));
 		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
 		{
 			;
@@ -404,6 +426,8 @@ void handleSpecialKeypress(int key, int x, int y)
 		}
 		break;
 	case GLUT_KEY_LEFT:
+		//test code to move the ship
+		shipTranslationMatrix = glm::translate(shipTranslationMatrix, glm::vec3(-10, 0, 0));
 		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
 		{
 			;
@@ -414,6 +438,8 @@ void handleSpecialKeypress(int key, int x, int y)
 		}
 		break;
 	case GLUT_KEY_RIGHT:
+		//test code to move the ship
+		shipTranslationMatrix = glm::translate(shipTranslationMatrix, glm::vec3(10, 0, 0));
 		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
 		{
 			;
