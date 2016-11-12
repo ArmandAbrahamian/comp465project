@@ -62,7 +62,7 @@ GLuint shaderProgram;
 GLuint VAO[nModels];      // Vertex Array Objects
 GLuint buffer[nModels];   // Vertex Buffer Objects
 
-						  /* Camera: */
+/* Camera: */
 char * cameraNames[5] = { "Front Camera", "Top Camera", "Ship Camera", "Unum Camera", "Duo Camera" };
 glm::mat4 mainCamera;           // set in init()
 glm::mat4 frontCamera;
@@ -83,26 +83,39 @@ glm::vec3 planetCamEyePosition(0, 0.0f, -8000);
 glm::vec3 topCamEyePosition(0, 20000.0f, 0);
 glm::vec3 frontCamEyePosition(0.0f, 10000.0f, 20000.0f);
 
-/* Rotational variables */
+/* Planet rotational variables: */
 GLfloat radians = 0.004f;
 GLfloat radians2 = 0.002f;
-
 float eyeDistanceMultiplier = 10.0f;
 float eyeDistance;
-
 glm::mat4 identityMatrix(1.0f); // initialized identity matrix.
 glm::mat4 moonRotationMatrix;
-glm::mat4 shipRotationMatrix;
-glm::mat4 shipTranslationMatrix;
 glm::mat4 transformMatrix[nModels];
 glm::mat4 rotationMatrix;
 glm::vec3 rotationalAxis(0.0f, 1.0f, 0.0f);
 
+/* World variables */
+GLfloat timeQuantum[4] = { 5.0f, 40.0f, 100.0f, 500.0f }; // ace, pilot, trainee, debug TQ's
+const float gravity = 90000000.0f;
+
+/* Ship variables */
+GLfloat shipUpdateRadians = 0.02f;
+GLfloat shipSpeed = 10.0f;
+glm::mat4 shipOrientationMatrix;
+glm::mat4 shipTranslationMatrix;
+glm::mat4 shipRotationMatrix;
+glm::vec3 forward;
+glm::vec3 pitch;
+glm::vec3 up(0.0f, 1.0f, 0.0f);
+glm::vec3 right(1.0f , 0.0f, 0.0f);
+glm::vec3 lookingAt(0.0f, 0.0f, -1.0f);
+
+/* Timer variables */
 int timerDelay = 5, frameCount = 0; // A delay of 5 milliseconds is 200 updates / second
 double currentTime, lastTime, timeInterval;
 bool idleTimerFlag = false;  // interval or idle timer ?
 
-							 // To maximize efficiency, operations that only need to be called once are called in init().
+// To maximize efficiency, operations that only need to be called once are called in init().
 void init()
 {
 	// load the shader programs
@@ -272,6 +285,7 @@ void display()
 		}
 		else if (m == SHIPINDEX)
 		{
+			shipOrientationMatrix = shipTranslationMatrix * shipRotationMatrix;
 			modelMatrix[m] = shipTranslationMatrix * translationMatrix[m] * shipRotationMatrix *
 				glm::scale(identityMatrix, glm::vec3(scale[m]));
 
@@ -387,11 +401,8 @@ void keyboard(unsigned char key, int x, int y)
 		currentCamera = (currentCamera - 1) % maxCameras;
 		switchCamera(currentCamera);
 		break;
-	case 'a': case 'A':
-		shipRotationMatrix = glm::rotate(shipRotationMatrix, 0.2f, rotationalAxis);
-		break;
-	case 'd': case 'D':
-		shipRotationMatrix = glm::rotate(shipRotationMatrix, -0.2f, rotationalAxis);
+	case 's': case'S':
+
 		break;
 	}
 }
@@ -401,52 +412,47 @@ void handleSpecialKeypress(int key, int x, int y)
 	switch (key)
 	{
 	case GLUT_KEY_UP:
-		//test code to move the ship
-		
-		shipTranslationMatrix = glm::translate(shipTranslationMatrix, glm::vec3(0, 0, -shipPosition.z));
 		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
 		{
-			
+			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, right);
 		}
-		else
+		else // ship forward = positive step on "at" vector
 		{
-			;
+			forward = getIn(shipOrientationMatrix) * shipSpeed;
+			shipTranslationMatrix = glm::translate(shipTranslationMatrix, forward);
+			shipOrientationMatrix = shipTranslationMatrix * shipRotationMatrix;
 		}
 		break;
 	case GLUT_KEY_DOWN:
-		//test code to move the ship
-		shipTranslationMatrix = glm::translate(shipTranslationMatrix, glm::vec3(0, 0, 10));
 		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
 		{
-			;
+			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, -right);
 		}
-		else
+		else // ship backward = negative step on "at" vector
 		{
-			;
+			forward = getIn(shipOrientationMatrix) * shipSpeed;
+			shipTranslationMatrix = glm::translate(shipTranslationMatrix, -forward);
+			shipOrientationMatrix = shipTranslationMatrix * shipRotationMatrix;
 		}
 		break;
 	case GLUT_KEY_LEFT:
-		//test code to move the ship
-		shipTranslationMatrix = glm::translate(shipTranslationMatrix, glm::vec3(-10, 0, 0));
 		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
 		{
-			;
+			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, lookingAt);
 		}
-		else
+		else // ship yaws "right" = rotate 0.02 radians on "up" vector
 		{
-			;
+			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, rotationalAxis);
 		}
 		break;
-	case GLUT_KEY_RIGHT:
-		//test code to move the ship
-		shipTranslationMatrix = glm::translate(shipTranslationMatrix, glm::vec3(10, 0, 0));
+	case GLUT_KEY_RIGHT: 
 		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
 		{
-			;
+			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, -lookingAt);
 		}
-		else
+		else // ship yaws "left" = rotate -0.02 radians on "up" vector
 		{
-			;
+			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, -rotationalAxis);
 		}
 		break;
 	}
