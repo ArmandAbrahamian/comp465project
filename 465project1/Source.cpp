@@ -17,6 +17,31 @@ Bryant Barron
 
 COMP 465 - Fall 2016
 11/20/16
+
+-----------------------------------------------------------------
+To Do:
+* Create gravity for Unum, Duo, Ship
+
+Ship Movement:
+* Warping capailities
+* Update camera when pitch up/down, roll left/right
+
+Missle Sites:
+* Create model for missle silo
+* Create model for missle (optional)
+* Register model for missle silo
+* Register Model for missle (optional)
+
+Missle Movement:
+
+
+Time Quantum:
+* Create Time Quantum Pulse to update object positions.
+* Register Time Quantum updates to keyboard 's'
+
+Pass or Resign:
+
+
 */
 
 # define __Windows__
@@ -88,6 +113,8 @@ GLfloat radians = 0.004f;
 GLfloat radians2 = 0.002f;
 float eyeDistanceMultiplier = 10.0f;
 float eyeDistance;
+float unumGravityVector = 1.11f;
+float duoGravityVector = 5.63f;
 glm::mat4 identityMatrix(1.0f); // initialized identity matrix.
 glm::mat4 moonRotationMatrix;
 glm::mat4 transformMatrix[nModels];
@@ -95,8 +122,9 @@ glm::mat4 rotationMatrix;
 glm::vec3 rotationalAxis(0.0f, 1.0f, 0.0f);
 
 /* World variables */
-GLfloat timeQuantum[4] = { 5.0f, 40.0f, 100.0f, 500.0f }; // ace, pilot, trainee, debug TQ's
+GLfloat timeQuantum[4] = { 5.0f, 40.0f, 100.0f, 500.0f }; // ace, pilot, trainee, debug TQs
 const float gravity = 90000000.0f;
+int timeQuantumState = 0;
 
 /* Ship variables */
 GLfloat shipUpdateRadians = 0.02f;
@@ -109,6 +137,7 @@ glm::vec3 pitch;
 glm::vec3 up(0.0f, 1.0f, 0.0f);
 glm::vec3 right(1.0f , 0.0f, 0.0f);
 glm::vec3 lookingAt(0.0f, 0.0f, -1.0f);
+float shipGravityVector = 1.76f;
 
 /* Timer variables */
 int timerDelay = 5, frameCount = 0; // A delay of 5 milliseconds is 200 updates / second
@@ -187,7 +216,7 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.7f, 0.7f, 0.7f, 1.0f); // Establishes what color the window will be cleared to.
 
-										  // Create spaceBody objects
+// Create spaceBody objects
 	for (int i = 0; i < nModels; i++)
 	{
 		if (i == 0 || i == nModels - 1)
@@ -241,77 +270,77 @@ void display()
 														attributes will be issued to the graphics pipeline. */
 
 														// Associate shader variables with vertex arrays:
-	for (int m = 0; m < nModels; m++)
+	for (int index = 0; index < nModels; index++)
 	{
-		glBindVertexArray(VAO[m]); // set model for its instance. Have to rebind everytime its changed.
-		translationMatrix[m] = glm::translate(identityMatrix, translatePosition[m]);
-		// If it's Ruber, SpaceShip, or missle model don't apply an orbital rotation.
-		if (m == RUBERINDEX || m == MISSILEINDEX)
+		glBindVertexArray(VAO[index]); // set model for its instance. Have to rebind everytime its changed.
+		translationMatrix[index] = glm::translate(identityMatrix, translatePosition[index]);
+		switch (index)
 		{
-			modelMatrix[m] = translationMatrix[m] *
-				glm::scale(identityMatrix, glm::vec3(scale[m]));
-		}
-		// If it's Duo:
-		else if (m == DUOINDEX)
-		{
-			transformMatrix[m] = moonRotationMatrix * translationMatrix[m];
-			modelMatrix[m] = transformMatrix[m] *
-				glm::scale(identityMatrix, glm::vec3(scale[m]));
+			case RUBERINDEX: case MISSILEINDEX: // If it's Ruber, SpaceShip, or missle model don't apply an orbital rotation.
+				modelMatrix[index] = translationMatrix[index] *
+					glm::scale(identityMatrix, glm::vec3(scale[index]));
+				break;
 
-			// Update Duo's Camera:
-			if (currentCamera == DUOCAMERAINDEX)
-			{
-				duoCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[DUOINDEX], planetCamEyePosition)), getPosition(transformMatrix[DUOINDEX]), upVector);
-				mainCamera = duoCamera;
-			}
-		}
-		// If its Primus, one of the moons, orbit around planet Duo.
-		else if (m == PRIMUSINDEX)
-		{
-			transformMatrix[m] = transformMatrix[DUOINDEX] * rotationMatrix * glm::translate(identityMatrix, (translatePosition[m] - translatePosition[m - 1]));
-			modelMatrix[m] = transformMatrix[m] *
-				glm::scale(identityMatrix, glm::vec3(scale[m]));
-			// For Debugging:
-			//showMat4("rotation", moonRotationMatrix);
-			//showMat4("transform", transformMatrix[m]);
-		}
-		// If its Secundus, one of the moons, orbit around planet Duo.
-		else if (m == SECUNDUSINDEX)
-		{
-			transformMatrix[m] = transformMatrix[DUOINDEX] * moonRotationMatrix * glm::translate(identityMatrix, (translatePosition[m] - translatePosition[m - 1]));
-			modelMatrix[m] = transformMatrix[m] *
-				glm::scale(identityMatrix, glm::vec3(scale[m]));
+			case DUOINDEX: // If it's planet Duo:
+				transformMatrix[index] = moonRotationMatrix * translationMatrix[index];
+				modelMatrix[index] = transformMatrix[index] *
+					glm::scale(identityMatrix, glm::vec3(scale[index]));
 
-		}
-		else if (m == SHIPINDEX)
-		{
-			shipOrientationMatrix = shipTranslationMatrix * shipRotationMatrix;
-			modelMatrix[m] = shipTranslationMatrix * translationMatrix[m] * shipRotationMatrix *
-				glm::scale(identityMatrix, glm::vec3(scale[m]));
+				if (currentCamera == DUOCAMERAINDEX) // Update Duo's Camera:
+				{
+					duoCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[DUOINDEX], planetCamEyePosition)), getPosition(transformMatrix[DUOINDEX]), upVector);
+					mainCamera = duoCamera;
+				}
+				break;
 
-			//If we're on ship camera
-			if (currentCamera == SHIPCAMERAINDEX)
-			{
-				camPosition = getPosition(glm::translate(modelMatrix[SHIPINDEX], shipCamEyePosition));
-				shipPosition = getPosition(modelMatrix[SHIPINDEX]);
-				shipCamera = glm::lookAt(camPosition, glm::vec3(shipPosition.x, camPosition.y, shipPosition.z), upVector);
-				mainCamera = shipCamera;
-			}
-		}
-		else
-		{
-			transformMatrix[m] = rotationMatrix * translationMatrix[m];
-			modelMatrix[m] = transformMatrix[m] *
-				glm::scale(identityMatrix, glm::vec3(scale[m])); // oribital rotation = rotationMatrix * translationMatrix
-																 // For Debugging:
-																 //showMat4("rotation", rotationMatrix);
-																 //showMat4("transform", transformMatrix[m]);
+			case PRIMUSINDEX: // If its Primus, one of the moons, orbit around planet Duo.
+				transformMatrix[index] = transformMatrix[DUOINDEX] * rotationMatrix * glm::translate(identityMatrix, (translatePosition[index] - translatePosition[index - 1]));
+				modelMatrix[index] = transformMatrix[index] *
+					glm::scale(identityMatrix, glm::vec3(scale[index]));
+				// For Debugging:
+				//showMat4("rotation", moonRotationMatrix);
+				//showMat4("transform", transformMatrix[index]);
+				break;
+
+			case SECUNDUSINDEX: // If its Secundus, one of the moons, orbit around planet Duo.
+				transformMatrix[index] = transformMatrix[DUOINDEX] * moonRotationMatrix * glm::translate(identityMatrix, (translatePosition[index] - translatePosition[index - 1]));
+				modelMatrix[index] = transformMatrix[index] *
+					glm::scale(identityMatrix, glm::vec3(scale[index]));
+				break;
+
+			case SHIPINDEX:
+				shipOrientationMatrix = shipTranslationMatrix * shipRotationMatrix;
+				modelMatrix[index] = shipTranslationMatrix * translationMatrix[index] * shipRotationMatrix *
+					glm::scale(identityMatrix, glm::vec3(scale[index]));
+
+				if (currentCamera == SHIPCAMERAINDEX) //If we're on ship camera
+				{
+					camPosition = getPosition(glm::translate(modelMatrix[SHIPINDEX], shipCamEyePosition));
+					shipPosition = getPosition(modelMatrix[SHIPINDEX]);
+					shipCamera = glm::lookAt(camPosition, glm::vec3(shipPosition.x, camPosition.y, shipPosition.z), upVector);
+					mainCamera = shipCamera;
+				}
+				break;
+
+			default:
+				transformMatrix[index] = rotationMatrix * translationMatrix[index];
+				modelMatrix[index] = transformMatrix[index] *
+					glm::scale(identityMatrix, glm::vec3(scale[index])); // oribital rotation = rotationMatrix * translationMatrix
+				// For Debugging:
+				//showMat4("rotation", rotationMatrix);
+				//showMat4("transform", transformMatrix[index]);
+				if (currentCamera == UNUMCAMERAINDEX) // Update Unum's Camera:
+				{
+					unumCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[UNUMINDEX], planetCamEyePosition)), getPosition(transformMatrix[UNUMINDEX]), upVector);
+					mainCamera = unumCamera;
+				}
+				break;
 		}
 
 		viewMatrix = &mainCamera;
-		ModelViewProjectionMatrix = projectionMatrix * *viewMatrix * modelMatrix[m];
+		ModelViewProjectionMatrix = projectionMatrix * *viewMatrix * modelMatrix[index];
 		glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
-		glDrawArrays(GL_TRIANGLES, 0, nVertices[m]);  // Initializes vertex shader, for contiguous groups of vertices.
+		glDrawArrays(GL_TRIANGLES, 0, nVertices[index]);  // Initializes vertex shader, for contiguous groups of vertices.
 	}
 	glutSwapBuffers();
 
@@ -402,6 +431,9 @@ void keyboard(unsigned char key, int x, int y)
 		switchCamera(currentCamera);
 		break;
 	case 's': case'S':
+
+		break;
+	case 't': case'T':
 
 		break;
 	}
