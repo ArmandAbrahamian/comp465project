@@ -23,8 +23,9 @@ To Do:
 * Create gravity for Unum, Duo, Ship
 
 Ship Movement:
-* Warping capailities
+* Warping capabilities
 * Update camera when pitch up/down, roll left/right
+* Put multiple ship speeds.
 
 Missle Sites:
 * Create model for missle silo
@@ -122,13 +123,10 @@ glm::mat4 rotationMatrix;
 glm::vec3 rotationalAxis(0.0f, 1.0f, 0.0f);
 
 /* World variables */
-GLfloat timeQuantum[4] = { 5.0f, 40.0f, 100.0f, 500.0f }; // ace, pilot, trainee, debug TQs
 const float gravity = 90000000.0f;
-int timeQuantumState = 0;
 
 /* Ship variables */
 GLfloat shipUpdateRadians = 0.02f;
-GLfloat shipSpeed = 10.0f;
 glm::mat4 shipOrientationMatrix;
 glm::mat4 shipTranslationMatrix;
 glm::mat4 shipRotationMatrix;
@@ -138,11 +136,20 @@ glm::vec3 up(0.0f, 1.0f, 0.0f);
 glm::vec3 right(1.0f , 0.0f, 0.0f);
 glm::vec3 lookingAt(0.0f, 0.0f, -1.0f);
 float shipGravityVector = 1.76f;
+GLfloat shipSpeed[3] = { 10.0f, 50.0f, 200.0f };
+int shipSpeedState = 0;
+int shipMissles = 9;
+
+/* Missle Site variables */
+int missleSiteMissles = 5;
+float radius = 25;
 
 /* Timer variables */
 int timerDelay = 5, frameCount = 0; // A delay of 5 milliseconds is 200 updates / second
 double currentTime, lastTime, timeInterval;
 bool idleTimerFlag = false;  // interval or idle timer ?
+int timeQuantumState = 0;
+int timeQuantum[4] = { 5, 40, 100, 500 }; // ace, pilot, trainee, debug TQs
 
 // To maximize efficiency, operations that only need to be called once are called in init().
 void init()
@@ -424,17 +431,21 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	case 'x': case 'X':
 		if (currentCamera == 0)
-		{
 			currentCamera = 5;
-		}
 		currentCamera = (currentCamera - 1) % maxCameras;
 		switchCamera(currentCamera);
 		break;
 	case 's': case'S':
-
+		if (shipSpeedState >= 2)
+			shipSpeedState = 0;
+		else
+			shipSpeedState++;
 		break;
 	case 't': case'T':
-
+		if (timeQuantumState > 3)
+			timeQuantumState = 0;
+		else
+			timeQuantumState++;
 		break;
 	}
 }
@@ -450,7 +461,7 @@ void handleSpecialKeypress(int key, int x, int y)
 		}
 		else // ship forward = positive step on "at" vector
 		{
-			forward = getIn(shipOrientationMatrix) * shipSpeed;
+			forward = getIn(shipOrientationMatrix) * shipSpeed[shipSpeedState];
 			shipTranslationMatrix = glm::translate(shipTranslationMatrix, forward);
 			shipOrientationMatrix = shipTranslationMatrix * shipRotationMatrix;
 		}
@@ -462,7 +473,7 @@ void handleSpecialKeypress(int key, int x, int y)
 		}
 		else // ship backward = negative step on "at" vector
 		{
-			forward = getIn(shipOrientationMatrix) * shipSpeed;
+			forward = getIn(shipOrientationMatrix) * shipSpeed[shipSpeedState];
 			shipTranslationMatrix = glm::translate(shipTranslationMatrix, -forward);
 			shipOrientationMatrix = shipTranslationMatrix * shipRotationMatrix;
 		}
