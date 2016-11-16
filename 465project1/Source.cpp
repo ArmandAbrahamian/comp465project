@@ -25,7 +25,6 @@ To Do:
 Ship Movement:
 * Warping capabilities
 * Update camera when pitch up/down, roll left/right
-* Put multiple ship speeds.
 
 Missle Sites:
 * Create model for missle silo
@@ -37,8 +36,7 @@ Missle Movement:
 
 
 Time Quantum:
-* Create Time Quantum Pulse to update object positions.
-* Register Time Quantum updates to keyboard 's'
+
 
 Pass or Resign:
 
@@ -277,7 +275,8 @@ void fireMissle()
 		if (shipMissles > 0)
 		{
 			shipMissleFired = true;
-			missleDirection = getIn(shipOrientationMatrix) * shipMissleSpeed;
+			shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, getPosition(shipTranslationMatrix));
+			missleDirection = getIn(shipRotationMatrix) * shipMissleSpeed;
 			shipMissles--;
 		}
 		else
