@@ -64,7 +64,7 @@ glm::vec3 scale[nModels];       // set in init()
 glm::mat4 translationMatrix[nModels];
 //										ruber				unum					duo						primus					secundus			ship						missle
 glm::vec3 translatePosition[nModels] = { glm::vec3(0,0,0), glm::vec3(4000, -50, 0), glm::vec3(9000, 0, 0), glm::vec3(8100, 0, 0),glm::vec3(7250,0,0), glm::vec3(5000, 1000, 5000), glm::vec3(4900,1000,4850) };
-SpaceBody * spaceBody[nModels];
+//SpaceBody * spaceBody[nModels];
 
 /* Display state and "state strings" for title display */
 char titleStr[160];
@@ -77,13 +77,11 @@ GLuint MVP;  // Model View Projection matrix's handle
 GLuint vPosition[nModels], vColor[nModels], vNormal[nModels];   // vPosition, vColor, vNormal handles for models
 																// model, view, projection matrices and values to create modelMatrix.
 glm::mat4 modelMatrix[nModels];          // set in display()
-glm::mat4 * viewMatrix;
+glm::mat4 viewMatrix;
 glm::mat4 projectionMatrix;     // set in reshape()
 glm::mat4 ModelViewProjectionMatrix; // set in display();
-
 char * vertexShaderFile = "simpleVertex.glsl";
 char * fragmentShaderFile = "simpleFragment.glsl";
-
 GLuint shaderProgram;
 GLuint VAO[nModels];      // Vertex Array Objects
 GLuint buffer[nModels];   // Vertex Buffer Objects
@@ -96,10 +94,8 @@ glm::mat4 topCamera;
 glm::mat4 shipCamera;
 glm::mat4 unumCamera;
 glm::mat4 duoCamera;
-
 int currentCamera = 0;
 int maxCameras = 5;
-
 const glm::vec3 upVector(0.0f, 1.0f, 0.0f);
 const glm::vec3 topVector(1.0f, 0.0f, 0.0f);
 glm::vec3 camPosition;
@@ -124,6 +120,7 @@ glm::vec3 rotationalAxis(0.0f, 1.0f, 0.0f);
 
 /* World variables */
 const float gravity = 90000000.0f;
+bool gravityState = false;
 
 /* Ship variables */
 GLfloat shipUpdateRadians = 0.02f;
@@ -136,13 +133,21 @@ glm::vec3 up(0.0f, 1.0f, 0.0f);
 glm::vec3 right(1.0f , 0.0f, 0.0f);
 glm::vec3 lookingAt(0.0f, 0.0f, -1.0f);
 float shipGravityVector = 1.76f;
-GLfloat shipSpeed[3] = { 10.0f, 50.0f, 200.0f };
 int shipSpeedState = 0;
+GLfloat shipSpeed[3] = { 10.0f, 50.0f, 200.0f };
+
+/* Ship Missle Variables */
+GLfloat shipMissleSpeed = 20;
 int shipMissles = 9;
+int missleUpdateFrameCount;
+bool shipMissleFired = false;
+glm::vec3 missleDirection;
+glm::mat4 shipMissleTranslationMatrix;
 
 /* Missle Site variables */
 int missleSiteMissles = 5;
-float radius = 25;
+GLfloat radius = 25;
+GLfloat siteMissleSpeed = 5;
 
 /* Timer variables */
 int timerDelay = 5, frameCount = 0; // A delay of 5 milliseconds is 200 updates / second
@@ -224,21 +229,21 @@ void init()
 	glClearColor(0.7f, 0.7f, 0.7f, 1.0f); // Establishes what color the window will be cleared to.
 
 // Create spaceBody objects
-	for (int i = 0; i < nModels; i++)
-	{
-		if (i == 0 || i == nModels - 1)
-		{
-			spaceBody[i] = new SpaceBody(false, false);
-		}
-		else if (i > 0 && i < 3)
-		{
-			spaceBody[i] = new SpaceBody(true, false);
-		}
-		else if (i == 3)
-		{
-			spaceBody[i] = new SpaceBody(true, true);
-		}
-	}
+	//for (int i = 0; i < nModels; i++)
+	//{
+	//	if (i == 0 || i == nModels - 1)
+	//	{
+	//		spaceBody[i] = new SpaceBody(false, false);
+	//	}
+	//	else if (i > 0 && i < 3)
+	//	{
+	//		spaceBody[i] = new SpaceBody(true, false);
+	//	}
+	//	else if (i == 3)
+	//	{
+	//		spaceBody[i] = new SpaceBody(true, true);
+	//	}
+	//}
 
 	lastTime = glutGet(GLUT_ELAPSED_TIME);  // get elapsed system time
 }
@@ -265,31 +270,48 @@ void updateTitle()
 	glutSetWindowTitle(titleStr);
 }
 
+void fireMissle()
+{
+	if(shipMissleFired == false)
+	{
+		if (shipMissles > 0)
+		{
+			shipMissleFired = true;
+			missleDirection = getIn(shipOrientationMatrix) * shipMissleSpeed;
+			shipMissles--;
+		}
+		else
+			; // Do Nothing
+	}
+}
+
 /*
-Display() callback is required by freeglut.
-It is invoked whenever OpenGL determines a window has to be redrawn.
+	Display() callback is required by freeglut.
+	It is invoked whenever OpenGL determines a window has to be redrawn.
 */
 void display()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Actually clears the window to color specified in glClearColor().
 
-														/* Final step in preparing the data for processing by OpenGL is to specify which vertex
-														attributes will be issued to the graphics pipeline. */
+/* 
+	Final step in preparing the data for processing by OpenGL is to specify which vertex
+	attributes will be issued to the graphics pipeline. 
+*/
 
-														// Associate shader variables with vertex arrays:
+// Associate shader variables with vertex arrays:
 	for (int index = 0; index < nModels; index++)
 	{
 		glBindVertexArray(VAO[index]); // set model for its instance. Have to rebind everytime its changed.
 		translationMatrix[index] = glm::translate(identityMatrix, translatePosition[index]);
 		switch (index)
 		{
-			case RUBERINDEX: case MISSILEINDEX: // If it's Ruber, SpaceShip, or missle model don't apply an orbital rotation.
+			case RUBERINDEX: // If it's Ruber don't apply an orbital rotation.
 				modelMatrix[index] = translationMatrix[index] *
 					glm::scale(identityMatrix, glm::vec3(scale[index]));
 				break;
 
-			case DUOINDEX: // If it's planet Duo:
-				transformMatrix[index] = moonRotationMatrix * translationMatrix[index];
+			case UNUMINDEX: // If it's planet Unum (planet closest to Ruber with no moons):
+				transformMatrix[index] = rotationMatrix * translationMatrix[index];
 				modelMatrix[index] = transformMatrix[index] *
 					glm::scale(identityMatrix, glm::vec3(scale[index]));
 
@@ -297,6 +319,20 @@ void display()
 				{
 					duoCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[DUOINDEX], planetCamEyePosition)), getPosition(transformMatrix[DUOINDEX]), upVector);
 					mainCamera = duoCamera;
+				}
+				break;
+
+			case DUOINDEX: // If it's planet Duo (planest farthest from Ruber with moons Secundus and Primus):
+				transformMatrix[index] = moonRotationMatrix * translationMatrix[index];
+				modelMatrix[index] = transformMatrix[index] *
+					glm::scale(identityMatrix, glm::vec3(scale[index])); // oribital rotation = rotationMatrix * translationMatrix
+				// For Debugging:
+				//showMat4("rotation", rotationMatrix);
+				//showMat4("transform", transformMatrix[index]);
+				if (currentCamera == UNUMCAMERAINDEX) // Update Unum's Camera:
+				{
+					unumCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[UNUMINDEX], planetCamEyePosition)), getPosition(transformMatrix[UNUMINDEX]), upVector);
+					mainCamera = unumCamera;
 				}
 				break;
 
@@ -316,7 +352,6 @@ void display()
 				break;
 
 			case SHIPINDEX:
-				shipOrientationMatrix = shipTranslationMatrix * shipRotationMatrix;
 				modelMatrix[index] = shipTranslationMatrix * translationMatrix[index] * shipRotationMatrix *
 					glm::scale(identityMatrix, glm::vec3(scale[index]));
 
@@ -329,23 +364,28 @@ void display()
 				}
 				break;
 
-			default:
-				transformMatrix[index] = rotationMatrix * translationMatrix[index];
-				modelMatrix[index] = transformMatrix[index] *
-					glm::scale(identityMatrix, glm::vec3(scale[index])); // oribital rotation = rotationMatrix * translationMatrix
-				// For Debugging:
-				//showMat4("rotation", rotationMatrix);
-				//showMat4("transform", transformMatrix[index]);
-				if (currentCamera == UNUMCAMERAINDEX) // Update Unum's Camera:
+			case MISSILEINDEX:
+				if (shipMissleFired == true)
 				{
-					unumCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[UNUMINDEX], planetCamEyePosition)), getPosition(transformMatrix[UNUMINDEX]), upVector);
-					mainCamera = unumCamera;
+					if (missleUpdateFrameCount <= 2000)
+					{
+						modelMatrix[MISSILEINDEX] = shipMissleTranslationMatrix * translationMatrix[MISSILEINDEX] *
+							glm::scale(identityMatrix, glm::vec3(scale[MISSILEINDEX]));
+					}
+					else
+					{
+						shipMissleFired = false;
+						missleUpdateFrameCount = 0;
+					}
 				}
+			break;
+
+			default:
 				break;
 		}
 
-		viewMatrix = &mainCamera;
-		ModelViewProjectionMatrix = projectionMatrix * *viewMatrix * modelMatrix[index];
+		viewMatrix = mainCamera;
+		ModelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix[index];
 		glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
 		glDrawArrays(GL_TRIANGLES, 0, nVertices[index]);  // Initializes vertex shader, for contiguous groups of vertices.
 	}
@@ -368,10 +408,15 @@ void display()
 // for use with Idle and intervalTimer functions to set rotation
 void update(int i)
 {
-	glutTimerFunc(timerDelay, update, 1); // glutTimerFunc(time, fn, arg). This sets fn() to be called after time millisecond with arg as an argument to fn().
+	glutTimerFunc(timeQuantum[timeQuantumState], update, 1); // glutTimerFunc(time, fn, arg). This sets fn() to be called after time millisecond with arg as an argument to fn().
 	rotationMatrix = glm::rotate(rotationMatrix, radians, rotationalAxis);
 	moonRotationMatrix = glm::rotate(moonRotationMatrix, radians2, rotationalAxis);
 
+	if (shipMissleFired == true)
+	{
+		shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, missleDirection);
+		missleUpdateFrameCount++;
+	}
 	//for (int i = 0; i < nModels; i++)
 	//{
 	//	spaceBody[i]->update(radians, rotationalAxis);
@@ -382,7 +427,7 @@ void update(int i)
 // Estimate FPS, use for fixed interval timer driven animation
 void intervalTimer(int i)
 {
-	glutTimerFunc(timerDelay, intervalTimer, 1);
+	glutTimerFunc(timeQuantum[timeQuantumState], intervalTimer, 1);
 	if (!idleTimerFlag)
 	{
 		update(1);  // fixed interval timer
@@ -442,10 +487,13 @@ void keyboard(unsigned char key, int x, int y)
 			shipSpeedState++;
 		break;
 	case 't': case'T':
-		if (timeQuantumState > 3)
+		if (timeQuantumState >= 3)
 			timeQuantumState = 0;
 		else
 			timeQuantumState++;
+		break;
+	case 'f': case'F':
+		fireMissle();
 		break;
 	}
 }
@@ -548,7 +596,7 @@ int main(int argc, char** argv)
 	glutSpecialFunc(handleSpecialKeypress);
 
 	glutIdleFunc(NULL); // start with intervalTimer
-	glutTimerFunc(timerDelay, update, 1); // glutTimerFunc(time, fn, arg). This sets fn() to be called after time millisecond with arg as an argument to fn().
+	glutTimerFunc(timeQuantum[timeQuantumState], update, 1); // glutTimerFunc(time, fn, arg). This sets fn() to be called after time millisecond with arg as an argument to fn().
 
 	glutMainLoop();  // This call passes control to enter GLUT event processing cycle.
 
