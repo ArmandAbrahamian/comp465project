@@ -27,8 +27,6 @@ Ship Movement:
 * Update camera when pitch up/down, roll left/right
 
 Missle Sites:
-* Create model for missle silo
-* Create model for missle (optional)
 * Register model for missle silo
 * Register Model for missle (optional)
 
@@ -36,7 +34,7 @@ Missle Movement:
 * Smart Missles
 
 Time Quantum:
-
+ Done?
 
 Pass or Resign:
 
@@ -387,7 +385,7 @@ void display()
 						shipMissleFired = false;
 						missleUpdateFrameCount = 0;
 						shipMissleTranslationMatrix = identityMatrix;
-						modelMatrix[MISSILEINDEX] = shipMissleTranslationMatrix * translationMatrix[MISSILEINDEX] *
+						modelMatrix[MISSILEINDEX] = shipMissleTranslationMatrix *
 							glm::scale(identityMatrix, glm::vec3(scale[MISSILEINDEX]));
 					}
 				}
