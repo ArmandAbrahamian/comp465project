@@ -33,7 +33,7 @@ Missle Sites:
 * Register Model for missle (optional)
 
 Missle Movement:
-
+* Smart Missles
 
 Time Quantum:
 
@@ -275,13 +275,24 @@ void fireMissle()
 		if (shipMissles > 0)
 		{
 			shipMissleFired = true;
-			shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, getPosition(shipTranslationMatrix));
+			shipMissleTranslationMatrix = shipTranslationMatrix;
 			missleDirection = getIn(shipRotationMatrix) * shipMissleSpeed;
 			shipMissles--;
 		}
 		else
 			; // Do Nothing
 	}
+}
+
+void gravitySwitch()
+{
+	gravityState = !gravityState;
+	if (gravityState == true)
+	{
+		;
+	}
+	else
+		;
 }
 
 /*
@@ -375,6 +386,9 @@ void display()
 					{
 						shipMissleFired = false;
 						missleUpdateFrameCount = 0;
+						shipMissleTranslationMatrix = identityMatrix;
+						modelMatrix[MISSILEINDEX] = shipMissleTranslationMatrix * translationMatrix[MISSILEINDEX] *
+							glm::scale(identityMatrix, glm::vec3(scale[MISSILEINDEX]));
 					}
 				}
 			break;
@@ -493,6 +507,9 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	case 'f': case'F':
 		fireMissle();
+		break;
+	case 'g': case'G':
+		gravitySwitch();
 		break;
 	}
 }
