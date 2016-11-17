@@ -21,6 +21,8 @@ COMP 465 - Fall 2016
 -----------------------------------------------------------------
 To Do:
 * Create gravity for Unum, Duo, Ship
+* Update the status bar title to display the current U/S
+* Fix missle model direction be direction of ship.
 
 Ship Movement:
 * Warping capabilities
@@ -32,12 +34,15 @@ Missle Sites:
 
 Missle Movement:
 * Smart Missles
+// C - LAT * E
 
 Time Quantum:
  Done?
 
 Pass or Resign:
 
+Documentation:
+* Need to modify completely.
 
 */
 
@@ -51,11 +56,11 @@ FRONTCAMERAINDEX = 0, TOPCAMERAINDEX = 1, SHIPCAMERAINDEX = 2, UNUMCAMERAINDEX =
 
 /* Models: */
 const int nModels = 7;  // number of models in this scene
-const int nVertices[nModels] = { 264 * 3, 312 * 3, 264 * 3, 264 * 3, 264 * 3, 996 * 3, 14 * 3 }; // vertex count
+const int nVertices[nModels] = { 264 * 3, 312 * 3, 264 * 3, 264 * 3, 264 * 3, 996 * 3, 282 * 3 }; // vertex count
 float modelBR[nModels];       // model's bounding radius
-float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 100.0f, 25.0f };   // size of model
+float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 100.0f, 100.0f };   // size of model
 																						 //								Ruber		Unum			Duo					primus			secundus				SpaceShip				missle
-char * modelFile[nModels] = { "Sun.tri", "RingPlanet.tri", "FacePlanet.tri", "WaterPlanet.tri", "BlownUpPlanet.tri", "spaceShip-bs100.tri", "obelisk-10-20-10.tri" };
+char * modelFile[nModels] = { "Sun.tri", "RingPlanet.tri", "FacePlanet.tri", "WaterPlanet.tri", "BlownUpPlanet.tri", "spaceShip-bs100.tri", "Missile.tri" };
 glm::vec3 scale[nModels];       // set in init()
 glm::mat4 translationMatrix[nModels];
 //										ruber				unum					duo						primus					secundus			ship						missle
@@ -139,6 +144,7 @@ int missleUpdateFrameCount;
 bool shipMissleFired = false;
 glm::vec3 missleDirection;
 glm::mat4 shipMissleTranslationMatrix;
+glm::mat4 shipMissleRotationMatrix;
 
 /* Missle Site variables */
 int missleSiteMissles = 5;
@@ -275,6 +281,7 @@ void fireMissle()
 			shipMissleFired = true;
 			shipMissleTranslationMatrix = shipTranslationMatrix;
 			missleDirection = getIn(shipRotationMatrix) * shipMissleSpeed;
+			shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, glm::radians(90.0f), getIn(shipRotationMatrix));
 			shipMissles--;
 		}
 		else

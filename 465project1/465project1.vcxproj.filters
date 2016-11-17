@@ -42,4 +42,45 @@
       <Filter>includes465</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="axes-r100.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="BlownUpPlanet.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="FacePlanet.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Missile.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="MissileSite.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="MountainPlanet.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="obelisk-10-20-10.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="RingPlanet.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="simpleFragment.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="simpleVertex.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="spaceShip-bs100.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Sun.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="WaterPlanet.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>
