@@ -37,9 +37,12 @@ Missle Movement:
 // C - LAT * E
 
 Time Quantum:
- Done?
+ 
 
 Pass or Resign:
+* Can display a texture on the screen, text overlay, or output to the console for game over.
+* When the ship runs out of missles game over.
+* When the missle silo missles collide with the ship game over.
 
 Documentation:
 * Need to modify completely.
@@ -58,8 +61,8 @@ FRONTCAMERAINDEX = 0, TOPCAMERAINDEX = 1, SHIPCAMERAINDEX = 2, UNUMCAMERAINDEX =
 const int nModels = 7;  // number of models in this scene
 const int nVertices[nModels] = { 264 * 3, 312 * 3, 264 * 3, 264 * 3, 264 * 3, 996 * 3, 282 * 3 }; // vertex count
 float modelBR[nModels];       // model's bounding radius
-float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 100.0f, 100.0f };   // size of model
-																						 //								Ruber		Unum			Duo					primus			secundus				SpaceShip				missle
+float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 100.0f, 75.0f };   // size of model
+//								Ruber		Unum			Duo					primus			secundus				SpaceShip				missle
 char * modelFile[nModels] = { "Sun.tri", "RingPlanet.tri", "FacePlanet.tri", "WaterPlanet.tri", "BlownUpPlanet.tri", "spaceShip-bs100.tri", "Missile.tri" };
 glm::vec3 scale[nModels];       // set in init()
 glm::mat4 translationMatrix[nModels];
@@ -130,9 +133,9 @@ glm::mat4 shipTranslationMatrix;
 glm::mat4 shipRotationMatrix;
 glm::vec3 forward;
 glm::vec3 pitch;
-glm::vec3 up(0.0f, 1.0f, 0.0f);
-glm::vec3 right(1.0f , 0.0f, 0.0f);
-glm::vec3 lookingAt(0.0f, 0.0f, -1.0f);
+glm::vec3 shipUp(0.0f, 1.0f, 0.0f);
+glm::vec3 shipRight(1.0f , 0.0f, 0.0f);
+glm::vec3 shipLookingAt(0.0f, 0.0f, -1.0f);
 float shipGravityVector = 1.76f;
 int shipSpeedState = 0;
 GLfloat shipSpeed[3] = { 10.0f, 50.0f, 200.0f };
@@ -142,9 +145,11 @@ GLfloat shipMissleSpeed = 20;
 int shipMissles = 9;
 int missleUpdateFrameCount;
 bool shipMissleFired = false;
+bool detectedEnemy = false;
 glm::vec3 missleDirection;
 glm::mat4 shipMissleTranslationMatrix;
 glm::mat4 shipMissleRotationMatrix;
+glm::mat4 shipMissleOrientationMatrix;
 
 /* Missle Site variables */
 int missleSiteMissles = 5;
@@ -153,10 +158,10 @@ GLfloat siteMissleSpeed = 5;
 
 /* Timer variables */
 int timerDelay = 5, frameCount = 0; // A delay of 5 milliseconds is 200 updates / second
-double currentTime, lastTime, timeInterval;
-bool idleTimerFlag = false;  // interval or idle timer ?
 int timeQuantumState = 0;
 int timeQuantum[4] = { 5, 40, 100, 500 }; // ace, pilot, trainee, debug TQs
+double currentTime, lastTime, timeInterval;
+bool idleTimerFlag = false;  // interval or idle timer ?
 
 // To maximize efficiency, operations that only need to be called once are called in init().
 void init()
@@ -281,7 +286,6 @@ void fireMissle()
 			shipMissleFired = true;
 			shipMissleTranslationMatrix = shipTranslationMatrix;
 			missleDirection = getIn(shipRotationMatrix) * shipMissleSpeed;
-			shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, glm::radians(90.0f), getIn(shipRotationMatrix));
 			shipMissles--;
 		}
 		else
@@ -382,11 +386,13 @@ void display()
 			case MISSILEINDEX:
 				if (shipMissleFired == true)
 				{
+					// Missle is alive:
 					if (missleUpdateFrameCount <= 2000)
 					{
 						modelMatrix[MISSILEINDEX] = shipMissleTranslationMatrix * translationMatrix[MISSILEINDEX] *
 							glm::scale(identityMatrix, glm::vec3(scale[MISSILEINDEX]));
 					}
+					// Missle is dead:
 					else
 					{
 						shipMissleFired = false;
@@ -526,7 +532,7 @@ void handleSpecialKeypress(int key, int x, int y)
 	case GLUT_KEY_UP:
 		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
 		{
-			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, right);
+			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, shipRight);
 		}
 		else // ship forward = positive step on "at" vector
 		{
@@ -538,7 +544,7 @@ void handleSpecialKeypress(int key, int x, int y)
 	case GLUT_KEY_DOWN:
 		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
 		{
-			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, -right);
+			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, -shipRight);
 		}
 		else // ship backward = negative step on "at" vector
 		{
@@ -550,7 +556,7 @@ void handleSpecialKeypress(int key, int x, int y)
 	case GLUT_KEY_LEFT:
 		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
 		{
-			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, lookingAt);
+			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, shipLookingAt);
 		}
 		else // ship yaws "right" = rotate 0.02 radians on "up" vector
 		{
@@ -560,7 +566,7 @@ void handleSpecialKeypress(int key, int x, int y)
 	case GLUT_KEY_RIGHT: 
 		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
 		{
-			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, -lookingAt);
+			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, -shipLookingAt);
 		}
 		else // ship yaws "left" = rotate -0.02 radians on "up" vector
 		{
