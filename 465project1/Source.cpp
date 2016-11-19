@@ -140,21 +140,35 @@ float shipGravityVector = 1.76f;
 int shipSpeedState = 0;
 GLfloat shipSpeed[3] = { 10.0f, 50.0f, 200.0f };
 
+/* General Missle Variables */
+	// Missle has two states: leaving ship, and smart mode.
+const int missleLifetime = 2000;
+const int missleActivationTimer = 200;
+
 /* Ship Missle Variables */
 GLfloat shipMissleSpeed = 20;
 int shipMissles = 9;
 int missleUpdateFrameCount;
 bool shipMissleFired = false;
-bool detectedEnemy = false;
+bool shipMissleDetectedEnemy = false;
 glm::vec3 missleDirection;
 glm::mat4 shipMissleTranslationMatrix;
 glm::mat4 shipMissleRotationMatrix;
 glm::mat4 shipMissleOrientationMatrix;
+bool isShipMissleSmart = false;
+glm::vec3 shipMissleAOR;
+glm::vec3 shipMissleLAT;
+float radian;
 
-/* Missle Site variables */
+/* Missle Site Variables */
 int missleSiteMissles = 5;
 GLfloat radius = 25;
 GLfloat siteMissleSpeed = 5;
+
+/* Missle Site Missle Variables */
+bool missleSiteMissleFired = false;
+bool isMissleSiteSmart = false;
+bool missleSiteDetectedEnemy = false;
 
 /* Timer variables */
 int timerDelay = 5, frameCount = 0; // A delay of 5 milliseconds is 200 updates / second
@@ -287,10 +301,36 @@ void fireMissle()
 			shipMissleTranslationMatrix = shipTranslationMatrix;
 			missleDirection = getIn(shipRotationMatrix) * shipMissleSpeed;
 			shipMissles--;
+
+			// The following is for initially rotating the missle model the correct way:
+
+			// NPC vector is the NPC's "looking at" vector, its direction of movement.
+			shipMissleLAT = getIn(shipRotationMatrix);
+
+			// Target Vector = target's position - NPC's position, the desired new "looking at" for the NPC.
+			glm::vec3 targetVector = getPosition(shipOrientationMatrix) - getPosition(shipMissleTranslationMatrix);
+
+			shipMissleAOR = glm::cross(targetVector,  shipMissleLAT); // axis of rotation
+			float shipMissleAORDirection = shipMissleAOR.x + shipMissleAOR.y + shipMissleAOR.z;
+			float aCos = glm::dot(targetVector, shipMissleLAT); // rotation amount
+
+			// rotations <- pi radians (0 to 180 degrees) crossProduct in + direction
+			// rotations > pi radians crossProduct in – (negative) direction
+			if (shipMissleAORDirection >= 0) // adjust rotational value
+				radian = aCos;
+			else
+				radian = 2 * PI - aCos; // - aCos negative rotation
+
+			shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, radian, shipMissleAOR);
 		}
 		else
 			; // Do Nothing
 	}
+}
+
+void handleSmartMissle()
+{
+	;
 }
 
 void gravitySwitch()
