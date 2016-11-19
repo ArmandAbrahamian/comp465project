@@ -356,18 +356,18 @@ void display()
 				break;
 
 			case PRIMUSINDEX: // If its Primus, one of the moons, orbit around planet Duo.
-				transformMatrix[index] = transformMatrix[DUOINDEX] * rotationMatrix * glm::translate(identityMatrix, (translatePosition[index] - translatePosition[index - 1]));
-				modelMatrix[index] = transformMatrix[index] *
-					glm::scale(identityMatrix, glm::vec3(scale[index]));
+				transformMatrix[PRIMUSINDEX] = transformMatrix[DUOINDEX] * rotationMatrix * glm::translate(identityMatrix, (translatePosition[PRIMUSINDEX] - translatePosition[DUOINDEX]));
+				modelMatrix[PRIMUSINDEX] = transformMatrix[PRIMUSINDEX] *
+					glm::scale(identityMatrix, glm::vec3(scale[PRIMUSINDEX]));
 				// For Debugging:
 				//showMat4("rotation", moonRotationMatrix);
 				//showMat4("transform", transformMatrix[index]);
 				break;
 
 			case SECUNDUSINDEX: // If its Secundus, one of the moons, orbit around planet Duo.
-				transformMatrix[index] = transformMatrix[DUOINDEX] * moonRotationMatrix * glm::translate(identityMatrix, (translatePosition[index] - translatePosition[index - 1]));
-				modelMatrix[index] = transformMatrix[index] *
-					glm::scale(identityMatrix, glm::vec3(scale[index]));
+				transformMatrix[SECUNDUSINDEX] = transformMatrix[DUOINDEX] * moonRotationMatrix * glm::translate(identityMatrix, (translatePosition[SECUNDUSINDEX] - translatePosition[DUOINDEX]));
+				modelMatrix[SECUNDUSINDEX] = transformMatrix[SECUNDUSINDEX] *
+					glm::scale(identityMatrix, glm::vec3(scale[SECUNDUSINDEX]));
 				break;
 
 			case SHIPINDEX:
