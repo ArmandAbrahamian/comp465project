@@ -54,16 +54,16 @@ Documentation:
 # include "SpaceBody.h"
 
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1,
-RUBERINDEX = 0, UNUMINDEX = 1, DUOINDEX = 2, PRIMUSINDEX = 3, SECUNDUSINDEX = 4, SHIPINDEX = 5, MISSILEINDEX = 6,
+RUBERINDEX = 0, UNUMINDEX = 1, DUOINDEX = 2, PRIMUSINDEX = 3, SECUNDUSINDEX = 4, SHIPINDEX = 5, MISSILEINDEX = 6, FIRSTMISSLESILOINDEX = 7, SECONDMISSLESILOINDEX = 8,
 FRONTCAMERAINDEX = 0, TOPCAMERAINDEX = 1, SHIPCAMERAINDEX = 2, UNUMCAMERAINDEX = 3, DUOCAMERAINDEX = 4;
 
 /* Models: */
-const int nModels = 7;  // number of models in this scene
-const int nVertices[nModels] = { 264 * 3, 312 * 3, 264 * 3, 264 * 3, 264 * 3, 996 * 3, 282 * 3 }; // vertex count
+const int nModels = 9;  // number of models in this scene
+const int nVertices[nModels] = { 264 * 3, 312 * 3, 264 * 3, 264 * 3, 264 * 3, 996 * 3, 282 * 3, 720 * 3, 720 * 3 }; // vertex count
 float modelBR[nModels];       // model's bounding radius
-float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 100.0f, 75.0f };   // size of model
+float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 100.0f, 75.0f, 100.0f, 100.0f };   // size of model
 //								Ruber		Unum			Duo					primus			secundus				SpaceShip				missle
-char * modelFile[nModels] = { "Sun.tri", "RingPlanet.tri", "FacePlanet.tri", "WaterPlanet.tri", "BlownUpPlanet.tri", "spaceShip-bs100.tri", "Missile.tri" };
+char * modelFile[nModels] = { "Sun.tri", "RingPlanet.tri", "FacePlanet.tri", "WaterPlanet.tri", "BlownUpPlanet.tri", "spaceShip-bs100.tri", "Missile.tri", "MissileSite.tri", "MissileSite.tri"  };
 glm::vec3 scale[nModels];       // set in init()
 glm::mat4 translationMatrix[nModels];
 //										ruber				unum					duo						primus					secundus			ship						missle
@@ -403,6 +403,18 @@ void display()
 					}
 				}
 			break;
+
+			case FIRSTMISSLESILOINDEX:
+				transformMatrix[index] = glm::translate(transformMatrix[UNUMINDEX], glm::vec3(0,140,0));
+				modelMatrix[index] = transformMatrix[index] *
+					glm::scale(identityMatrix, glm::vec3(scale[index]));
+				break;
+
+			case SECONDMISSLESILOINDEX:
+				transformMatrix[index] = glm::translate(transformMatrix[DUOINDEX], glm::vec3(0, 410, 0));
+				modelMatrix[index] = transformMatrix[index] *
+					glm::scale(identityMatrix, glm::vec3(scale[index]));
+				break;
 
 			default:
 				break;
