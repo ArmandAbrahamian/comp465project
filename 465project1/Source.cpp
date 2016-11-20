@@ -51,6 +51,7 @@ Documentation:
 
 # define __Windows__
 # include "../includes465/include465.hpp"
+# include <string>
 # include "SpaceBody.h"
 
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1,
@@ -69,12 +70,6 @@ glm::mat4 translationMatrix[nModels];
 //										ruber				unum					duo						primus					secundus			ship						missle
 glm::vec3 translatePosition[nModels] = { glm::vec3(0,0,0), glm::vec3(4000, -50, 0), glm::vec3(9000, 0, 0), glm::vec3(8100, 0, 0),glm::vec3(7250,0,0), glm::vec3(5000, 1000, 5000), glm::vec3(4900,1000,4850) };
 //SpaceBody * spaceBody[nModels];
-
-/* Display state and "state strings" for title display */
-char titleStr[160];
-char fpsStr[15], timerStr[20] = "| U/S 200 ";
-char baseStr[90] = "Warbird Simulator: {v(next), x(previous) camera} | Warbird ? | Unum ? | Secundus ? ";
-char cameraStr[30] = "| View: Front Camera";
 
 /* Shader handles, matrices, etc */
 GLuint MVP;  // Model View Projection matrix's handle
@@ -150,19 +145,20 @@ GLfloat shipMissleSpeed = 20;
 int shipMissles = 9;
 int missleUpdateFrameCount;
 bool shipMissleFired = false;
+bool isShipMissleSmart = false;
 bool shipMissleDetectedEnemy = false;
-glm::vec3 missleDirection;
 glm::mat4 shipMissleTranslationMatrix;
 glm::mat4 shipMissleRotationMatrix;
 glm::mat4 shipMissleOrientationMatrix;
-bool isShipMissleSmart = false;
+glm::vec3 missleDirection;
 glm::vec3 shipMissleAOR;
 glm::vec3 shipMissleLAT;
 float radian;
 
 /* Missle Site Variables */
-int missleSiteMissles = 5;
-GLfloat radius = 25;
+int unumMissles = 5;
+int secundusMissles = 5;
+GLfloat radius = 25; // or 5000?
 GLfloat siteMissleSpeed = 5;
 
 /* Missle Site Missle Variables */
@@ -176,6 +172,17 @@ int timeQuantumState = 0;
 int timeQuantum[4] = { 5, 40, 100, 500 }; // ace, pilot, trainee, debug TQs
 double currentTime, lastTime, timeInterval;
 bool idleTimerFlag = false;  // interval or idle timer ?
+
+/* Display state and "state strings" for title display */
+int timerIndex = 0;
+char titleStr[175];
+char fpsStr[15];
+char baseStr[42] = "Warbird Simulator: {v, x, s, t, f, g, w} ";
+char warbirdMissleCount[14] = "| Warbird 9";
+char unumMissleCount[11] = " | Unum 5";
+char secundusMissleCount[15] = " | Secundus 5";
+char cameraStr[30] = "| View: Front Camera ";
+char * timerStr[4] = { " | U/S 200 ", " | U/S 25 ", " | U/S 10", " | U/S 2 " };
 
 // To maximize efficiency, operations that only need to be called once are called in init().
 void init()
@@ -285,7 +292,10 @@ void reshape(int width, int height)
 void updateTitle()
 {
 	strcpy(titleStr, baseStr);
-	strcat(titleStr, timerStr);
+	strcat(titleStr, warbirdMissleCount);
+	strcat(titleStr, unumMissleCount);
+	strcat(titleStr, secundusMissleCount);
+	strcat(titleStr, timerStr[timerIndex]);
 	strcat(titleStr, fpsStr);
 	strcat(titleStr, cameraStr);
 	glutSetWindowTitle(titleStr);
@@ -301,28 +311,33 @@ void fireMissle()
 			shipMissleTranslationMatrix = shipTranslationMatrix;
 			missleDirection = getIn(shipRotationMatrix) * shipMissleSpeed;
 			shipMissles--;
-
-			// The following is for initially rotating the missle model the correct way:
-
-			// NPC vector is the NPC's "looking at" vector, its direction of movement.
-			shipMissleLAT = getIn(shipRotationMatrix);
-
-			// Target Vector = target's position - NPC's position, the desired new "looking at" for the NPC.
-			glm::vec3 targetVector = getPosition(shipOrientationMatrix) - getPosition(shipMissleTranslationMatrix);
-
-			shipMissleAOR = glm::cross(targetVector,  shipMissleLAT); // axis of rotation
-			float shipMissleAORDirection = shipMissleAOR.x + shipMissleAOR.y + shipMissleAOR.z;
-			float aCos = glm::dot(targetVector, shipMissleLAT); // rotation amount
-
-			// rotations <- pi radians (0 to 180 degrees) crossProduct in + direction
-			// rotations > pi radians crossProduct in – (negative) direction
-			if (shipMissleAORDirection >= 0) // adjust rotational value
-				radian = aCos;
-			else
-				radian = 2 * PI - aCos; // - aCos negative rotation
-
-			shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, radian, shipMissleAOR);
+			strcpy(warbirdMissleCount, "| Warbird ");
+			strcat(warbirdMissleCount, std::to_string(shipMissles).c_str());
 		}
+			// The following is for initially rotating the missle model the correct way:
+			//shipMissleRotationMatrix = glm::lookAt(getPosition(shipMissleTranslationMatrix), glm::vec3(shipPosition.x, camPosition.y, shipPosition.z), upVector);
+
+		//	// NPC vector is the NPC's "looking at" vector, its direction of movement.
+		//	shipMissleLAT = getIn(shipRotationMatrix);
+
+		//	// Target Vector = target's position - NPC's position, the desired new "looking at" for the NPC.
+		//	glm::vec3 targetVector = getPosition(shipOrientationMatrix) - getPosition(shipMissleTranslationMatrix);
+
+		//	shipMissleAOR = glm::cross(targetVector,  shipMissleLAT); // axis of rotation
+		//	float shipMissleAORDirection = shipMissleAOR.x + shipMissleAOR.y + shipMissleAOR.z;
+		//	float aCos = glm::dot(targetVector, shipMissleLAT); // rotation amount
+
+		//	// rotations <- pi radians (0 to 180 degrees) crossProduct in + direction
+		//	// rotations > pi radians crossProduct in – (negative) direction
+		//	if (shipMissleAORDirection >= 0) // adjust rotational value
+		//		radian = aCos;
+		//	else
+		//		radian = 2 * PI - aCos; // - aCos negative rotation
+
+		//	//shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, radian, shipMissleAOR);
+
+		//	shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, glm::dot(getIn(shipMissleTranslationMatrix), getIn(shipRotationMatrix)), glm::cross(getIn(shipRotationMatrix),getIn(shipRotationMatrix)));
+
 		else
 			; // Do Nothing
 	}
@@ -330,6 +345,24 @@ void fireMissle()
 
 void handleSmartMissle()
 {
+	// NPC vector is the NPC's "looking at" vector, its direction of movement.
+	//shipMissleLAT = getIn(shipRotationMatrix);
+
+	//// Target Vector = target's position - NPC's position, the desired new "looking at" for the NPC.
+	//glm::vec3 targetVector = getPosition(shipOrientationMatrix) - getPosition(shipMissleTranslationMatrix);
+
+	//shipMissleAOR = glm::cross(targetVector,  shipMissleLAT); // axis of rotation
+	//float shipMissleAORDirection = shipMissleAOR.x + shipMissleAOR.y + shipMissleAOR.z;
+	//float aCos = glm::dot(targetVector, shipMissleLAT); // rotation amount
+
+	//// rotations <- pi radians (0 to 180 degrees) crossProduct in + direction
+	//// rotations > pi radians crossProduct in – (negative) direction
+	//if (shipMissleAORDirection >= 0) // adjust rotational value
+	//	radian = aCos;
+	//else
+	//	radian = 2 * PI - aCos; // - aCos negative rotation
+
+	//shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, radian, shipMissleAOR);
 	;
 }
 
@@ -427,11 +460,17 @@ void display()
 				if (shipMissleFired == true)
 				{
 					// Missle is alive:
-					if (missleUpdateFrameCount <= 2000)
+					if (missleUpdateFrameCount <= missleLifetime)
 					{
+						// Missle is active
+						if (missleUpdateFrameCount >= missleActivationTimer)
+						{
+							handleSmartMissle();
+						}
 						modelMatrix[MISSILEINDEX] = shipMissleTranslationMatrix * translationMatrix[MISSILEINDEX] *
-							glm::scale(identityMatrix, glm::vec3(scale[MISSILEINDEX]));
+							shipMissleRotationMatrix * glm::scale(identityMatrix, glm::vec3(scale[MISSILEINDEX]));
 					}
+					
 					// Missle is dead:
 					else
 					{
@@ -564,9 +603,15 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	case 't': case'T':
 		if (timeQuantumState >= 3)
+		{
 			timeQuantumState = 0;
+			timerIndex = 0;
+		}
 		else
+		{
 			timeQuantumState++;
+			timerIndex++;
+		}
 		break;
 	case 'f': case'F':
 		fireMissle();
