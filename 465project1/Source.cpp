@@ -66,7 +66,7 @@ float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 100.0f, 75
 char * modelFile[nModels] = { "Sun.tri", "RingPlanet.tri", "FacePlanet.tri", "WaterPlanet.tri", "BlownUpPlanet.tri", "spaceShip-bs100.tri", "Missile.tri", "MissileSite.tri", "MissileSite.tri"  };
 glm::vec3 scale[nModels];       // set in init()
 glm::mat4 translationMatrix[nModels];
-//										ruber				unum					duo						primus					secundus			ship						missle
+//										ruber				unum					duo						primus					secundus			ship						missle			
 glm::vec3 translatePosition[nModels] = { glm::vec3(0,0,0), glm::vec3(4000, -50, 0), glm::vec3(9000, 0, 0), glm::vec3(8100, 0, 0),glm::vec3(7250,0,0), glm::vec3(5000, 1000, 5000), glm::vec3(4900,1000,4850) };
 //SpaceBody * spaceBody[nModels];
 
@@ -336,6 +336,7 @@ void handleSmartMissle()
 void gravitySwitch()
 {
 	gravityState = !gravityState;
+	printf("Gravity: %d\n", gravityState);
 	if (gravityState == true)
 	{
 		;
@@ -492,6 +493,18 @@ void update(int i)
 	{
 		shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, missleDirection);
 		missleUpdateFrameCount++;
+	}
+	if (gravityState == true)
+	{
+		//ship-planet for a vec3 that points from the ship to the planet. Using 1,1,1 because 0,0,0 causes bugs
+		glm::vec3 vectorPointingFromShipToRuber = getPosition(shipOrientationMatrix) - glm::vec3(1, 1, 1);
+		float distance = glm::length(vectorPointingFromShipToRuber);
+	
+		//normalize the vector, this is now gravity. Can multiply something > 1 to make gravity more intense. 
+		//Similarly, < 1 to make it less intense
+		glm::vec3 gravity = (vectorPointingFromShipToRuber / distance) * glm::vec3(1, 1, 1);
+		shipTranslationMatrix = glm::translate(shipTranslationMatrix, gravity);
+		printf("%f, %f, %f\n", gravity.x, gravity.y, gravity.z);
 	}
 	//for (int i = 0; i < nModels; i++)
 	//{
