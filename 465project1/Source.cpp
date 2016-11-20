@@ -538,12 +538,16 @@ void update(int i)
 		//ship-planet for a vec3 that points from the ship to the planet. Using 1,1,1 because 0,0,0 causes bugs
 		glm::vec3 vectorPointingFromShipToRuber = getPosition(shipOrientationMatrix) - glm::vec3(1, 1, 1);
 		float distance = glm::length(vectorPointingFromShipToRuber);
-	
-		//normalize the vector, this is now gravity. Can multiply something > 1 to make gravity more intense. 
-		//Similarly, < 1 to make it less intense
-		glm::vec3 gravity = (vectorPointingFromShipToRuber / distance) * glm::vec3(1, 1, 1);
-		shipTranslationMatrix = glm::translate(shipTranslationMatrix, gravity);
-		printf("%f, %f, %f\n", gravity.x, gravity.y, gravity.z);
+		
+		//magic number for now, couldn't find a number on the specification
+		if (distance > 2) {
+			//normalize the vector, this is now gravity. Can multiply something > 1 to make gravity more intense. 
+			//Similarly, < 1 to make it less intense
+			glm::vec3 gravity = (vectorPointingFromShipToRuber / distance);
+			shipTranslationMatrix = glm::translate(shipTranslationMatrix, gravity);
+			printf("%f, %f, %f\n", gravity.x, gravity.y, gravity.z);
+		}
+
 	}
 	//for (int i = 0; i < nModels; i++)
 	//{
