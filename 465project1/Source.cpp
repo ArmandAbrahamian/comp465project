@@ -171,6 +171,10 @@ const float gravityFieldUnum = 6000;
 const float gravityFieldDuo = 2000;
 bool gravityState = false;
 
+/* warp variables */
+glm::mat4 shipCameraSave;
+int warpit = 0;
+glm::vec3 warpPosition(1000, 0.0f,-3000);
 /* Ship variables */
 GLfloat shipUpdateRadians = 0.02f;
 glm::mat4 shipOrientationMatrix;
@@ -432,9 +436,10 @@ void display()
 				modelMatrix[index] = transformMatrix[index] *
 					glm::scale(identityMatrix, glm::vec3(scale[index]));
 
+				duoCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[DUOINDEX], planetCamEyePosition)), getPosition(transformMatrix[DUOINDEX]), upVector);
 				if (currentCamera == DUOCAMERAINDEX) // Update Duo's Camera:
 				{
-					duoCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[DUOINDEX], planetCamEyePosition)), getPosition(transformMatrix[DUOINDEX]), upVector);
+					
 					mainCamera = duoCamera;
 				}
 				break;
@@ -446,9 +451,10 @@ void display()
 				// For Debugging:
 				//showMat4("rotation", rotationMatrix);
 				//showMat4("transform", transformMatrix[index]);
+				unumCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[UNUMINDEX], planetCamEyePosition)), getPosition(transformMatrix[UNUMINDEX]), upVector);
 				if (currentCamera == UNUMCAMERAINDEX) // Update Unum's Camera:
 				{
-					unumCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[UNUMINDEX], planetCamEyePosition)), getPosition(transformMatrix[UNUMINDEX]), upVector);
+					
 					mainCamera = unumCamera;
 				}
 				break;
@@ -643,6 +649,27 @@ void updateCamera(int camera)
 	;
 }
 
+
+void warp(int x) {
+	// set x to 1 for the first planet
+	if (x == 1) {
+		shipTranslationMatrix = glm::translate(transformMatrix[UNUMINDEX], warpPosition);
+		// have ship point a planet
+		//shipTranslationMatrix = glm::translate(shipTranslationMatrix, forward);
+	}
+	// set x to 2 for second planet
+	else if (x == 2) {
+		shipTranslationMatrix = glm::translate(transformMatrix[DUOINDEX], warpPosition);
+		//have ship point at planet
+		//shipTranslationMatrix = glm::translate(shipTranslationMatrix, forward);
+	}
+	// if x is anything else the ship should return to original location
+	else {
+		//original camera point for ship for warp back
+		shipTranslationMatrix = glm::translate(identityMatrix, getPosition(shipCameraSave));
+	}
+}
+
 void keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
@@ -680,6 +707,22 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	case 'g': case'G':
 		gravitySwitch();
+		break;
+	case 'w': case'W':
+		if (warpit == 0) {
+			warp(1);
+			warpit = 1;
+		}
+		else if (warpit == 1) {
+			warp(2);
+			// return change warpit to anything but 0,1,2 so that 
+			// it forces the next warp back to the starting ship point
+			warpit = 2;
+		}
+		else {
+			warp(0);
+			warpit = 0;
+		}
 		break;
 	}
 }
