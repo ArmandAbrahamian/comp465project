@@ -166,6 +166,9 @@ glm::vec3 rotationalAxis(0.0f, 1.0f, 0.0f);
 
 /* World variables */
 const float gravity = 90000000.0f;
+const float gravityFieldRuber = 5000;
+const float gravityFieldUnum = 6000;
+const float gravityFieldDuo = 2000;
 bool gravityState = false;
 
 /* Ship variables */
@@ -396,13 +399,7 @@ void handleSmartMissle()
 void gravitySwitch()
 {
 	gravityState = !gravityState;
-	printf("Gravity: %d\n", gravityState);
-	if (gravityState == true)
-	{
-		;
-	}
-	else
-		;
+	printf("Gravity State: %d\n", gravityState);
 }
 
 /*
@@ -559,19 +556,35 @@ void update(int i)
 	}
 	if (gravityState == true)
 	{
-		//ship-planet for a vec3 that points from the ship to the planet. Using 1,1,1 because 0,0,0 causes bugs
-		glm::vec3 vectorPointingFromShipToRuber = getPosition(shipOrientationMatrix) - glm::vec3(1, 1, 1);
-		float distance = glm::length(vectorPointingFromShipToRuber);
+		glm::vec3 shipPosition = getPosition(shipTranslationMatrix) + translatePosition[SHIPINDEX];
+
+		//Check distance to Ruber
+		glm::vec3 vectorPointingFromShipToRuber = translatePosition[RUBERINDEX] - shipPosition;
+		float distanceToRuber = glm::length(vectorPointingFromShipToRuber);
 		
-		//magic number for now, couldn't find a number on the specification
-		if (distance > 2) {
-			//normalize the vector, this is now gravity. Can multiply something > 1 to make gravity more intense. 
-			//Similarly, < 1 to make it less intense
-			glm::vec3 gravity = (vectorPointingFromShipToRuber / distance);
-			shipTranslationMatrix = glm::translate(shipTranslationMatrix, gravity);
-			printf("%f, %f, %f\n", gravity.x, gravity.y, gravity.z);
+		//Check distance to Unum
+		glm::vec3 vectorPointingFromShipToUnum = (translatePosition[UNUMINDEX] + getPosition(translationMatrix[UNUMINDEX])) - shipPosition;
+		float distanceToUnum = glm::length(vectorPointingFromShipToUnum);
+
+		//Check distance to Duo
+		glm::vec3 vectorPointingFromShipToDuo = (translatePosition[DUOINDEX] + getPosition(translationMatrix[DUOINDEX])) - shipPosition;
+		float distanceToDuo = glm::length(vectorPointingFromShipToDuo);
+
+		if (distanceToRuber < gravityFieldRuber) {
+			//normalize the vector, this is now gravity
+			glm::vec3 gravity = (vectorPointingFromShipToRuber / distanceToRuber);
+			shipTranslationMatrix = glm::translate(shipTranslationMatrix, gravity * glm::vec3(0.1f, 0.1f, 0.1f));
 		}
 
+		if (distanceToUnum < gravityFieldUnum) {
+			glm::vec3 gravity = (vectorPointingFromShipToUnum / distanceToUnum);
+			shipTranslationMatrix = glm::translate(shipTranslationMatrix, gravity * glm::vec3(2, 2, 2));
+		}
+
+		if (distanceToDuo < gravityFieldDuo) {
+			glm::vec3 gravity = (vectorPointingFromShipToDuo / distanceToDuo);
+			shipTranslationMatrix = glm::translate(shipTranslationMatrix, gravity * glm::vec3(2, 2, 2));
+		}
 	}
 
 	//for (int i = 0; i < nModels; i++)
