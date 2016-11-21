@@ -27,22 +27,24 @@
     <ClInclude Include="..\includes465\shader465.hpp" />
     <ClInclude Include="..\includes465\texture.hpp" />
     <ClInclude Include="..\includes465\triModel465.hpp" />
-    <ClInclude Include="SpaceBody.h" />
+    <ClInclude Include="Missle.hpp" />
+    <ClInclude Include="MissleSite.hpp" />
+    <ClInclude Include="Object3D.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="axes-r100.tri" />
-    <None Include="BlownUpPlanet.tri" />
-    <None Include="FacePlanet.tri" />
+    <None Include="secundus.tri" />
+    <None Include="duo.tri" />
     <None Include="Missile.tri" />
     <None Include="MissileSite.tri" />
     <None Include="MountainPlanet.tri" />
     <None Include="obelisk-10-20-10.tri" />
-    <None Include="RingPlanet.tri" />
+    <None Include="unum.tri" />
     <None Include="simpleFragment.glsl" />
     <None Include="simpleVertex.glsl" />
     <None Include="spaceShip-bs100.tri" />
-    <None Include="Sun.tri" />
-    <None Include="WaterPlanet.tri" />
+    <None Include="ruber.tri" />
+    <None Include="primus.tri" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{12087D28-1F55-43F5-84FE-AB2C584607BA}</ProjectGuid>

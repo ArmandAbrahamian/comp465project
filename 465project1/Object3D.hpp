@@ -1,5 +1,5 @@
 /*
-SpaceBody.h
+Object3D.hpp
 
 Represent the scale, translation, and rotation of a 3D shape.
 If you overload the constructor you can create a shape with
@@ -7,26 +7,29 @@ arguments for scale, translation, and rotation.
 
 */
 
-#pragma once
 # ifndef __INCLUDES465__
 # include "../includes465/include465.hpp"
 # define __INCLUDES465__
 # endif
 
-class SpaceBody
-{
+class Object3D {
 private:
 
 	glm::mat4 rotationMatrix;
 	glm::mat4 scaleMatrix;
 	glm::mat4 translationMatrix;
-//	glm::vec3 rotationAxis;
-//	float radians;
+	glm::mat4 orientationMatrix;
+	glm::mat4 identity;
+	glm::vec3 scale;
+	glm::vec3 rotationAxis;
+	float rotationAmount;
+	float modelSize;
+	float modelBoundingRadius;
 	bool orbital, planetOrbital;
 
 public:
 
-	SpaceBody(bool passedOrbital, bool passedPlanetOrbital)
+	Object3D(bool passedOrbital, bool passedPlanetOrbital)
 	{
 		this->orbital = passedOrbital;
 		this->planetOrbital = passedPlanetOrbital;
