@@ -63,11 +63,14 @@ Pass or Resign:
 Documentation:
 * Need to modify completely.
 
+If time allows:
+* Refactor to OOP Approach
+
 */
 # define __Windows__
 # include "../includes465/include465.hpp"
 # include <string>
-// # include "Object3D.hpp"
+# include "Object3D.hpp"
 
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1,
 RUBERINDEX = 0, UNUMINDEX = 1, DUOINDEX = 2, PRIMUSINDEX = 3, SECUNDUSINDEX = 4, SHIPINDEX = 5, MISSILEINDEX = 6, FIRSTMISSLESILOINDEX = 7, SECONDMISSLESILOINDEX = 8,
@@ -86,7 +89,7 @@ const int nVertices[nModels] = { // vertex count
 	720 * 3, // missleSilo
 	720 * 3 }; // missleSilo
 float modelBR[nModels];       // model's bounding radius
-float modelSize[nModels] = {  // size of model
+const float modelSize[nModels] = {  // size of model
 	2000.0f, // ruber
 	200.0f, // unum
 	400.0f, // duo
@@ -132,6 +135,9 @@ GLuint shaderProgram;
 GLuint VAO[nModels];      // Vertex Array Objects
 GLuint buffer[nModels];   // Vertex Buffer Objects
 
+// Handle Shape3D
+Object3D object3D[nModels];
+
 /* Camera: */
 char * cameraNames[5] = { "Front Camera", "Top Camera", "Ship Camera", "Unum Camera", "Duo Camera" };
 glm::mat4 mainCamera;           // set in init()
@@ -152,8 +158,8 @@ glm::vec3 topCamEyePosition(0, 20000.0f, 0);
 glm::vec3 frontCamEyePosition(0.0f, 10000.0f, 20000.0f);
 
 /* Planet rotational variables: */
-GLfloat radians = 0.004f;
-GLfloat radians2 = 0.002f;
+const GLfloat radians = 0.004f;
+const GLfloat radians2 = 0.002f;
 float eyeDistanceMultiplier = 10.0f;
 float eyeDistance;
 float unumGravityVector = 1.11f;
@@ -268,6 +274,41 @@ void init()
 			printf("loaded %s model with %7.2f bounding radius \n", modelFile[i], modelBR[i]);
 		}
 	}
+	//// load the buffers from the model files
+	//for (int i = 0; i < nModels; i++)
+	//{
+	//	// Create spaceBody objects
+	//	if (i == UNUMINDEX || i == DUOINDEX)
+	//	{
+	//		object3D[i] = Object3D(true, false);
+	//	}
+	//	else if (i == PRIMUSINDEX || i == SECUNDUSINDEX)
+	//	{
+	//		object3D[i] = Object3D(true, true);
+	//	}
+	//	else
+	//	{
+	//		object3D[i] = Object3D(false, false);
+	//	}
+
+	//	object3D[i].setModelBR(loadModelBuffer(modelFile[i], nVertices[i], VAO[i], buffer[i], shaderProgram,
+	//		vPosition[i], vColor[i], vNormal[i], "vPosition", "vColor", "vNormal"));
+
+	//	// set scale for models given bounding radius  
+	//	object3D[i].setScale(glm::vec3(modelSize[i] / object3D[i].getModelBR));
+
+	//	if (object3D[i].getModelBR() == -1.0f)
+	//	{
+	//		printf("loadTriModel error:  returned -1.0f \n");
+	//		system("pause");
+	//	}
+	//	else
+	//	{
+	//		printf("loaded %s model with %7.2f bounding radius \n", modelFile[i], object3D[i].getModelBR());
+	//	}
+
+	//	object3D[i].setScaleMatrix(glm::scale(identityMatrix, glm::vec3(scale[i])));
+	//}
 
 	MVP = glGetUniformLocation(shaderProgram, "ModelViewProjection");
 
@@ -309,23 +350,6 @@ void init()
 	// set render state values
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.7f, 0.7f, 0.7f, 1.0f); // Establishes what color the window will be cleared to.
-
-// Create spaceBody objects
-	//for (int i = 0; i < nModels; i++)
-	//{
-	//	if (i == 0 || i == nModels - 1)
-	//	{
-	//		spaceBody[i] = new SpaceBody(false, false);
-	//	}
-	//	else if (i > 0 && i < 3)
-	//	{
-	//		spaceBody[i] = new SpaceBody(true, false);
-	//	}
-	//	else if (i == 3)
-	//	{
-	//		spaceBody[i] = new SpaceBody(true, true);
-	//	}
-	//}
 
 	lastTime = glutGet(GLUT_ELAPSED_TIME);  // get elapsed system time
 }
@@ -383,6 +407,21 @@ void fireMissle()
 // Method that handles the logic for when a missle becomes smart.
 void handleSmartMissle()
 {
+
+	//float site1 = glm::distance(getPosition(shipMissleTranslationMatrix), getPosition(transformMatrix[FIRSTMISSLESILOINDEX]));
+
+	//float site2 = glm::distance(getPosition(shipMissleTranslationMatrix), getPosition(transformMatrix[SECONDMISSLESILOINDEX]));
+
+	//// Determine which missile site is closer. Player's missile should target the closest one.
+	//if (site1 <= site2) {
+	//	//printf("Target = Unum\n");
+	//	shape[i]->update(movementDirection, shape[UNUM_SITE]->getPosition());
+	//}
+	//else {
+	//	//printf("Target = Secundus\n");
+	//	shape[i]->update(movementDirection, shape[SECUNDUS_SITE]->getPosition());
+	//}
+
 	// Target Vector = target's position - NPC's position, the desired new "looking at" for the NPC.
 	glm::vec3 targetVector = getPosition(transformMatrix[FIRSTMISSLESILOINDEX]) - getPosition(shipMissleTranslationMatrix);
 
@@ -391,11 +430,8 @@ void handleSmartMissle()
 	float aCos = glm::dot(targetVector, shipMissleDirection); // find the rotation amount
 
 	// rotations <- pi radians (0 to 180 degrees) crossProduct in + direction
-	// rotations > pi radians crossProduct in – (negative) direction
-	if (shipMissleAORDirection >= 0) // adjust rotational value
-		radian = aCos;
-	else
-		radian = 2 * PI - aCos; // - aCos negative rotation
+	// rotations > pi radians crossProduct in ï¿½ (negative) directio	else
+	// rotations > pi radians crossProduct in ï¿½ (negative) directio		radian = 2 * PI - aCos; // - aCos negative rotation
 
 	shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, radian, shipMissleAOR);
 }
@@ -602,8 +638,7 @@ void update(int i)
 	if (missleUpdateFrameCount >= missleActivationTimer)
 	{
 		handleSmartMissle();
-	}
-
+	}			
 	glutPostRedisplay();
 }
 
