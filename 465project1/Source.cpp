@@ -39,7 +39,6 @@ User commands:
 'ctrl right' ship "rolls" right
 -----------------------------------------------------------------
 To Do:
-* Create gravity for Unum, Duo, Ship
 * Fix missle model direction be direction of ship.
 
 Ship Movement:
@@ -70,6 +69,7 @@ Optional:
 # define __Windows__
 # include "../includes465/include465.hpp"
 # include <string>
+//# include "Missile.hpp"
 //# include "Object3D.hpp"
 
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1,
@@ -209,10 +209,12 @@ bool isShipMissleSmart = false;
 bool shipMissleDetectedEnemy = false;
 glm::mat4 shipMissleTranslationMatrix;
 glm::mat4 shipMissleRotationMatrix;
+glm::mat4 shipMissleOrientationMatrix;
 glm::vec3 shipMissleDirection;
 glm::vec3 shipMissleAOR;
 glm::vec3 shipMissleLocation;
 float radian;
+//Missile shipMissle;
 
 /* Missle Site Variables */
 int unumMissles = 5;
@@ -406,28 +408,44 @@ void fireMissle()
 // Method that handles the logic for when a missle becomes smart.
 void handleSmartMissle()
 {
-	shipMissleLocation = getPosition(modelMatrix[SHIPMISSILEINDEX]);
-
-	float missleSiteUnum = glm::distance(shipMissleLocation, getPosition(modelMatrix[FIRSTMISSLESILOINDEX]));
-
-	float missleSiteSecundus = glm::distance(shipMissleLocation, getPosition(modelMatrix[SECONDMISSLESILOINDEX]));
+	shipMissleLocation = getPosition(shipMissleOrientationMatrix);
+	float missleSiteUnum = glm::distance(shipMissleLocation, getPosition(transformMatrix[FIRSTMISSLESILOINDEX]));
+	float missleSiteSecundus = glm::distance(shipMissleLocation, getPosition(transformMatrix[SECONDMISSLESILOINDEX]));
 
 	// Determine which missile site is closer. Player's missile should target the closest one.
-
-	if (missleSiteUnum <= missleSiteSecundus)
+	if (missleSiteUnum > 5000.0f && missleSiteSecundus > 5000.0f)
+		shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
+	else if (missleSiteUnum <= missleSiteSecundus)
 	{
 		printf("Ship Missle Target = Unum\n");
 
-		glm::vec3 targetPosition = getPosition(modelMatrix[FIRSTMISSLESILOINDEX]);
+		// Get the position of the target:
+		glm::vec3 targetPosition = getPosition(transformMatrix[FIRSTMISSLESILOINDEX]);
+
+		// Get the "looking at" vector from the chaser (missle)
 		shipMissleDirection = getIn(shipMissleRotationMatrix);
 
-		shipMissleAOR = glm::cross(targetPosition, shipMissleDirection); // find the axis of rotation
-		float shipMissleAORDirection = shipMissleAOR.x + shipMissleAOR.y + shipMissleAOR.z;
-		float aCos = glm::dot(targetPosition, shipMissleDirection); // find the rotation amount
-		if (shipMissleAORDirection >= 0) // adjust rotational value
-			radian = aCos;
+		// Get the distance between the target and the missle.
+		glm::vec3 distance = targetPosition - shipMissleLocation;
+
+		// Normalize the vectors:
+		distance = glm::normalize(distance);
+		shipMissleDirection = glm::normalize(shipMissleDirection);
+
+		// Find the axis of rotation:
+		shipMissleAOR = glm::cross(distance, shipMissleDirection); 
+
+		// Normalize the Axis:
+		shipMissleAOR = glm::normalize(shipMissleAOR);
+
+		if (colinear(distance, shipMissleDirection, 0.1f))
+		{
+			radian = (2.0f * PI) - acos(glm::dot(distance, shipMissleDirection));
+		}
 		else
-			radian = 2 * PI - aCos; // - aCos negative rotation
+		{
+			radian = (2.0f * PI) + acos(glm::dot(distance, shipMissleDirection));
+		}
 		shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, radian, shipMissleAOR);
 		shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
 	}
@@ -435,18 +453,52 @@ void handleSmartMissle()
 	{
 		printf("Ship Missle Target = Secundus\n");
 
-		glm::vec3 targetPosition = getPosition(modelMatrix[SECONDMISSLESILOINDEX]);
+		// Get the position of the target:
+		glm::vec3 targetPosition = getPosition(transformMatrix[SECONDMISSLESILOINDEX]);
+
+		// Get the "looking at" vector from the chaser (missle)
+		shipMissleDirection = getIn(shipMissleOrientationMatrix);
+
+		// Get the distance between the target and the missle.
+		glm::vec3 distance = targetPosition - shipMissleLocation;
+
+		// Normalize the vectors:
+		distance = glm::normalize(distance);
+		shipMissleDirection = glm::normalize(shipMissleDirection);
+
+		// Find the axis of rotation:
+		shipMissleAOR = glm::cross(distance, shipMissleDirection);
+
+		// Normalize the Axis:
+		shipMissleAOR = glm::normalize(shipMissleAOR);
+
+		if (colinear(distance, shipMissleDirection, 0.1f))
+		{
+			radian = (2.0f * PI) - acos(glm::dot(distance, shipMissleDirection));
+		}
+		else
+		{
+			radian = (2.0f * PI) + acos(glm::dot(distance, shipMissleDirection));
+		}
+
+		shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, radian, shipMissleAOR);
+		shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
+
+		/*
+		Old Code:
+		glm::vec3 targetPosition = getPosition(transformMatrix[SECONDMISSLESILOINDEX]);
 		shipMissleDirection = getIn(shipMissleRotationMatrix);
 
 		shipMissleAOR = glm::cross(targetPosition, shipMissleDirection); // find the axis of rotation
 		float shipMissleAORDirection = shipMissleAOR.x + shipMissleAOR.y + shipMissleAOR.z;
 		float aCos = glm::dot(targetPosition, shipMissleDirection); // find the rotation amount
 		if (shipMissleAORDirection >= 0) // adjust rotational value
-			radian = aCos;
+		radian = aCos;
 		else
-			radian = 2 * PI - aCos; // - aCos negative rotation
+		radian = 2 * PI - aCos; // - aCos negative rotation
 		shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, radian, shipMissleAOR);
 		shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
+		*/
 	}
 }
 
@@ -536,6 +588,8 @@ void display()
 					if (missleUpdateFrameCount <= missleLifetime)
 					{
 						// Update missle model:
+						shipMissleOrientationMatrix = shipMissleTranslationMatrix * shipMissleRotationMatrix * glm::scale(identityMatrix, glm::vec3(scale[SHIPMISSILEINDEX]));
+
 						modelMatrix[SHIPMISSILEINDEX] = shipMissleTranslationMatrix * translationMatrix[SHIPMISSILEINDEX] * shipMissleRotationMatrix * glm::scale(identityMatrix, glm::vec3(scale[SHIPMISSILEINDEX]));
 					}
 					
@@ -597,6 +651,7 @@ void update(int i)
 	rotationMatrix = glm::rotate(rotationMatrix, radians, rotationalAxis);
 	moonRotationMatrix = glm::rotate(moonRotationMatrix, radians2, rotationalAxis);
 
+	// Update the ship missle if it was fired:
 	if (shipMissleFired == true)
 	{
 		// If missle is active, update smart missle.
@@ -611,6 +666,7 @@ void update(int i)
 		missleUpdateFrameCount++;
 	}
 
+	// Update Gravity:
 	if (gravityState == true)
 	{
 		glm::vec3 shipPosition = getPosition(shipTranslationMatrix) + translatePosition[SHIPINDEX];

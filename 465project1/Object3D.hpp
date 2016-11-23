@@ -37,8 +37,8 @@ public:
 	{
 		this->orbital = passedOrbital;
 		this->planetOrbital = passedPlanetOrbital;
-		rotationMatrix = glm::mat4();  // no initial orientation
-		translationMatrix = glm::mat4(); // no initial position
+		rotationMatrix = identity;  // no initial orientation
+		translationMatrix = identity; // no initial position
 	}
 
 	glm::mat4 getModelMatrix() 
@@ -134,7 +134,7 @@ public:
 		return this->transformMatrix;
 	}
 
-	void update(GLfloat passedRadians, glm::vec3 passedRotationAxis)
+	void update(float passedRadians, glm::vec3 passedRotationAxis)
 	{
 		rotationMatrix = glm::rotate(rotationMatrix, passedRadians, passedRotationAxis);
 		//translationMatrix = glm::translate(translationMatrix, translation);
