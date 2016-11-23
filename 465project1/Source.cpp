@@ -63,17 +63,17 @@ Pass or Resign:
 Documentation:
 * Need to modify completely.
 
-If time allows:
+Optional:
 * Refactor to OOP Approach
 
 */
 # define __Windows__
 # include "../includes465/include465.hpp"
 # include <string>
-# include "Object3D.hpp"
+//# include "Object3D.hpp"
 
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1,
-RUBERINDEX = 0, UNUMINDEX = 1, DUOINDEX = 2, PRIMUSINDEX = 3, SECUNDUSINDEX = 4, SHIPINDEX = 5, MISSILEINDEX = 6, FIRSTMISSLESILOINDEX = 7, SECONDMISSLESILOINDEX = 8,
+RUBERINDEX = 0, UNUMINDEX = 1, DUOINDEX = 2, PRIMUSINDEX = 3, SECUNDUSINDEX = 4, SHIPINDEX = 5, SHIPMISSILEINDEX = 6, FIRSTMISSLESILOINDEX = 7, SECONDMISSLESILOINDEX = 8,
 FRONTCAMERAINDEX = 0, TOPCAMERAINDEX = 1, SHIPCAMERAINDEX = 2, UNUMCAMERAINDEX = 3, DUOCAMERAINDEX = 4;
 
 /* Models: */
@@ -85,9 +85,9 @@ const int nVertices[nModels] = { // vertex count
 	264 * 3, // primus
 	264 * 3, // secundus
 	996 * 3, // warbird
-	282 * 3, // missle
-	720 * 3, // missleSilo
-	720 * 3 }; // missleSilo
+	282 * 3, // ship missle
+	720 * 3, // Primus missleSilo
+	720 * 3 }; // Secundus missleSilo
 float modelBR[nModels];       // model's bounding radius
 const float modelSize[nModels] = {  // size of model
 	2000.0f, // ruber
@@ -96,9 +96,9 @@ const float modelSize[nModels] = {  // size of model
 	100.0f, // primus
 	150.0f, // secundus
 	100.0f, // warbird
-	75.0f, // missle
-	100.0f, // missleSilo
-	100.0f }; // missleSilo 
+	75.0f, // ship missle
+	100.0f, // Primus missleSilo
+	100.0f }; // Secundus missleSilo 
 char * modelFile[nModels] = { 
 	"ruber.tri", 
 	"unum.tri", 
@@ -109,7 +109,7 @@ char * modelFile[nModels] = {
 	"Missile.tri", 
 	"MissileSite.tri", 
 	"MissileSite.tri"  };
-glm::vec3 scale[nModels];       // set in init()
+glm::vec3 scale[nModels]; // set in init()
 glm::mat4 translationMatrix[nModels];	
 glm::vec3 translatePosition[nModels] = { 
 	glm::vec3(0,0,0), // ruber
@@ -119,7 +119,6 @@ glm::vec3 translatePosition[nModels] = {
 	glm::vec3(7250,0,0), // secundus
 	glm::vec3(5000, 1000, 5000), // warbird
 	glm::vec3(4900,1000,4850) }; // missle
-//SpaceBody * spaceBody[nModels];
 
 /* Shader handles, matrices, etc */
 GLuint MVP;  // Model View Projection matrix's handle
@@ -136,7 +135,7 @@ GLuint VAO[nModels];      // Vertex Array Objects
 GLuint buffer[nModels];   // Vertex Buffer Objects
 
 // Handle Shape3D
-Object3D object3D[nModels];
+//Object3D object3D[nModels];
 
 /* Camera: */
 char * cameraNames[5] = { "Front Camera", "Top Camera", "Ship Camera", "Unum Camera", "Duo Camera" };
@@ -150,12 +149,12 @@ int currentCamera = 0;
 int maxCameras = 5;
 const glm::vec3 upVector(0.0f, 1.0f, 0.0f);
 const glm::vec3 topVector(1.0f, 0.0f, 0.0f);
-glm::vec3 camPosition;
 glm::vec3 shipPosition;
 glm::vec3 shipCamEyePosition(0, 200, 500);
 glm::vec3 planetCamEyePosition(0, 0.0f, -8000);
 glm::vec3 topCamEyePosition(0, 20000.0f, 0);
 glm::vec3 frontCamEyePosition(0.0f, 10000.0f, 20000.0f);
+glm::vec3 camPosition;
 
 /* Planet rotational variables: */
 const GLfloat radians = 0.004f;
@@ -181,6 +180,7 @@ bool gravityState = false;
 glm::mat4 shipCameraSave;
 int warpit = 0;
 glm::vec3 warpPosition(1000, 0.0f,-3000);
+
 /* Ship variables */
 GLfloat shipUpdateRadians = 0.02f;
 glm::mat4 shipOrientationMatrix;
@@ -196,7 +196,7 @@ int shipSpeedState = 0;
 GLfloat shipSpeed[3] = { 10.0f, 50.0f, 200.0f };
 
 /* General Missle Variables */
-	// Missle has two states: leaving ship, and smart mode.
+// Missle has two states: leaving ship, and smart mode.
 const int missleLifetime = 2000;
 const int missleActivationTimer = 200;
 
@@ -209,10 +209,9 @@ bool isShipMissleSmart = false;
 bool shipMissleDetectedEnemy = false;
 glm::mat4 shipMissleTranslationMatrix;
 glm::mat4 shipMissleRotationMatrix;
-glm::mat4 shipMissleOrientationMatrix;
 glm::vec3 shipMissleDirection;
 glm::vec3 shipMissleAOR;
-glm::vec3 shipMissleLAT;
+glm::vec3 shipMissleLocation;
 float radian;
 
 /* Missle Site Variables */
@@ -390,8 +389,8 @@ void fireMissle()
 
 			// Set the missles position and direction of movement.
 			shipMissleTranslationMatrix = shipTranslationMatrix;
+			shipMissleRotationMatrix = shipRotationMatrix;
 			shipMissleDirection = getIn(shipRotationMatrix);
-
 			shipMissles--; // Decrement ship missle count.
 
 			// Update title string for missle count
@@ -407,33 +406,48 @@ void fireMissle()
 // Method that handles the logic for when a missle becomes smart.
 void handleSmartMissle()
 {
+	shipMissleLocation = getPosition(modelMatrix[SHIPMISSILEINDEX]);
 
-	//float site1 = glm::distance(getPosition(shipMissleTranslationMatrix), getPosition(transformMatrix[FIRSTMISSLESILOINDEX]));
+	float missleSiteUnum = glm::distance(shipMissleLocation, getPosition(modelMatrix[FIRSTMISSLESILOINDEX]));
 
-	//float site2 = glm::distance(getPosition(shipMissleTranslationMatrix), getPosition(transformMatrix[SECONDMISSLESILOINDEX]));
+	float missleSiteSecundus = glm::distance(shipMissleLocation, getPosition(modelMatrix[SECONDMISSLESILOINDEX]));
 
-	//// Determine which missile site is closer. Player's missile should target the closest one.
-	//if (site1 <= site2) {
-	//	//printf("Target = Unum\n");
-	//	shape[i]->update(movementDirection, shape[UNUM_SITE]->getPosition());
-	//}
-	//else {
-	//	//printf("Target = Secundus\n");
-	//	shape[i]->update(movementDirection, shape[SECUNDUS_SITE]->getPosition());
-	//}
+	// Determine which missile site is closer. Player's missile should target the closest one.
 
-	// Target Vector = target's position - NPC's position, the desired new "looking at" for the NPC.
-	glm::vec3 targetVector = getPosition(transformMatrix[FIRSTMISSLESILOINDEX]) - getPosition(shipMissleTranslationMatrix);
+	if (missleSiteUnum <= missleSiteSecundus)
+	{
+		printf("Ship Missle Target = Unum\n");
 
-	shipMissleAOR = glm::cross(targetVector,  shipMissleDirection); // find the axis of rotation
-	float shipMissleAORDirection = shipMissleAOR.x + shipMissleAOR.y + shipMissleAOR.z;
-	float aCos = glm::dot(targetVector, shipMissleDirection); // find the rotation amount
+		glm::vec3 targetPosition = getPosition(modelMatrix[FIRSTMISSLESILOINDEX]);
+		shipMissleDirection = getIn(shipMissleRotationMatrix);
 
-	// rotations <- pi radians (0 to 180 degrees) crossProduct in + direction
-	// rotations > pi radians crossProduct in � (negative) directio	else
-	// rotations > pi radians crossProduct in � (negative) directio		radian = 2 * PI - aCos; // - aCos negative rotation
+		shipMissleAOR = glm::cross(targetPosition, shipMissleDirection); // find the axis of rotation
+		float shipMissleAORDirection = shipMissleAOR.x + shipMissleAOR.y + shipMissleAOR.z;
+		float aCos = glm::dot(targetPosition, shipMissleDirection); // find the rotation amount
+		if (shipMissleAORDirection >= 0) // adjust rotational value
+			radian = aCos;
+		else
+			radian = 2 * PI - aCos; // - aCos negative rotation
+		shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, radian, shipMissleAOR);
+		shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
+	}
+	else if(missleSiteUnum > missleSiteSecundus)
+	{
+		printf("Ship Missle Target = Secundus\n");
 
-	shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, radian, shipMissleAOR);
+		glm::vec3 targetPosition = getPosition(modelMatrix[SECONDMISSLESILOINDEX]);
+		shipMissleDirection = getIn(shipMissleRotationMatrix);
+
+		shipMissleAOR = glm::cross(targetPosition, shipMissleDirection); // find the axis of rotation
+		float shipMissleAORDirection = shipMissleAOR.x + shipMissleAOR.y + shipMissleAOR.z;
+		float aCos = glm::dot(targetPosition, shipMissleDirection); // find the rotation amount
+		if (shipMissleAORDirection >= 0) // adjust rotational value
+			radian = aCos;
+		else
+			radian = 2 * PI - aCos; // - aCos negative rotation
+		shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, radian, shipMissleAOR);
+		shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
+	}
 }
 
 void gravitySwitch()
@@ -474,10 +488,7 @@ void display()
 
 				duoCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[DUOINDEX], planetCamEyePosition)), getPosition(transformMatrix[DUOINDEX]), upVector);
 				if (currentCamera == DUOCAMERAINDEX) // Update Duo's Camera:
-				{
-					
 					mainCamera = duoCamera;
-				}
 				break;
 
 			case DUOINDEX: // If it's planet Duo (planest farthest from Ruber with moons Secundus and Primus):
@@ -489,10 +500,7 @@ void display()
 				//showMat4("transform", transformMatrix[index]);
 				unumCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[UNUMINDEX], planetCamEyePosition)), getPosition(transformMatrix[UNUMINDEX]), upVector);
 				if (currentCamera == UNUMCAMERAINDEX) // Update Unum's Camera:
-				{
-					
 					mainCamera = unumCamera;
-				}
 				break;
 
 			case PRIMUSINDEX: // If its Primus, one of the moons, orbit around planet Duo.
@@ -514,34 +522,32 @@ void display()
 				modelMatrix[index] = shipTranslationMatrix * translationMatrix[index] * shipRotationMatrix *
 					glm::scale(identityMatrix, glm::vec3(scale[index]));
 
+				camPosition = getPosition(glm::translate(modelMatrix[SHIPINDEX], shipCamEyePosition));
+				shipPosition = getPosition(modelMatrix[SHIPINDEX]);
+				shipCamera = glm::lookAt(camPosition, glm::vec3(shipPosition.x, camPosition.y, shipPosition.z), upVector);
 				if (currentCamera == SHIPCAMERAINDEX) //If we're on ship camera
-				{
-					camPosition = getPosition(glm::translate(modelMatrix[SHIPINDEX], shipCamEyePosition));
-					shipPosition = getPosition(modelMatrix[SHIPINDEX]);
-					shipCamera = glm::lookAt(camPosition, glm::vec3(shipPosition.x, camPosition.y, shipPosition.z), upVector);
 					mainCamera = shipCamera;
-				}
 				break;
 
-			case MISSILEINDEX:
+			case SHIPMISSILEINDEX:
 				if (shipMissleFired == true)
 				{
-					// Missle is alive:
+					// Ship Missle is alive:
 					if (missleUpdateFrameCount <= missleLifetime)
 					{
 						// Update missle model:
-						modelMatrix[MISSILEINDEX] = shipMissleTranslationMatrix * shipMissleRotationMatrix * translationMatrix[MISSILEINDEX] * glm::scale(identityMatrix, glm::vec3(scale[MISSILEINDEX]));
+						modelMatrix[SHIPMISSILEINDEX] = shipMissleTranslationMatrix * translationMatrix[SHIPMISSILEINDEX] * shipMissleRotationMatrix * glm::scale(identityMatrix, glm::vec3(scale[SHIPMISSILEINDEX]));
 					}
 					
-					// Missle is dead:
+					// Ship Missle is dead:
 					else
 					{
 						shipMissleFired = false;
 						missleUpdateFrameCount = 0;
 						shipMissleTranslationMatrix = identityMatrix;
-						modelMatrix[MISSILEINDEX] = shipMissleTranslationMatrix *
-							glm::scale(identityMatrix, glm::vec3(scale[MISSILEINDEX]));
-						printf("Missle %d Destroyed", shipMissles);
+						modelMatrix[SHIPMISSILEINDEX] = shipMissleTranslationMatrix *
+							glm::scale(identityMatrix, glm::vec3(scale[SHIPMISSILEINDEX]));
+						printf("Ship Missle #%d Destroyed", shipMissles+1);
 					}
 				}
 			break;
@@ -593,9 +599,18 @@ void update(int i)
 
 	if (shipMissleFired == true)
 	{
-		shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
+		// If missle is active, update smart missle.
+		if (missleUpdateFrameCount >= missleActivationTimer)
+		{
+			handleSmartMissle();
+		}
+		else // Keep going in the direction its going from the ship.
+		{
+			shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
+		}
 		missleUpdateFrameCount++;
 	}
+
 	if (gravityState == true)
 	{
 		glm::vec3 shipPosition = getPosition(shipTranslationMatrix) + translatePosition[SHIPINDEX];
@@ -629,16 +644,6 @@ void update(int i)
 		}
 	}
 
-	//for (int i = 0; i < nModels; i++)
-	//{
-	//	spaceBody[i]->update(radians, rotationalAxis);
-	//}
-
-	// If missle is active, update smart missle.
-	if (missleUpdateFrameCount >= missleActivationTimer)
-	{
-		handleSmartMissle();
-	}			
 	glutPostRedisplay();
 }
 
@@ -678,12 +683,6 @@ void switchCamera(int camera)
 	printf("Current Camera: %s\n", cameraNames[camera]);
 	display();
 }
-
-void updateCamera(int camera)
-{
-	;
-}
-
 
 void warp(int x) {
 	// set x to 1 for the first planet

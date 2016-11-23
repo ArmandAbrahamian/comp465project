@@ -41,12 +41,6 @@
     <ClInclude Include="Object3D.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MissleSite.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Missle.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="axes-r100.tri">
