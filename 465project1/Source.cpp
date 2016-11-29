@@ -37,37 +37,6 @@ User commands:
 'ctrl down' ship "pitches" down
 'ctrl left' ship "rolls" left
 'ctrl right' ship "rolls" right
------------------------------------------------------------------
-To Do:
-
-
-Ship Movement:
-* Warping capabilities
-* Update camera when pitch up/down, roll left/right
-
-Missle Sites:
-
-Missle Movement:
-* Smart Missles
-* C - LAT * E
-
-Time Quantum:
- 
-
-Pass or Resign:
-* Can display a texture on the screen, text overlay, or output to the console for game over.
-* When the ship runs out of missles game over.
-* When the missle silo missles collide with the ship game over.
-
-Collision:
-* Collision for ship, missle, and both missle sites.
-
-Documentation:
-* Need to modify completely.
-
-Optional:
-* Refactor to OOP Approach
-* Fix missle model direction be direction of ship.
 
 */
 # define __Windows__
@@ -77,7 +46,20 @@ Optional:
 # include "Object3D.hpp"
 
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1,
-RUBERINDEX = 0, UNUMINDEX = 1, DUOINDEX = 2, PRIMUSINDEX = 3, SECUNDUSINDEX = 4, SHIPINDEX = 5, FIRSTMISSLESILOINDEX = 6, SECONDMISSLESILOINDEX = 7, SHIPMISSILEINDEX = 8, CUBEINDEX = 9,
+
+// Model indexes:
+RUBERINDEX = 0,
+UNUMINDEX = 1, 
+DUOINDEX = 2,
+PRIMUSINDEX = 3, 
+SECUNDUSINDEX = 4, 
+SHIPINDEX = 5, 
+FIRSTMISSLESILOINDEX = 6, 
+SECONDMISSLESILOINDEX = 7, 
+SHIPMISSILEINDEX = 8, 
+CUBEINDEX = 9,
+
+// Camera indexes:
 FRONTCAMERAINDEX = 0, TOPCAMERAINDEX = 1, SHIPCAMERAINDEX = 2, UNUMCAMERAINDEX = 3, DUOCAMERAINDEX = 4;
 
 /* Model Data: */
@@ -95,31 +77,31 @@ char * modelFile[nModels] = {
 	"Missile.tri",
 	"cube.tri" };
 
-const int nVertices[nModels] = { // vertex count
+int nVertices[nModels] = { // vertex count
 	264 * 3, // ruber
 	312 * 3, // unum
 	264 * 3, // duo
 	264 * 3, // primus
 	264 * 3, // secundus
 	996 * 3, // warbird
-	282 * 3, // ship missle
 	720 * 3, // Primus missleSilo
 	720 * 3, // Secundus missleSilo
-	6 * 6 }; //Cube
+	282 * 3, // ship missle
+	6 * 6 }; // Cube
 
 float modelBR[nModels];       // model's bounding radius
 
-const float modelSize[nModels] = {  // size of model
+float modelSize[nModels] = {  // size of model
 	2000.0f, // ruber
 	200.0f, // unum
 	400.0f, // duo
 	100.0f, // primus
 	150.0f, // secundus
 	100.0f, // warbird
-	75.0f, // ship missle
 	100.0f, // Primus missleSilo
 	100.0f, // Secundus missleSilo 
-	50000.0f }; //Cube
+	75.0f, // ship missle
+	50000.0f }; // Cube
 
 glm::vec3 scale[nModels]; // set in init()
 
@@ -132,8 +114,10 @@ glm::vec3 translatePosition[nModels] = {
 	glm::vec3(8100, 0, 0), // primus
 	glm::vec3(7250,0,0), // secundus
 	glm::vec3(5000, 1000, 5000), // warbird
+	glm::vec3(8100, 0, 0), // Primus Missile Site
+	glm::vec3(7250,0,0), // Secundus Missile Site
 	glm::vec3(4900,1000,4850),  // missle
-	glm::vec3(1000, 1000, 1000) }; //Cube
+	glm::vec3(1000, 1000, 1000) }; // Cube
 
 // The rotation amount (in radians) of each object
 float rotationAmount[nModels] = {
@@ -142,11 +126,14 @@ float rotationAmount[nModels] = {
 	0.002f,		// Duo
 	0.004f,		// Primus
 	0.002f,		// Secundus
-	0.0f,		// Missile
 	0.02f,		// Warbird
-	0.0f		// Missile Site
+	0.0f,		// Primus Missile Site
+	0.0f,		// Secundus Missile Site
+	0.0f,		// Missile
+	0.0f		// Cube
 };
 
+Object3D * object3D[nModels];
 
 /* Shader handles, matrices, etc */
 char * vertexShaderFile = "simpleVertex.glsl";
@@ -162,10 +149,6 @@ glm::mat4 modelMatrix[nModels];          // set in display()
 glm::mat4 viewMatrix;
 glm::mat4 projectionMatrix;     // set in reshape()
 glm::mat4 ModelViewProjectionMatrix; // set in display();
-
-
-// Handle Shape3D
-//Object3D object3D[nModels];
 
 /* Camera: */
 char * cameraNames[5] = { "Front Camera", "Top Camera", "Ship Camera", "Unum Camera", "Duo Camera" };
@@ -191,14 +174,11 @@ glm::vec3 frontCamEyePosition(0.0f, 10000.0f, 20000.0f);
 glm::vec3 camPosition;
 
 /* Planet rotational variables: */
-const GLfloat radians = 0.004f;
-const GLfloat radians2 = 0.002f;
 float eyeDistanceMultiplier = 10.0f;
 float eyeDistance;
 float unumGravityVector = 1.11f;
 float duoGravityVector = 5.63f;
 glm::mat4 identityMatrix(1.0f); // initialized identity matrix.
-glm::mat4 moonRotationMatrix;
 glm::mat4 transformMatrix[nModels];
 glm::mat4 rotationMatrix;
 glm::vec3 rotationalAxis(0.0f, 1.0f, 0.0f);
@@ -248,7 +228,7 @@ glm::vec3 shipMissleDirection;
 glm::vec3 shipMissleAOR;
 glm::vec3 shipMissleLocation;
 float radian;
-float rotationAmount;
+float shipMissleRotationAmount;
 float shipMissleAORDirection;
 //Missile shipMissle;
 
@@ -284,15 +264,15 @@ char * timerStr[4] = { " | U/S 200 ", " | U/S 25 ", " | U/S 10", " | U/S 2 " };
 // To maximize efficiency, operations that only need to be called once are called in init().
 void init()
 {
-	// load the shader programs
+	// Load the shader programs
 	shaderProgram = loadShaders(vertexShaderFile, fragmentShaderFile);
 	glUseProgram(shaderProgram);
 
-	// generate VAOs and VBOs
+	// Generate VAOs and VBOs
 	glGenVertexArrays(nModels, VAO);
 	glGenBuffers(nModels, buffer);
 
-	// load the buffers from the model files
+	// Load the buffers from the model files
 	for (int i = 0; i < nModels; i++)
 	{
 		modelBR[i] = loadModelBuffer(modelFile[i], nVertices[i], VAO[i], buffer[i], shaderProgram,
@@ -311,43 +291,13 @@ void init()
 		// set scale for models given bounding radius  
 		scale[i] = glm::vec3(modelSize[i] / modelBR[i]);
 
+		object3D[i] = new Object3D(modelSize[i], modelBR[i]);
+		object3D[i]->setTranslationMatrix(translatePosition[i]);
+		object3D[i]->setRotationAmount(rotationAmount[i]);
 
+		if(i == UNUMINDEX || i == DUOINDEX)
+			object3D[i]->setOrbit();
 	}
-	//// load the buffers from the model files
-	//for (int i = 0; i < nModels; i++)
-	//{
-	//	// Create spaceBody objects
-	//	if (i == UNUMINDEX || i == DUOINDEX)
-	//	{
-	//		object3D[i] = Object3D(true, false);
-	//	}
-	//	else if (i == PRIMUSINDEX || i == SECUNDUSINDEX)
-	//	{
-	//		object3D[i] = Object3D(true, true);
-	//	}
-	//	else
-	//	{
-	//		object3D[i] = Object3D(false, false);
-	//	}
-
-	//	object3D[i].setModelBR(loadModelBuffer(modelFile[i], nVertices[i], VAO[i], buffer[i], shaderProgram,
-	//		vPosition[i], vColor[i], vNormal[i], "vPosition", "vColor", "vNormal"));
-
-	//	// set scale for models given bounding radius  
-	//	object3D[i].setScale(glm::vec3(modelSize[i] / object3D[i].getModelBR));
-
-	//	if (object3D[i].getModelBR() == -1.0f)
-	//	{
-	//		printf("loadTriModel error:  returned -1.0f \n");
-	//		system("pause");
-	//	}
-	//	else
-	//	{
-	//		printf("loaded %s model with %7.2f bounding radius \n", modelFile[i], object3D[i].getModelBR());
-	//	}
-
-	//	object3D[i].setScaleMatrix(glm::scale(identityMatrix, glm::vec3(scale[i])));
-	//}
 
 	MVP = glGetUniformLocation(shaderProgram, "ModelViewProjection");
 
@@ -483,7 +433,7 @@ void handleSmartMissle()
 				// The dot product of two vectors equals |A|*|B|*cos(angle), so to get the angle in between
 				// divide by |A|*|B|.
 				if (shipMissleAORDirection > 0) {
-					rotationAmount = -glm::acos(glm::dot(shipMissleDirection, targetPosition) /
+					shipMissleRotationAmount = -glm::acos(glm::dot(shipMissleDirection, targetPosition) /
 						(glm::abs(glm::distance(targetPosition, glm::vec3(0, 0, 0))) * glm::abs(glm::distance(shipMissleDirection, glm::vec3(0, 0, 0)))));
 				}
 
@@ -491,14 +441,14 @@ void handleSmartMissle()
 
 				else
 				{
-					rotationAmount = glm::acos(glm::dot(shipMissleDirection, targetPosition) /
+					shipMissleRotationAmount = glm::acos(glm::dot(shipMissleDirection, targetPosition) /
 						(glm::abs(glm::distance(targetPosition, glm::vec3(0, 0, 0))) * glm::abs(glm::distance(shipMissleDirection, glm::vec3(0, 0, 0)))));
 				}
 			}
 
 			// Only rotate the Missile only a 4th of the rotation amount, 
 			// this allows for smoother rotations in the simulation.
-			shipMissleRotationMatrix = glm::rotate(identityMatrix, rotationAmount / 4, shipMissleAOR);
+			shipMissleRotationMatrix = glm::rotate(identityMatrix, shipMissleRotationAmount / 4, shipMissleAOR);
 
 			shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
 
@@ -543,23 +493,6 @@ void handleSmartMissle()
 
 		//	shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, radian, shipMissleAOR);
 		//	shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
-
-		//	/*
-		//	Old Code:
-		//	glm::vec3 targetPosition = getPosition(transformMatrix[SECONDMISSLESILOINDEX]);
-		//	shipMissleDirection = getIn(shipMissleRotationMatrix);
-
-		//	shipMissleAOR = glm::cross(targetPosition, shipMissleDirection); // find the axis of rotation
-		//	float shipMissleAORDirection = shipMissleAOR.x + shipMissleAOR.y + shipMissleAOR.z;
-		//	float aCos = glm::dot(targetPosition, shipMissleDirection); // find the rotation amount
-		//	if (shipMissleAORDirection >= 0) // adjust rotational value
-		//	radian = aCos;
-		//	else
-		//	radian = 2 * PI - aCos; // - aCos negative rotation
-		//	shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, radian, shipMissleAOR);
-		//	shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
-		//	*/
-		//}
 	}
 }
 
@@ -586,58 +519,46 @@ void display()
 	for (int index = 0; index < nModels; index++)
 	{
 		glBindVertexArray(VAO[index]); // set model for its instance. Have to rebind everytime its changed.
-		translationMatrix[index] = glm::translate(identityMatrix, translatePosition[index]);
+		//translationMatrix[index] = glm::translate(identityMatrix, translatePosition[index]);
+		
 		switch (index)
 		{
-			case RUBERINDEX: // If it's Ruber don't apply an orbital rotation.
-			case CUBEINDEX:
-				modelMatrix[index] = translationMatrix[index] *
-					glm::scale(identityMatrix, glm::vec3(scale[index]));
-				break;
-
 			case UNUMINDEX: // If it's planet Unum (planet closest to Ruber with no moons):
-				transformMatrix[index] = rotationMatrix * translationMatrix[index];
-				modelMatrix[index] = transformMatrix[index] *
-					glm::scale(identityMatrix, glm::vec3(scale[index]));
+				transformMatrix[index] = object3D[index]->getOrientationMatrix();
 
-				duoCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[DUOINDEX], planetCamEyePosition)), getPosition(transformMatrix[DUOINDEX]), upVector);
-				if (currentCamera == DUOCAMERAINDEX) // Update Duo's Camera:
-					mainCamera = duoCamera;
-				break;
-
-			case DUOINDEX: // If it's planet Duo (planest farthest from Ruber with moons Secundus and Primus):
-				transformMatrix[index] = moonRotationMatrix * translationMatrix[index];
-				modelMatrix[index] = transformMatrix[index] *
-					glm::scale(identityMatrix, glm::vec3(scale[index])); // oribital rotation = rotationMatrix * translationMatrix
-				// For Debugging:
-				//showMat4("rotation", rotationMatrix);
-				//showMat4("transform", transformMatrix[index]);
-				unumCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[UNUMINDEX], planetCamEyePosition)), getPosition(transformMatrix[UNUMINDEX]), upVector);
+				// Update Unum's Camera:
+				unumCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[index], planetCamEyePosition)), getPosition(transformMatrix[index]), upVector);
 				if (currentCamera == UNUMCAMERAINDEX) // Update Unum's Camera:
 					mainCamera = unumCamera;
 				break;
 
+			case DUOINDEX: // If it's planet Duo (planest farthest from Ruber with moons Secundus and Primus):
+				// Update Duo's Camera:
+				transformMatrix[index] = object3D[index]->getOrientationMatrix();
+				duoCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[index], planetCamEyePosition)), getPosition(object3D[index]->getOrientationMatrix()), upVector);
+				if (currentCamera == DUOCAMERAINDEX)
+					mainCamera = duoCamera;
+				break;
+
 			case PRIMUSINDEX: // If its Primus, one of the moons, orbit around planet Duo.
-				transformMatrix[PRIMUSINDEX] = transformMatrix[DUOINDEX] * rotationMatrix * glm::translate(identityMatrix, (translatePosition[PRIMUSINDEX] - translatePosition[DUOINDEX]));
-				modelMatrix[PRIMUSINDEX] = transformMatrix[PRIMUSINDEX] *
-					glm::scale(identityMatrix, glm::vec3(scale[PRIMUSINDEX]));
+				transformMatrix[index] = transformMatrix[DUOINDEX] * object3D[index]->getRotationMatrix() * glm::translate(identityMatrix, (translatePosition[index] - translatePosition[DUOINDEX]));
+				object3D[index]->setOrientationMatrix(transformMatrix[index]);
 				// For Debugging:
 				//showMat4("rotation", moonRotationMatrix);
 				//showMat4("transform", transformMatrix[index]);
 				break;
 
 			case SECUNDUSINDEX: // If its Secundus, one of the moons, orbit around planet Duo.
-				transformMatrix[SECUNDUSINDEX] = transformMatrix[DUOINDEX] * moonRotationMatrix * glm::translate(identityMatrix, (translatePosition[SECUNDUSINDEX] - translatePosition[DUOINDEX]));
-				modelMatrix[SECUNDUSINDEX] = transformMatrix[SECUNDUSINDEX] *
-					glm::scale(identityMatrix, glm::vec3(scale[SECUNDUSINDEX]));
+				transformMatrix[SECUNDUSINDEX] = transformMatrix[DUOINDEX] * object3D[index]->getRotationMatrix() * glm::translate(identityMatrix, (translatePosition[SECUNDUSINDEX] - translatePosition[DUOINDEX]));
+				object3D[index]->setOrientationMatrix(transformMatrix[index]);
 				break;
 
 			case SHIPINDEX:
 				modelMatrix[index] = shipTranslationMatrix * translationMatrix[index] * shipRotationMatrix *
 					glm::scale(identityMatrix, glm::vec3(scale[index]));
 
-				camPosition = getPosition(glm::translate(modelMatrix[SHIPINDEX], shipCamEyePosition));
-				shipPosition = getPosition(modelMatrix[SHIPINDEX]);
+				camPosition = getPosition(glm::translate(modelMatrix[index], shipCamEyePosition));
+				shipPosition = getPosition(modelMatrix[index]);
 				shipCamera = glm::lookAt(camPosition, glm::vec3(shipPosition.x, camPosition.y, shipPosition.z), upVector);
 				if (currentCamera == SHIPCAMERAINDEX) //If we're on ship camera
 					mainCamera = shipCamera;
@@ -645,14 +566,12 @@ void display()
 
 			case FIRSTMISSLESILOINDEX:
 				transformMatrix[index] = glm::translate(transformMatrix[UNUMINDEX], glm::vec3(0,140,0));
-				modelMatrix[index] = transformMatrix[index] *
-					glm::scale(identityMatrix, glm::vec3(scale[index]));
+				object3D[index]->setOrientationMatrix(transformMatrix[index]);
 				break;
 
 			case SECONDMISSLESILOINDEX:
 				transformMatrix[index] = glm::translate(transformMatrix[DUOINDEX], glm::vec3(0, 410, 0));
-				modelMatrix[index] = transformMatrix[index] *
-					glm::scale(identityMatrix, glm::vec3(scale[index]));
+				object3D[index]->setOrientationMatrix(transformMatrix[index]);
 				break;
 
 			case SHIPMISSILEINDEX:
@@ -685,7 +604,7 @@ void display()
 		}
 
 		viewMatrix = mainCamera;
-		ModelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix[index];
+		ModelViewProjectionMatrix = projectionMatrix * viewMatrix * object3D[index]->getModelMatrix();
 		glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
 		glDrawArrays(GL_TRIANGLES, 0, nVertices[index]);  // Initializes vertex shader, for contiguous groups of vertices.
 	}
@@ -710,8 +629,11 @@ void display()
 void update(int i)
 {
 	glutTimerFunc(timeQuantum[timeQuantumState], update, 1); // glutTimerFunc(time, fn, arg). This sets fn() to be called after time millisecond with arg as an argument to fn().
-	rotationMatrix = glm::rotate(rotationMatrix, radians, rotationalAxis);
-	moonRotationMatrix = glm::rotate(moonRotationMatrix, radians2, rotationalAxis);
+
+	for (int index = 0; index < nModels; index++)
+	{
+		object3D[index]->update();
+	}
 
 	// Update the ship missle if it was fired:
 	if (shipMissleFired == true)
