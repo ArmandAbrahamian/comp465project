@@ -88,5 +88,8 @@
     <None Include="Missile.tri">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="cube.tri">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

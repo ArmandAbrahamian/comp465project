@@ -73,11 +73,11 @@ Optional:
 //# include "Object3D.hpp"
 
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1,
-RUBERINDEX = 0, UNUMINDEX = 1, DUOINDEX = 2, PRIMUSINDEX = 3, SECUNDUSINDEX = 4, SHIPINDEX = 5, SHIPMISSILEINDEX = 6, FIRSTMISSLESILOINDEX = 7, SECONDMISSLESILOINDEX = 8,
+RUBERINDEX = 0, UNUMINDEX = 1, DUOINDEX = 2, PRIMUSINDEX = 3, SECUNDUSINDEX = 4, SHIPINDEX = 5, SHIPMISSILEINDEX = 6, FIRSTMISSLESILOINDEX = 7, SECONDMISSLESILOINDEX = 8, CUBEINDEX = 9,
 FRONTCAMERAINDEX = 0, TOPCAMERAINDEX = 1, SHIPCAMERAINDEX = 2, UNUMCAMERAINDEX = 3, DUOCAMERAINDEX = 4;
 
 /* Models: */
-const int nModels = 9;  // number of models in this scene
+const int nModels = 10;  // number of models in this scene
 const int nVertices[nModels] = { // vertex count
 	264 * 3, // ruber
 	312 * 3, // unum
@@ -87,7 +87,8 @@ const int nVertices[nModels] = { // vertex count
 	996 * 3, // warbird
 	282 * 3, // ship missle
 	720 * 3, // Primus missleSilo
-	720 * 3 }; // Secundus missleSilo
+	720 * 3, // Secundus missleSilo
+	6 * 6 }; //Cube
 float modelBR[nModels];       // model's bounding radius
 const float modelSize[nModels] = {  // size of model
 	2000.0f, // ruber
@@ -98,7 +99,8 @@ const float modelSize[nModels] = {  // size of model
 	100.0f, // warbird
 	75.0f, // ship missle
 	100.0f, // Primus missleSilo
-	100.0f }; // Secundus missleSilo 
+	100.0f, // Secundus missleSilo 
+	50000.0f }; //Cube
 char * modelFile[nModels] = { 
 	"ruber.tri", 
 	"unum.tri", 
@@ -108,7 +110,8 @@ char * modelFile[nModels] = {
 	"spaceShip-bs100.tri", 
 	"Missile.tri", 
 	"MissileSite.tri", 
-	"MissileSite.tri"  };
+	"MissileSite.tri",
+	"cube.tri" };
 glm::vec3 scale[nModels]; // set in init()
 glm::mat4 translationMatrix[nModels];	
 glm::vec3 translatePosition[nModels] = { 
@@ -118,7 +121,8 @@ glm::vec3 translatePosition[nModels] = {
 	glm::vec3(8100, 0, 0), // primus
 	glm::vec3(7250,0,0), // secundus
 	glm::vec3(5000, 1000, 5000), // warbird
-	glm::vec3(4900,1000,4850) }; // missle
+	glm::vec3(4900,1000,4850),  // missle
+	glm::vec3(1000, 1000, 1000) }; //Cube
 
 /* Shader handles, matrices, etc */
 GLuint MVP;  // Model View Projection matrix's handle
@@ -529,6 +533,7 @@ void display()
 		switch (index)
 		{
 			case RUBERINDEX: // If it's Ruber don't apply an orbital rotation.
+			case CUBEINDEX:
 				modelMatrix[index] = translationMatrix[index] *
 					glm::scale(identityMatrix, glm::vec3(scale[index]));
 				break;
@@ -617,7 +622,6 @@ void display()
 				modelMatrix[index] = transformMatrix[index] *
 					glm::scale(identityMatrix, glm::vec3(scale[index]));
 				break;
-
 			default:
 				break;
 		}
@@ -674,29 +678,11 @@ void update(int i)
 		//Check distance to Ruber
 		glm::vec3 vectorPointingFromShipToRuber = translatePosition[RUBERINDEX] - shipPosition;
 		float distanceToRuber = glm::length(vectorPointingFromShipToRuber);
-		
-		//Check distance to Unum
-		glm::vec3 vectorPointingFromShipToUnum = (translatePosition[UNUMINDEX] + getPosition(translationMatrix[UNUMINDEX])) - shipPosition;
-		float distanceToUnum = glm::length(vectorPointingFromShipToUnum);
-
-		//Check distance to Duo
-		glm::vec3 vectorPointingFromShipToDuo = (translatePosition[DUOINDEX] + getPosition(translationMatrix[DUOINDEX])) - shipPosition;
-		float distanceToDuo = glm::length(vectorPointingFromShipToDuo);
 
 		if (distanceToRuber < gravityFieldRuber) {
 			//normalize the vector, this is now gravity
 			glm::vec3 gravity = (vectorPointingFromShipToRuber / distanceToRuber);
 			shipTranslationMatrix = glm::translate(shipTranslationMatrix, gravity * glm::vec3(0.1f, 0.1f, 0.1f));
-		}
-
-		if (distanceToUnum < gravityFieldUnum) {
-			glm::vec3 gravity = (vectorPointingFromShipToUnum / distanceToUnum);
-			shipTranslationMatrix = glm::translate(shipTranslationMatrix, gravity * glm::vec3(2, 2, 2));
-		}
-
-		if (distanceToDuo < gravityFieldDuo) {
-			glm::vec3 gravity = (vectorPointingFromShipToDuo / distanceToDuo);
-			shipTranslationMatrix = glm::translate(shipTranslationMatrix, gravity * glm::vec3(2, 2, 2));
 		}
 	}
 
