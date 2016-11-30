@@ -1,11 +1,15 @@
 /*
 Second and Third Phase of Warbird Simulator.
 
-Description: The Warbird's camera, movement, and warp capabilities, gravity, missle sites,
+Second Phase Description: The Warbird's camera, movement, and warp capabilities, gravity, missle sites,
 and intelligens-semita missles are added to the simulation in this phase.
 
+Third Phase Description:
+
 File: Source.cpp
-465 utility include files:  shader465.hpp, triModel465.hpp
+
+465 utility include files: texture.hpp, glmUtils465.hpp, shader465.hpp, triModel465.hpp
+Header files: Object3D.hpp
 
 OpenGL Version: 3.3
 
@@ -18,7 +22,7 @@ Ben Villalobos
 Bryant Barron
 
 COMP 465 - Fall 2016
-11/20/16
+12/08/16
 
 User commands:
 'v' cycles to the next camera
@@ -37,13 +41,14 @@ User commands:
 'ctrl down' ship "pitches" down
 'ctrl left' ship "rolls" left
 'ctrl right' ship "rolls" right
-
 */
+
 # define __Windows__
-# include "../includes465/include465.hpp"
 # include <string>
-//# include "Missile.hpp"
+# include "../includes465/include465.hpp"
 # include "Object3D.hpp"
+# include "Warbird.hpp"
+//# include "Missile.hpp"
 
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1,
 
@@ -196,18 +201,13 @@ int warpit = 0;
 glm::vec3 warpPosition(1000, 0.0f,-3000);
 
 /* Ship variables */
-GLfloat shipUpdateRadians = 0.02f;
 glm::mat4 shipOrientationMatrix;
-glm::mat4 shipTranslationMatrix;
-glm::mat4 shipRotationMatrix;
-glm::vec3 forward;
-glm::vec3 pitch;
 glm::vec3 shipUp(0.0f, 1.0f, 0.0f);
 glm::vec3 shipRight(1.0f , 0.0f, 0.0f);
 glm::vec3 shipLookingAt(0.0f, 0.0f, -1.0f);
 float shipGravityVector = 1.76f;
 int shipSpeedState = 0;
-GLfloat shipSpeed[3] = { 10.0f, 50.0f, 200.0f };
+Warbird * warbird;
 
 /* General Missle Variables */
 // Missle has two states: leaving ship, and smart mode.
@@ -230,7 +230,6 @@ glm::vec3 shipMissleLocation;
 float radian;
 float shipMissleRotationAmount;
 float shipMissleAORDirection;
-//Missile shipMissle;
 
 /* Missle Site Variables */
 int unumMissles = 5;
@@ -295,8 +294,14 @@ void init()
 		object3D[i]->setTranslationMatrix(translatePosition[i]);
 		object3D[i]->setRotationAmount(rotationAmount[i]);
 
+		// Set the planet orbit flags:
 		if(i == UNUMINDEX || i == DUOINDEX)
 			object3D[i]->setOrbit();
+
+		// Create the warbird:
+		warbird = new Warbird(modelSize[SHIPINDEX], modelBR[SHIPINDEX], translatePosition[SHIPINDEX]);
+		warbird->setTranslationMatrix(translatePosition[SHIPINDEX]);
+		warbird->setRotationAmount(rotationAmount[SHIPINDEX]);
 	}
 
 	MVP = glGetUniformLocation(shaderProgram, "ModelViewProjection");
@@ -378,9 +383,9 @@ void fireMissle()
 			shipMissleFired = true; // raise flag
 
 			// Set the missles position and direction of movement.
-			shipMissleTranslationMatrix = shipTranslationMatrix;
-			shipMissleRotationMatrix = shipRotationMatrix;
-			shipMissleDirection = getIn(shipRotationMatrix);
+			shipMissleTranslationMatrix = warbird->getTranslationMatrix();
+			shipMissleRotationMatrix = warbird->getRotationMatrix();
+			shipMissleDirection = getIn(warbird->getRotationMatrix());
 			shipMissles--; // Decrement ship missle count.
 
 			// Update title string for missle count
@@ -554,11 +559,12 @@ void display()
 				break;
 
 			case SHIPINDEX:
-				modelMatrix[index] = shipTranslationMatrix * translationMatrix[index] * shipRotationMatrix *
-					glm::scale(identityMatrix, glm::vec3(scale[index]));
 
-				camPosition = getPosition(glm::translate(modelMatrix[index], shipCamEyePosition));
-				shipPosition = getPosition(modelMatrix[index]);
+				modelMatrix[index] = warbird->getModelMatrix();
+				shipOrientationMatrix = warbird->getOrientationMatrix();
+
+				camPosition = getPosition(glm::translate(warbird->getTranslationMatrix(), shipCamEyePosition));
+				shipPosition = getPosition(shipOrientationMatrix);
 				shipCamera = glm::lookAt(camPosition, glm::vec3(shipPosition.x, camPosition.y, shipPosition.z), upVector);
 				if (currentCamera == SHIPCAMERAINDEX) //If we're on ship camera
 					mainCamera = shipCamera;
@@ -635,6 +641,9 @@ void update(int i)
 		object3D[index]->update();
 	}
 
+	// Update the warbird
+	warbird->update();
+
 	// Update the ship missle if it was fired:
 	if (shipMissleFired == true)
 	{
@@ -653,7 +662,7 @@ void update(int i)
 	// Update Gravity:
 	if (gravityState == true)
 	{
-		glm::vec3 shipPosition = getPosition(shipTranslationMatrix) + translatePosition[SHIPINDEX];
+		glm::vec3 shipPosition = getPosition(warbird->getTranslationMatrix()) + translatePosition[SHIPINDEX];
 
 		//Check distance to Ruber
 		glm::vec3 vectorPointingFromShipToRuber = translatePosition[RUBERINDEX] - shipPosition;
@@ -662,7 +671,7 @@ void update(int i)
 		if (distanceToRuber < gravityFieldRuber) {
 			//normalize the vector, this is now gravity
 			glm::vec3 gravity = (vectorPointingFromShipToRuber / distanceToRuber);
-			shipTranslationMatrix = glm::translate(shipTranslationMatrix, gravity * glm::vec3(0.1f, 0.1f, 0.1f));
+			warbird->setTranslationMatrix(gravity * glm::vec3(0.1f, 0.1f, 0.1f));
 		}
 	}
 
@@ -709,20 +718,20 @@ void switchCamera(int camera)
 void warp(int x) {
 	// set x to 1 for the first planet
 	if (x == 1) {
-		shipTranslationMatrix = glm::translate(transformMatrix[UNUMINDEX], warpPosition);
+		warbird->setTranslationMatrix(glm::translate(transformMatrix[UNUMINDEX], warpPosition));
 		// have ship point a planet
 		//shipTranslationMatrix = glm::translate(shipTranslationMatrix, forward);
 	}
 	// set x to 2 for second planet
 	else if (x == 2) {
-		shipTranslationMatrix = glm::translate(transformMatrix[DUOINDEX], warpPosition);
+		warbird->setTranslationMatrix(glm::translate(transformMatrix[DUOINDEX], warpPosition));
 		//have ship point at planet
 		//shipTranslationMatrix = glm::translate(shipTranslationMatrix, forward);
 	}
 	// if x is anything else the ship should return to original location
 	else {
 		//original camera point for ship for warp back
-		shipTranslationMatrix = glm::translate(identityMatrix, getPosition(shipCameraSave));
+		warbird->setTranslationMatrix(glm::translate(identityMatrix, getPosition(shipCameraSave)));
 	}
 }
 
@@ -741,10 +750,16 @@ void keyboard(unsigned char key, int x, int y)
 		switchCamera(currentCamera);
 		break;
 	case 's': case'S':
-		if (shipSpeedState >= 2)
+		if (warbird->getSpeed() >= 2)
+		{
 			shipSpeedState = 0;
+			warbird->setSpeed(shipSpeedState);
+		}
 		else
+		{
 			shipSpeedState++;
+			warbird->setSpeed(shipSpeedState);
+		}
 		break;
 	case 't': case'T':
 		if (timeQuantumState >= 3)
@@ -790,45 +805,41 @@ void handleSpecialKeypress(int key, int x, int y)
 	case GLUT_KEY_UP:
 		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
 		{
-			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, shipRight);
+			warbird->setPitch(1);
 		}
 		else // ship forward = positive step on "at" vector
 		{
-			forward = getIn(shipOrientationMatrix) * shipSpeed[shipSpeedState];
-			shipTranslationMatrix = glm::translate(shipTranslationMatrix, forward);
-			shipOrientationMatrix = shipTranslationMatrix * shipRotationMatrix;
+			warbird->setMove(-1);
 		}
 		break;
 	case GLUT_KEY_DOWN:
 		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
 		{
-			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, -shipRight);
+			warbird->setPitch(-1);
 		}
 		else // ship backward = negative step on "at" vector
 		{
-			forward = getIn(shipOrientationMatrix) * shipSpeed[shipSpeedState];
-			shipTranslationMatrix = glm::translate(shipTranslationMatrix, -forward);
-			shipOrientationMatrix = shipTranslationMatrix * shipRotationMatrix;
+			warbird->setMove(1);
 		}
 		break;
 	case GLUT_KEY_LEFT:
 		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
 		{
-			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, shipLookingAt);
+			warbird->setRoll(1);
 		}
 		else // ship yaws "right" = rotate 0.02 radians on "up" vector
 		{
-			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, rotationalAxis);
+			warbird->setYaw(1);
 		}
 		break;
 	case GLUT_KEY_RIGHT: 
 		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
 		{
-			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, -shipLookingAt);
+			warbird->setRoll(-1);
 		}
 		else // ship yaws "left" = rotate -0.02 radians on "up" vector
 		{
-			shipRotationMatrix = glm::rotate(shipRotationMatrix, shipUpdateRadians, -rotationalAxis);
+			warbird->setYaw(-1);
 		}
 		break;
 	}

@@ -30,6 +30,7 @@
     <ClInclude Include="Missile.hpp" />
     <ClInclude Include="MissleSite.hpp" />
     <ClInclude Include="Object3D.hpp" />
+    <ClInclude Include="Warbird.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="axes-r100.tri" />

@@ -1,9 +1,7 @@
 /*
-Object3D.hpp
+File: Object3D.hpp
 
-Represent the scale, translation, and rotation of a 3D shape.
-If you overload the constructor you can create a shape with
-arguments for scale, translation, and rotation.
+Description: Represent the scale, translation, and rotation of a 3D object.
 
 */
 
@@ -12,11 +10,10 @@ arguments for scale, translation, and rotation.
 # define __INCLUDES465__
 # endif
 
-# define __Object3D__
+class Object3D 
+{
 
-class Object3D {
-
-private:
+protected:
 
 	glm::mat4 rotationMatrix;
 	glm::mat4 scaleMatrix;
@@ -33,6 +30,7 @@ private:
 
 public:
 
+	// Constructor
 	Object3D(float modelSize, float modelBoundingRadius)
 	{
 		// Scale the model to the desired size
@@ -41,50 +39,70 @@ public:
 
 		identity = glm::mat4();		// initialize the identity matrix
 
-		rotationMatrix = identity;	// no initial rotation
+		// No initial rotation, orientation, or translation
+		rotationMatrix = identity;
+		orientationMatrix = identity;
+		translationMatrix = identity;
 
-		orientationMatrix = identity;	// no initial orientation
-
-		translationMatrix = identity;	// no initial translation
-
-		modelMatrix = identity; // Don't set the model matrix just yet.
+		modelMatrix = identity;
 
 		rotationAxis = glm::vec3(0, 1, 0);
 	}
 
+	// Returns the model matrix for the 3D object.
 	glm::mat4 getModelMatrix()
 	{
 		return orientationMatrix * scaleMatrix;
 	}
-
+	
+	// Returns the rotational matrix for the 3D object.
 	glm::mat4 getRotationMatrix()
 	{
-		return this->rotationMatrix;
+		return rotationMatrix;
 	}
 
-	glm::mat4 getOrientationMatrix() {
+	// Returns the orientation matrix for the 3D object.
+	glm::mat4 getOrientationMatrix() 
+	{
 		return orientationMatrix;
 	}
 
+	glm::mat4 getTranslationMatrix()
+	{
+		return translationMatrix;
+	}
+
+	// Translates the translation matrix by a passed in amount.
 	void setTranslationMatrix(glm::vec3 passedTranslation)
 	{
 		translationMatrix = glm::translate(identity, passedTranslation);
 	}
 
-	void setRotationAmount(float passedRadianAmount)
+	// Set the translation matrix to an outside matrix.
+	void setTranslationMatrix(glm::mat4 passedTranslationMatrix)
 	{
-		rotationAmount = passedRadianAmount;;
+		translationMatrix = passedTranslationMatrix;
 	}
 
-	void setOrientationMatrix(glm::mat4 newOrientation) {
+	// Sets the rotational rate for the 3D object.
+	void setRotationAmount(float passedRadianAmount)
+	{
+		rotationAmount = passedRadianAmount;
+	}
+
+	// Sets the orientational matrix.
+	void setOrientationMatrix(glm::mat4 newOrientation) 
+	{
 		orientationMatrix = newOrientation;
 	}
 
+	// Sets the object flag to a planet orbit.
 	void setOrbit()
 	{
 		orbit = true;
 	}
 
+	// Update the rotation and orientation matrix.
 	void update()
 	{
 		rotationMatrix = glm::rotate(rotationMatrix, rotationAmount, rotationAxis);
