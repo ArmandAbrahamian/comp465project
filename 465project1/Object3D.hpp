@@ -72,6 +72,11 @@ public:
 		return translationMatrix;
 	}
 
+	float getRotationAmount()
+	{
+		return rotationAmount;
+	}
+
 	// Translates the translation matrix by a passed in amount.
 	void setTranslationMatrix(glm::vec3 passedTranslation)
 	{
@@ -82,6 +87,11 @@ public:
 	void setTranslationMatrix(glm::mat4 passedTranslationMatrix)
 	{
 		translationMatrix = passedTranslationMatrix;
+	}
+
+	void setRotationMatrix(glm::mat4 passedRotationMatrix)
+	{
+		rotationMatrix = passedRotationMatrix;
 	}
 
 	// Sets the rotational rate for the 3D object.

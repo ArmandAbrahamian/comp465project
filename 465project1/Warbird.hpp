@@ -14,7 +14,6 @@ class Warbird : public Object3D
 
 protected:
 	glm::vec3 distance;		// A vector that contains the moving distance of the warbird
-	glm::vec3 forward;
 	glm::vec3 pitchVector;
 	glm::vec3 initialPosition;
 
@@ -34,9 +33,6 @@ public:
 	Warbird(float modelSize, float modelBoundingRadius, glm::vec3 passedInitialPosition)
 		: Object3D(modelSize, modelBoundingRadius) 
 	{
-		// The Initial rotation amount for the warbird is 0 degrees.
-		rotationAmount = 0.0f;
-
 		initialPosition = passedInitialPosition;
 
 		// Set the initial speed and the variables that will determine the movement and rotation
@@ -185,10 +181,10 @@ public:
 		// radians.
 		if ((pitch != 0) || (yaw != 0) || (roll != 0))
 		{
-			rotationMatrix = glm::rotate(rotationMatrix, rotationAmount, rotationAxis);
+			rotationMatrix = glm::rotate(identity, rotationAmount, rotationAxis);
 		}
 
-		translationMatrix = glm::translate(translationMatrix, distance);
+		translationMatrix = glm::translate(identity, distance);
 
 		// Update the location of the object
 		orientationMatrix = orientationMatrix * translationMatrix * rotationMatrix;

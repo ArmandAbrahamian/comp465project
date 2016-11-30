@@ -560,10 +560,10 @@ void display()
 
 			case SHIPINDEX:
 
-				modelMatrix[index] = warbird->getModelMatrix();
-				shipOrientationMatrix = warbird->getOrientationMatrix();
+				modelMatrix[index] = object3D[index]->getModelMatrix();
+				shipOrientationMatrix = object3D[index]->getOrientationMatrix();
 
-				camPosition = getPosition(glm::translate(warbird->getTranslationMatrix(), shipCamEyePosition));
+				camPosition = getPosition(glm::translate(object3D[index]->getTranslationMatrix(), shipCamEyePosition));
 				shipPosition = getPosition(shipOrientationMatrix);
 				shipCamera = glm::lookAt(camPosition, glm::vec3(shipPosition.x, camPosition.y, shipPosition.z), upVector);
 				if (currentCamera == SHIPCAMERAINDEX) //If we're on ship camera
@@ -641,8 +641,12 @@ void update(int i)
 		object3D[index]->update();
 	}
 
-	// Update the warbird
+	// Update the warbird object and its object3D
 	warbird->update();
+	object3D[SHIPINDEX]->setOrientationMatrix(warbird->getOrientationMatrix());
+	object3D[SHIPINDEX]->setTranslationMatrix(warbird->getTranslationMatrix());
+	object3D[SHIPINDEX]->setRotationMatrix(warbird->getRotationMatrix());
+	object3D[SHIPINDEX]->setRotationAmount(warbird->getRotationAmount());
 
 	// Update the ship missle if it was fired:
 	if (shipMissleFired == true)
