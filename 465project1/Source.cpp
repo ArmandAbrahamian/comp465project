@@ -303,6 +303,7 @@ void init()
 		warbird = new Warbird(modelSize[SHIPINDEX], modelBR[SHIPINDEX], translatePosition[SHIPINDEX]);
 		warbird->setTranslationMatrix(translatePosition[SHIPINDEX]);
 		warbird->setRotationAmount(rotationAmount[SHIPINDEX]);
+		warbird->setPosition(translatePosition[SHIPINDEX]);
 	}
 
 	MVP = glGetUniformLocation(shaderProgram, "ModelViewProjection");
@@ -539,6 +540,7 @@ void display()
 				break;
 
 			case DUOINDEX: // If it's planet Duo (planest farthest from Ruber with moons Secundus and Primus):
+
 				// Update Duo's Camera:
 				transformMatrix[index] = object3D[index]->getOrientationMatrix();
 				duoCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[index], planetCamEyePosition)), getPosition(object3D[index]->getOrientationMatrix()), upVector);
@@ -560,7 +562,6 @@ void display()
 				break;
 
 			case SHIPINDEX:
-
 				modelMatrix[index] = object3D[index]->getModelMatrix();
 				shipOrientationMatrix = object3D[index]->getOrientationMatrix();
 

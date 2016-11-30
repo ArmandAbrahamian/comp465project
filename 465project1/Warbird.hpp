@@ -13,16 +13,15 @@ class Warbird : public Object3D
 {
 
 protected:
-	glm::vec3 distance;		// A vector that contains the moving distance of the warbird
+	glm::vec3 distance;
 	glm::vec3 pitchVector;
 	glm::vec3 initialPosition;
 
-	float speed;		// the speed of the ship
+	float speed;
 
-	int step;				// the direction the warbird will be moving: positive or negative
-	int pitch, roll, yaw;
-	int numberOfMissiles;
-	int shipMissles = 9;
+	int step; // the direction the warbird will be moving: positive or negative
+	int pitch, roll, yaw; // Determines the axis the warbird will orientate on.
+	int missles = 9;
 
 	bool alive;
 
@@ -48,7 +47,7 @@ public:
 	*/
 	int getNumberOfMissiles() 
 	{
-		return numberOfMissiles;
+		return missles;
 	}
 
 
@@ -126,8 +125,8 @@ public:
 	*/
 	void reduceMissileCount() 
 	{
-		if (numberOfMissiles > 0)
-			numberOfMissiles = numberOfMissiles - 1;
+		if (missles > 0)
+			missles = missles - 1;
 	}
 
 	/* Method sets the location of the object in the center of the
@@ -147,7 +146,7 @@ public:
 	{
 		alive = true;
 		orientationMatrix = glm::translate(orientationMatrix, initialPosition);
-		numberOfMissiles = 9;
+		missles = 9;
 	}
 
 
