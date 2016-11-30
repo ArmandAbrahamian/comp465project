@@ -198,6 +198,8 @@ bool gravityState = false;
 glm::mat4 shipCameraSave;
 int warpit = 0;
 glm::vec3 warpPosition(1000, 0.0f,-3000);
+glm::mat4 shipTranslationMatrix;
+
 
 /* Ship variables */
 glm::mat4 shipOrientationMatrix;
@@ -724,21 +726,27 @@ void switchCamera(int camera)
 void warp(int x) {
 	// set x to 1 for the first planet
 	if (x == 1) {
-		warbird->setTranslationMatrix(glm::translate(transformMatrix[UNUMINDEX], warpPosition));
+		//copy orientation matrix, set ship to unum then translate out the required distance and flip it pie radians to set correct ship orientation
+		
+		warbird->setOrientationMatrix(object3D[UNUMINDEX]->getOrientationMatrix());
+		warbird->setOrientationMatrix(glm::translate(warbird->getOrientationMatrix(), warpPosition));
 		// have ship point a planet
-		//shipTranslationMatrix = glm::translate(shipTranslationMatrix, forward);
+		// create a 4x4 matrix to save warbirds translation matrix
+		//shipTranslationMatrix = warbird->getTranslationMatrix();
+		
+		//warbird->setTranslationMatrix(glm::translate(shipTranslationMatrix, getIn(warbird->getOrientationMatrix())));
 	}
 	// set x to 2 for second planet
-	else if (x == 2) {
-		warbird->setTranslationMatrix(glm::translate(transformMatrix[DUOINDEX], warpPosition));
+	//else if (x == 2) {
+		//warbird->setTranslationMatrix(glm::translate(transformMatrix[DUOINDEX], warpPosition));
 		//have ship point at planet
 		//shipTranslationMatrix = glm::translate(shipTranslationMatrix, forward);
-	}
+	//}
 	// if x is anything else the ship should return to original location
-	else {
+	//else {
 		//original camera point for ship for warp back
-		warbird->setTranslationMatrix(glm::translate(identityMatrix, getPosition(shipCameraSave)));
-	}
+		//warbird->setTranslationMatrix(glm::translate(identityMatrix, getPosition(shipCameraSave)));
+	//}
 }
 
 void keyboard(unsigned char key, int x, int y)
