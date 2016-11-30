@@ -24,8 +24,6 @@ protected:
 	int numberOfMissiles;
 	int shipMissles = 9;
 
-	GLfloat shipSpeed[3] = { 10.0f, 50.0f, 200.0f };
-
 	bool alive;
 
 public:
@@ -36,7 +34,7 @@ public:
 		initialPosition = passedInitialPosition;
 
 		// Set the initial speed and the variables that will determine the movement and rotation
-		speed = shipSpeed[0];
+		speed = 10.0f;
 		step = 0;
 		pitch = 0;
 		roll = 0;
@@ -63,9 +61,9 @@ public:
 
 
 	// Change warbird's movement speed.
-	void setSpeed(int newSpeedState) 
+	void setSpeed(float newSpeed) 
 	{
-		speed = shipSpeed[newSpeedState];
+		speed = newSpeed;
 	}
 
 	float getSpeed()

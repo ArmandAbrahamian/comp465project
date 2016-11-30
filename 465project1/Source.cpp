@@ -48,7 +48,6 @@ User commands:
 # include "../includes465/include465.hpp"
 # include "Object3D.hpp"
 # include "Warbird.hpp"
-//# include "Missile.hpp"
 
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1,
 
@@ -207,7 +206,9 @@ glm::vec3 shipRight(1.0f , 0.0f, 0.0f);
 glm::vec3 shipLookingAt(0.0f, 0.0f, -1.0f);
 float shipGravityVector = 1.76f;
 int shipSpeedState = 0;
+int totalSpeeds = 3;
 Warbird * warbird;
+float shipSpeed[3] = { 10.0f, 50.0f, 200.0f };
 
 /* General Missle Variables */
 // Missle has two states: leaving ship, and smart mode.
@@ -563,7 +564,7 @@ void display()
 				modelMatrix[index] = object3D[index]->getModelMatrix();
 				shipOrientationMatrix = object3D[index]->getOrientationMatrix();
 
-				camPosition = getPosition(glm::translate(object3D[index]->getTranslationMatrix(), shipCamEyePosition));
+				camPosition = getPosition(glm::translate(object3D[index]->getModelMatrix(), shipCamEyePosition));
 				shipPosition = getPosition(shipOrientationMatrix);
 				shipCamera = glm::lookAt(camPosition, glm::vec3(shipPosition.x, camPosition.y, shipPosition.z), upVector);
 				if (currentCamera == SHIPCAMERAINDEX) //If we're on ship camera
@@ -754,16 +755,9 @@ void keyboard(unsigned char key, int x, int y)
 		switchCamera(currentCamera);
 		break;
 	case 's': case'S':
-		if (warbird->getSpeed() >= 2)
-		{
-			shipSpeedState = 0;
-			warbird->setSpeed(shipSpeedState);
-		}
-		else
-		{
-			shipSpeedState++;
-			warbird->setSpeed(shipSpeedState);
-		}
+		shipSpeedState = (shipSpeedState + 1) % totalSpeeds;
+		warbird->setSpeed(shipSpeed[shipSpeedState]);
+		printf("Current Ship Speed: %.2f \n", warbird->getSpeed());
 		break;
 	case 't': case'T':
 		if (timeQuantumState >= 3)
