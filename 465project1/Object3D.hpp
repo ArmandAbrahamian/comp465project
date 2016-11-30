@@ -80,7 +80,7 @@ public:
 	// Translates the translation matrix by a passed in amount.
 	void setTranslationMatrix(glm::vec3 passedTranslation)
 	{
-		translationMatrix = glm::translate(identity, passedTranslation);
+		translationMatrix = glm::translate(translationMatrix, passedTranslation);
 	}
 
 	// Set the translation matrix to an outside matrix.

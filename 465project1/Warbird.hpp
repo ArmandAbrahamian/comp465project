@@ -115,9 +115,9 @@ public:
 	*/
 	void setPosition(glm::vec3 newPosition) 
 	{
-		orientationMatrix[3][0] = newPosition.x;
-		orientationMatrix[3][1] = newPosition.y;
-		orientationMatrix[3][2] = newPosition.z;
+		translationMatrix[3][0] = newPosition.x;
+		translationMatrix[3][1] = newPosition.y;
+		translationMatrix[3][2] = newPosition.z;
 	}
 
 	/* Method to reduce the number of missiles that warbird has, the
@@ -145,7 +145,7 @@ public:
 	void restart() 
 	{
 		alive = true;
-		orientationMatrix = glm::translate(orientationMatrix, initialPosition);
+		translationMatrix = glm::translate(translationMatrix, initialPosition);
 		missles = 9;
 	}
 
@@ -157,34 +157,29 @@ public:
 	*/
 	void update() 
 	{
-
 		if (!alive) {
 			return;
 		}
 
 		// The distance the warbird will travel
 		// if step is 0, there will be no translation of the warbird.
-		distance = glm::vec3(0, 0, step * speed);
+		distance = getIn(orientationMatrix) * (-step * speed);
 
 		// Determine the rotation axis of the warbird
 		rotationAxis = glm::vec3(pitch, yaw, roll);
-
-		// Set the rotationMatrix to the identity Matrix
-		// The warbird, by default, will not have any rotation.
-		rotationMatrix = identity;
 
 		// If any of these values have been set to a value that is not
 		// 0, then the warbird will rotate about an axis a set amount of
 		// radians.
 		if ((pitch != 0) || (yaw != 0) || (roll != 0))
 		{
-			rotationMatrix = glm::rotate(identity, rotationAmount, rotationAxis);
+			rotationMatrix = glm::rotate(rotationMatrix, rotationAmount, rotationAxis);
 		}
 
-		translationMatrix = glm::translate(identity, distance);
+		setTranslationMatrix(distance);
 
 		// Update the location of the object
-		orientationMatrix = orientationMatrix * translationMatrix * rotationMatrix;
+		orientationMatrix = translationMatrix * rotationMatrix;
 
 		// Reset the values back to their default
 		step = pitch = yaw = roll = 0;

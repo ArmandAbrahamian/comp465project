@@ -299,12 +299,13 @@ void init()
 		if(i == UNUMINDEX || i == DUOINDEX)
 			object3D[i]->setOrbit();
 
-		// Create the warbird:
-		warbird = new Warbird(modelSize[SHIPINDEX], modelBR[SHIPINDEX], translatePosition[SHIPINDEX]);
-		warbird->setTranslationMatrix(translatePosition[SHIPINDEX]);
-		warbird->setRotationAmount(rotationAmount[SHIPINDEX]);
-		warbird->setPosition(translatePosition[SHIPINDEX]);
 	}
+
+	// Create the warbird:
+	warbird = new Warbird(modelSize[SHIPINDEX], modelBR[SHIPINDEX], translatePosition[SHIPINDEX]);
+	warbird->setTranslationMatrix(translatePosition[SHIPINDEX]);
+	warbird->setRotationAmount(rotationAmount[SHIPINDEX]);
+	warbird->setPosition(translatePosition[SHIPINDEX]);
 
 	MVP = glGetUniformLocation(shaderProgram, "ModelViewProjection");
 
@@ -668,7 +669,7 @@ void update(int i)
 	// Update Gravity:
 	if (gravityState == true)
 	{
-		glm::vec3 shipPosition = getPosition(warbird->getTranslationMatrix()) + translatePosition[SHIPINDEX];
+		glm::vec3 shipPosition = getPosition(warbird->getTranslationMatrix());
 
 		//Check distance to Ruber
 		glm::vec3 vectorPointingFromShipToRuber = translatePosition[RUBERINDEX] - shipPosition;
@@ -677,7 +678,8 @@ void update(int i)
 		if (distanceToRuber < gravityFieldRuber) {
 			//normalize the vector, this is now gravity
 			glm::vec3 gravity = (vectorPointingFromShipToRuber / distanceToRuber);
-			warbird->setTranslationMatrix(gravity * glm::vec3(0.1f, 0.1f, 0.1f));
+			warbird->setTranslationMatrix(gravity * glm::vec3(0.8f, 0.8f, 0.8f));
+			
 		}
 	}
 
