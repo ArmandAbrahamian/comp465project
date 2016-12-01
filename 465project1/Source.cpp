@@ -213,11 +213,20 @@ Warbird * warbird;
 float shipSpeed[3] = { 10.0f, 50.0f, 200.0f };
 int shipMissiles = 9;
 
-/* Ship Missle Global Variables */
+/* Ship Missle Variables */
 float shipMissleSpeed = 20;
 Missile * shipMissile;
+Object3D * shipMissileTarget;
+
+/* General Missile Variables */
+glm::mat4 missileLocation;
+glm::mat4 targetLocation;
+float length;
+glm::vec3 targetPositionVector;
+glm::vec3 missilePositionVector;
 const int missleLifetime = 2000;
 const int missileActivationTimer = 200;
+float detectionRadius = 5000.0f; // or 25?
 
 /* Missle Site Variables */
 int unumMissles = 5;
@@ -367,12 +376,11 @@ void fireShipMissile()
 	{
 		if (shipMissiles > 0)
 		{
-			shipMissile->fireMissile();
-
 			shipMissile->setTranslationMatrix(warbird->getTranslationMatrix());
 			shipMissile->setRotationMatrix(warbird->getRotationMatrix());
 			shipMissile->setDirection(getIn(warbird->getRotationMatrix()));
 
+			shipMissile->fireMissile();
 			shipMissiles--;
 
 			// Update title string for missle count
@@ -470,26 +478,10 @@ void display()
 				break;
 
 			case SHIPMISSILEINDEX:
-				// Ship Missle is alive:
-				if (shipMissile->getUpdateFrameCount() <= missleLifetime)
-				{
-					// Update missle model:
-					//shipMissile->setOrientationMatrix(shipMissile->getTranslationMatrix() * shipMissile->getRotationMatrix());
-					//glm::mat4 shipMissileOrientationMatrix = shipMissile->getOrientationMatrix();
-					//object3D[index]->setOrientationMatrix(shipMissileOrientationMatrix);
-
 					object3D[SHIPMISSILEINDEX]->setOrientationMatrix(shipMissile->getOrientationMatrix());
 					object3D[SHIPMISSILEINDEX]->setTranslationMatrix(shipMissile->getTranslationMatrix());
 					object3D[SHIPMISSILEINDEX]->setRotationMatrix(shipMissile->getRotationMatrix());
 					object3D[SHIPMISSILEINDEX]->setRotationAmount(shipMissile->getRotationAmount());
-					//modelMatrix[SHIPMISSILEINDEX] = shipMissile->getTranslationMatrix() * translationMatrix[SHIPMISSILEINDEX] * shipMissile->getRotationMatrix() * glm::scale(identityMatrix, glm::vec3(scale[SHIPMISSILEINDEX]));
-				}
-				// Ship Missle is dead:
-				else
-				{
-					shipMissile->destroy();
-					printf("Ship Missle #%d Destroyed \n", shipMissiles + 1);
-				}
 				break;
 
 			default:
@@ -517,6 +509,68 @@ void display()
 	}
 }
 
+void handleMissiles()
+{
+	// Check to see the update count of the ship missile before activating smart.
+	if (shipMissile->hasFired())
+	{
+		if (shipMissile->getUpdateFrameCount() > missileActivationTimer)
+			shipMissile->activateSmart();
+	}
+
+	// If the ship missile has been fired and is smart it needs to find a target
+	if (shipMissile->hasFired())
+	{
+		if (shipMissile->isSmart())
+		{
+			// If it doesn't have a target we need to find one for it:
+			if (!shipMissile->isTargetLocked())
+			{
+				// Determine the closest target for the warbirds missile
+				missileLocation = shipMissile->getOrientationMatrix();
+				targetLocation = object3D[FIRSTMISSLESILOINDEX]->getOrientationMatrix();
+				missilePositionVector = getPosition(missileLocation);
+				targetPositionVector = getPosition(targetLocation);
+				length = distance(missilePositionVector, targetPositionVector);
+
+				targetLocation = object3D[FIRSTMISSLESILOINDEX]->getOrientationMatrix();
+				targetPositionVector = getPosition(targetLocation);
+
+				// The target will be one of the missile sites, the closest
+				// one to the missile that is within the missiles detection range.
+				if (distance(missilePositionVector, targetPositionVector) > length) {
+					shipMissileTarget = object3D[FIRSTMISSLESILOINDEX];
+				}
+				else {
+					length = distance(missilePositionVector, targetPositionVector);
+					shipMissileTarget = object3D[SECONDMISSLESILOINDEX];
+				}
+
+				// Check to make sure the target is within the missile's range
+				if (length < detectionRadius) {
+					shipMissile->setTargetLocation(shipMissileTarget->getOrientationMatrix());
+
+				}
+			}
+
+			// Update the missiles knowledge of its targets location.
+			else 
+			{
+				shipMissile->setTargetLocation(shipMissileTarget->getOrientationMatrix());
+			}
+		}
+	}
+
+	else // The ship missile hasn't been fired
+	{
+		shipMissile->setOrientationMatrix(glm::translate(warbird->getOrientationMatrix(), glm::vec3(-33, 0, -30)));
+	}
+
+	shipMissile->update();
+
+
+}
+
 // Animate scene objects by updating their transformation matrices
 // for use with Idle and intervalTimer functions to set rotation
 void update(int i)
@@ -531,20 +585,8 @@ void update(int i)
 	// Update the warbird object and its object3D
 	warbird->update();
 
-	// Update the ship missile:
-	if (shipMissile->hasFired() == true)
-	{
-		// If missle is active, update smart missle.
-		if (shipMissile->getUpdateFrameCount() >= missileActivationTimer)
-		{
-			shipMissile->handleSmartMissle(transformMatrix[FIRSTMISSLESILOINDEX], transformMatrix[SECONDMISSLESILOINDEX]);
-		}
-		else // Keep going in the direction its going from the ship.
-		{
-			shipMissile->setTranslationMatrix(glm::translate(shipMissile->getTranslationMatrix(), shipMissile->getDirection() * shipMissile->getSpeed()));
-		}
-		shipMissile->setUpdateFrameCount(shipMissile->getUpdateFrameCount() + 1);
-	}
+	// Update he missiles
+	handleMissiles();
 
 	// Update Gravity:
 	if (gravityState == true)
