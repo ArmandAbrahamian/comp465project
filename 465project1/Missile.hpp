@@ -117,11 +117,6 @@ public:
 		float missleSiteUnum = glm::distance(location, getPosition(unumMissileSiloTransformMatrix));
 		float missleSiteSecundus = glm::distance(location, getPosition(duoMissileSiloTransformMatrix));
 
-		if (smart && targetLocked)
-		{
-			target = getPosition(targetLocation) - getPosition(orientationMatrix);
-			location = getIn(orientationMatrix);
-		}
 		// Determine which missile site is closer. Player's missile should target the closest one.
 		if (missleSiteUnum > 5000.0f && missleSiteSecundus > 5000.0f)
 			translationMatrix = glm::translate(translationMatrix, direction * speed);
@@ -170,51 +165,57 @@ public:
 
 				// Only rotate the Missile only a 4th of the rotation amount, 
 				// this allows for smoother rotations in the simulation.
-				rotationMatrix = glm::rotate(identity, rotationAmount / 4, AOR);
+				rotationMatrix = glm::rotate(rotationMatrix, rotationAmount / 4, AOR);
 
 				translationMatrix = glm::translate(translationMatrix, direction * speed);
 
 				// Update Orientation Of the Missle
-				orientationMatrix = orientationMatrix * translationMatrix * rotationMatrix;
+				orientationMatrix = translationMatrix * rotationMatrix;
 			}
-			//else
-			//{
-			//	printf("Ship Missle Target = Secundus\n");
+			else
+			{
+				printf("Ship Missle Target = Duo\n");
 
-			//	// Get the position of the target:
-			//	glm::vec3 targetPosition = getPosition(transformMatrix[SECONDMISSLESILOINDEX]);
+				// Get the position of the target:
+				glm::vec3 targetPosition = getPosition(duoMissileSiloTransformMatrix);
 
-			//	// Get the "looking at" vector from the chaser (missle)
-			//	shipMissleDirection = getIn(shipMissleOrientationMatrix);
+				// Get the "looking at" vector from the chaser (missle)
+				direction = getIn(rotationMatrix);
 
-			//	// Get the distance between the target and the missle.
-			//	glm::vec3 distance = targetPosition - shipMissleLocation;
+				// Get the distance between the target and the missle.
+				glm::vec3 distance = targetPosition - location;
 
-			//	// Normalize the vectors:
-			//	distance = glm::normalize(distance);
-			//	shipMissleDirection = glm::normalize(shipMissleDirection);
+				// Normalize the vectors:
+				distance = glm::normalize(distance);
+				direction = glm::normalize(direction);
 
-			//	// Find the axis of rotation:
-			//	shipMissleAOR = glm::cross(distance, shipMissleDirection);
+				if (!(colinear(distance, direction, 0.1f) || glm::distance(distance, glm::vec3(0, 0, 0)) == 0))
+				{
+					// Get the rotation Amount of the Missile and Determine the Direction of Rotation.
+					// This equation allows to get the angle of rotation between the two vectors,
+					// The dot product of two vectors equals |A|*|B|*cos(angle), so to get the angle in between
+					// divide by |A|*|B|.
+					if (AORDirection > 0)
+					{
+						rotationAmount = -glm::acos(glm::dot(direction, targetPosition) /
+							(glm::abs(glm::distance(targetPosition, glm::vec3(0, 0, 0))) * glm::abs(glm::distance(direction, glm::vec3(0, 0, 0)))));
+					}
+					else
+					{
+						rotationAmount = glm::acos(glm::dot(direction, targetPosition) /
+							(glm::abs(glm::distance(targetPosition, glm::vec3(0, 0, 0))) * glm::abs(glm::distance(direction, glm::vec3(0, 0, 0)))));
+					}
+				}
 
-			//	// Normalize the Axis:
-			//	shipMissleAOR = glm::normalize(shipMissleAOR);
+				// Only rotate the Missile only a 4th of the rotation amount, 
+				// this allows for smoother rotations in the simulation.
+				rotationMatrix = glm::rotate(rotationMatrix, rotationAmount / 4, AOR);
 
-			//	if (colinear(distance, shipMissleDirection, 0.1f))
-			//	{
-			//		radian = (2.0f * PI) - acos(glm::dot(distance, shipMissleDirection));
-			//	}
-			//	else
-			//	{
-			//		radian = (2.0f * PI) + acos(glm::dot(distance, shipMissleDirection));
-			//	}
+				translationMatrix = glm::translate(translationMatrix, direction * speed);
 
-
-			//	// Normalize the Axis:
-			//	shipMissleAOR = glm::normalize(shipMissleAOR);
-
-			//	shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, radian, shipMissleAOR);
-			//	shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
+				// Update Orientation Of the Missle
+				orientationMatrix =  translationMatrix * rotationMatrix;
+			}
 		}
 	}
 

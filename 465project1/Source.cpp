@@ -444,6 +444,11 @@ void display()
 				break;
 
 			case SHIPINDEX:
+				object3D[SHIPINDEX]->setOrientationMatrix(warbird->getOrientationMatrix());
+				object3D[SHIPINDEX]->setTranslationMatrix(warbird->getTranslationMatrix());
+				object3D[SHIPINDEX]->setRotationMatrix(warbird->getRotationMatrix());
+				object3D[SHIPINDEX]->setRotationAmount(warbird->getRotationAmount());
+
 				modelMatrix[index] = object3D[index]->getModelMatrix();
 				shipOrientationMatrix = object3D[index]->getOrientationMatrix();
 
@@ -469,15 +474,21 @@ void display()
 				if (shipMissile->getUpdateFrameCount() <= missleLifetime)
 				{
 					// Update missle model:
-					shipMissile->setOrientationMatrix(shipMissile->getTranslationMatrix() * shipMissile->getRotationMatrix());
+					//shipMissile->setOrientationMatrix(shipMissile->getTranslationMatrix() * shipMissile->getRotationMatrix());
+					//glm::mat4 shipMissileOrientationMatrix = shipMissile->getOrientationMatrix();
+					//object3D[index]->setOrientationMatrix(shipMissileOrientationMatrix);
 
+					object3D[SHIPMISSILEINDEX]->setOrientationMatrix(shipMissile->getOrientationMatrix());
+					object3D[SHIPMISSILEINDEX]->setTranslationMatrix(shipMissile->getTranslationMatrix());
+					object3D[SHIPMISSILEINDEX]->setRotationMatrix(shipMissile->getRotationMatrix());
+					object3D[SHIPMISSILEINDEX]->setRotationAmount(shipMissile->getRotationAmount());
 					//modelMatrix[SHIPMISSILEINDEX] = shipMissile->getTranslationMatrix() * translationMatrix[SHIPMISSILEINDEX] * shipMissile->getRotationMatrix() * glm::scale(identityMatrix, glm::vec3(scale[SHIPMISSILEINDEX]));
 				}
 				// Ship Missle is dead:
 				else
 				{
-					warbird->destroy();
-					printf("Ship Missle #%d Destroyed", shipMissiles + 1);
+					shipMissile->destroy();
+					printf("Ship Missle #%d Destroyed \n", shipMissiles + 1);
 				}
 				break;
 
@@ -519,12 +530,8 @@ void update(int i)
 
 	// Update the warbird object and its object3D
 	warbird->update();
-	object3D[SHIPINDEX]->setOrientationMatrix(warbird->getOrientationMatrix());
-	object3D[SHIPINDEX]->setTranslationMatrix(warbird->getTranslationMatrix());
-	object3D[SHIPINDEX]->setRotationMatrix(warbird->getRotationMatrix());
-	object3D[SHIPINDEX]->setRotationAmount(warbird->getRotationAmount());
 
-	//shipMissile->update();
+	// Update the ship missile:
 	if (shipMissile->hasFired() == true)
 	{
 		// If missle is active, update smart missle.
@@ -538,24 +545,6 @@ void update(int i)
 		}
 		shipMissile->setUpdateFrameCount(shipMissile->getUpdateFrameCount() + 1);
 	}
-	object3D[SHIPMISSILEINDEX]->setOrientationMatrix(shipMissile->getOrientationMatrix());
-	object3D[SHIPMISSILEINDEX]->setTranslationMatrix(shipMissile->getTranslationMatrix());
-	object3D[SHIPMISSILEINDEX]->setRotationMatrix(shipMissile->getRotationMatrix());
-	object3D[SHIPMISSILEINDEX]->setRotationAmount(shipMissile->getRotationAmount());
-
-	//if (shipMissile->hasFired() == true)
-	//{
-	//	// If missle is active, update smart missle.
-	//	if (shipMissile->getUpdateFrameCount() >= missileActivationTimer)
-	//	{
-	//		handleSmartMissle();
-	//	}
-	//	else // Keep going in the direction its going from the ship.
-	//	{
-	//		shipMissile->setTranslationMatrix(glm::translate(shipMissile->getTranslationMatrix, direction * speed));
-	//	}
-	//	updateFrameCount++;
-	//}
 
 	// Update Gravity:
 	if (gravityState == true)
@@ -570,7 +559,6 @@ void update(int i)
 			//normalize the vector, this is now gravity
 			glm::vec3 gravity = (vectorPointingFromShipToRuber / distanceToRuber);
 			warbird->setTranslationMatrix(gravity * glm::vec3(0.8f, 0.8f, 0.8f));
-			
 		}
 	}
 
