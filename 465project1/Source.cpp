@@ -48,6 +48,7 @@ User commands:
 # include "../includes465/include465.hpp"
 # include "Object3D.hpp"
 # include "Warbird.hpp"
+# include "Missile.hpp"
 
 const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1,
 
@@ -200,8 +201,7 @@ int warpit = 0;
 glm::vec3 warpPosition(1000, 0.0f,-3000);
 glm::mat4 shipTranslationMatrix;
 
-
-/* Ship variables */
+/* Ship Global variables */
 glm::mat4 shipOrientationMatrix;
 glm::vec3 shipUp(0.0f, 1.0f, 0.0f);
 glm::vec3 shipRight(1.0f , 0.0f, 0.0f);
@@ -212,38 +212,15 @@ int totalSpeeds = 3;
 Warbird * warbird;
 float shipSpeed[3] = { 10.0f, 50.0f, 200.0f };
 
-/* General Missle Variables */
-// Missle has two states: leaving ship, and smart mode.
-const int missleLifetime = 2000;
-const int missleActivationTimer = 200;
-
-/* Ship Missle Variables */
-GLfloat shipMissleSpeed = 20;
-int shipMissles = 9;
-int missleUpdateFrameCount;
-bool shipMissleFired = false;
-bool isShipMissleSmart = false;
-bool shipMissleDetectedEnemy = false;
-glm::mat4 shipMissleTranslationMatrix;
-glm::mat4 shipMissleRotationMatrix;
-glm::mat4 shipMissleOrientationMatrix;
-glm::vec3 shipMissleDirection;
-glm::vec3 shipMissleAOR;
-glm::vec3 shipMissleLocation;
-float radian;
-float shipMissleRotationAmount;
-float shipMissleAORDirection;
+/* Ship Missle Global Variables */
+float shipMissleSpeed = 20;
+Missile * shipMissile;
 
 /* Missle Site Variables */
 int unumMissles = 5;
 int secundusMissles = 5;
-GLfloat radius = 25; // or 5000?
-GLfloat siteMissleSpeed = 5;
-
-/* Missle Site Missle Variables */
-bool missleSiteMissleFired = false;
-bool isMissleSiteSmart = false;
-bool missleSiteDetectedEnemy = false;
+float siteMissleSpeed = 5;
+Missile * missleSiteUnumMissile, missleSiteDuoMissile;
 
 /* Timer variables */
 int timerDelay = 5, frameCount = 0; // A delay of 5 milliseconds is 200 updates / second
@@ -300,7 +277,6 @@ void init()
 		// Set the planet orbit flags:
 		if(i == UNUMINDEX || i == DUOINDEX)
 			object3D[i]->setOrbit();
-
 	}
 
 	// Create the warbird:
@@ -308,6 +284,9 @@ void init()
 	warbird->setTranslationMatrix(translatePosition[SHIPINDEX]);
 	warbird->setRotationAmount(rotationAmount[SHIPINDEX]);
 	warbird->setPosition(translatePosition[SHIPINDEX]);
+
+	// Create the ship missle:
+	shipMissile = new Missile(modelSize[SHIPMISSILEINDEX], modelBR[SHIPMISSILEINDEX], shipMissleSpeed);
 
 	MVP = glGetUniformLocation(shaderProgram, "ModelViewProjection");
 
@@ -378,20 +357,20 @@ void updateTitle()
 	glutSetWindowTitle(titleStr);
 }
 
-// Method to handle the logic for when a missle is fired.
-void fireMissle()
+// Method to handle the logic for when the ship fires a missle.
+void fireShipMissile()
 {
-	if(shipMissleFired == false)
+	if(shipMissile->hasFired() == false)
 	{
-		if (shipMissles > 0)
+		if (warbird->getNumberOfMissiles() > 0)
 		{
-			shipMissleFired = true; // raise flag
+			shipMissile->fireMissile();
 
-			// Set the missles position and direction of movement.
-			shipMissleTranslationMatrix = warbird->getTranslationMatrix();
-			shipMissleRotationMatrix = warbird->getRotationMatrix();
-			shipMissleDirection = getIn(warbird->getRotationMatrix());
-			shipMissles--; // Decrement ship missle count.
+			shipMissile->setTranslationMatrix(warbird->getTranslationMatrix());
+			shipMissile->setRotationMatrix(warbird->getRotationMatrix());
+			shipMissile->setDirection(getIn(warbird->getRotationMatrix()));
+
+			warbird->reduceMissileCount();
 
 			// Update title string for missle count
 			strcpy(warbirdMissleCount, "| Warbird ");
@@ -586,28 +565,7 @@ void display()
 				break;
 
 			case SHIPMISSILEINDEX:
-				if (shipMissleFired == true)
-				{
-					// Ship Missle is alive:
-					if (missleUpdateFrameCount <= missleLifetime)
-					{
-						// Update missle model:
-						shipMissleOrientationMatrix = shipMissleTranslationMatrix * shipMissleRotationMatrix * glm::scale(identityMatrix, glm::vec3(scale[SHIPMISSILEINDEX]));
-
-						modelMatrix[SHIPMISSILEINDEX] = shipMissleTranslationMatrix * translationMatrix[SHIPMISSILEINDEX] * shipMissleRotationMatrix * glm::scale(identityMatrix, glm::vec3(scale[SHIPMISSILEINDEX]));
-					}
-
-					// Ship Missle is dead:
-					else
-					{
-						shipMissleFired = false;
-						missleUpdateFrameCount = 0;
-						shipMissleTranslationMatrix = identityMatrix;
-						modelMatrix[SHIPMISSILEINDEX] = shipMissleTranslationMatrix *
-							glm::scale(identityMatrix, glm::vec3(scale[SHIPMISSILEINDEX]));
-						printf("Ship Missle #%d Destroyed", shipMissles + 1);
-					}
-				}
+				shipMissile->display();
 				break;
 
 			default:
@@ -653,20 +611,7 @@ void update(int i)
 	object3D[SHIPINDEX]->setRotationMatrix(warbird->getRotationMatrix());
 	object3D[SHIPINDEX]->setRotationAmount(warbird->getRotationAmount());
 
-	// Update the ship missle if it was fired:
-	if (shipMissleFired == true)
-	{
-		// If missle is active, update smart missle.
-		if (missleUpdateFrameCount >= missleActivationTimer)
-		{
-			handleSmartMissle();
-		}
-		else // Keep going in the direction its going from the ship.
-		{
-			shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
-		}
-		missleUpdateFrameCount++;
-	}
+	shipMissile->update();
 
 	// Update Gravity:
 	if (gravityState == true)
@@ -783,7 +728,7 @@ void keyboard(unsigned char key, int x, int y)
 		}
 		break;
 	case 'f': case'F':
-		fireMissle();
+		fireShipMissile();
 		break;
 	case 'g': case'G':
 		gravitySwitch();

@@ -112,11 +112,20 @@ public:
 		orbit = true;
 	}
 
+	/* Changes the position of the object 
+	to a new position without affecting it's orientation.
+	*/
+	void setPosition(glm::vec3 newPosition)
+	{
+		orientationMatrix[3][0] = newPosition.x;
+		orientationMatrix[3][1] = newPosition.y;
+		orientationMatrix[3][2] = newPosition.z;
+	}
+
 	// Update the rotation and orientation matrix.
 	void update()
 	{
 		rotationMatrix = glm::rotate(rotationMatrix, rotationAmount, rotationAxis);
-		//translationMatrix = glm::translate(translationMatrix, translation);
 
 		// Set the orientation matrix based on what type of object it is:
 		if (orbit == true)

@@ -1,6 +1,7 @@
 /*
-Missile.hpp
-Class that handles the intitialization and updates of the missile.
+File: Missile.hpp
+
+Description: Class that handles the intitialization and updates of a missile.
 */
 
 # ifndef __INCLUDES465__
@@ -8,103 +9,127 @@ Class that handles the intitialization and updates of the missile.
 # define __INCLUDES465__
 # endif
 
-//# ifndef __Object3D__
-//# include "Object3D.hpp"
-//# endif
-
-class Missile
+class Missile : public Object3D
 {
 
+// Variables:
 private:
-	glm::vec3 translationAmount;	// the x,y,z position the object will be translated by
-	int speed;
+
+	const int missleLifetime = 2000;
+	const int missileActivationTimer = 200;
+	float speed;
+	float AORDirection;
 	int updateFrameCount;
-	bool smart = false;
-	bool targetDetected = false;
+	bool smart;		// Flag to check if the missile becomes smart
+	bool targetLocked; // Flag for if a target was locked
+	bool fired; // Flag to check if the missle has fired
 	float radian;
-	glm::mat4 translationMatrix;
-	glm::mat4 rotationMatrix;
+	glm::vec3 translationAmount;	// the x,y,z position the object will be translated by
 	glm::vec3 direction;
+	glm::vec3 AOR;
+	glm::vec3 location;
 	glm::vec3 target;
+	glm::vec3 distance;
 	float detectionRadius = 5000; // or 25?
 
+// Constructor and functions:
 public:
 
-	/* Constructor */
-	Missile(glm::mat4 passedTranslationMatrix,glm::mat4 passedRotationMatrix, glm::vec3 passedDirection, int passedMissleSpeed)
+	Missile(float modelSize, float modelBoundingRadius, float passedMissleSpeed)
+		: Object3D(modelSize, modelBoundingRadius)
 	{
-		this->translationMatrix = passedTranslationMatrix;
-		this->rotationMatrix = passedRotationMatrix;
-		this->direction = passedDirection;
-		this->speed = passedMissleSpeed;
+		smart = false; // the missle isn't initially smart.
+		targetLocked = false; // the missle doesn't have a target until it becomes smart.
+		fired = false; // The missile hasn't been fired yet.
+		updateFrameCount = 0;
+		AORDirection = 0;
+		this->speed = passedMissleSpeed; 
 	}
 
-	/* Method returns true if the missile becomes smart, otherwise false */
-	bool isSmart() 
+	/* Handles "removing" the missle from the 3D scene */
+	void destroy() 
+	{
+		smart = fired = targetLocked = false;
+		updateFrameCount = 0;
+		setTranslationMatrix(identity);
+		setOrientationMatrix(translationMatrix);
+		printf("Ship Missle #%d Destroyed", warbird->getNumberOfMissiles() + 1);
+	}
+
+	int getUpdateFrameCount()
+	{
+		return updateFrameCount;
+	}
+
+	glm::vec3 getTargetLocation()
+	{
+		return target;
+	}
+
+	/* Checks the "smart" state of the missle */
+	bool isSmart()
 	{
 		return smart;
 	}
 
-	glm::mat4 getTranslationMatrix()
+	bool isTargetLocked()
 	{
-		return this->translationMatrix;
+		return targetLocked;
 	}
 
-	void setTranslationMatrix(glm::mat4 passedTranslationMatrix)
+	bool hasFired()
 	{
-		this->translationMatrix = passedTranslationMatrix;
+		return fired;
 	}
 
-	void setRotationMatrix(glm::mat4 passedRotationMatrix)
+	void fireMissile()
 	{
-		this->rotationMatrix = passedRotationMatrix;;
+		fired = true;
 	}
 
-	glm::mat4 getRotationMatrix()
+	void activateSmart()
 	{
-		return this->rotationMatrix;
+		smart = true;
 	}
 
-	/* Method to set the position of the object with the
-	given 3 dimension vertex (x, y, z). */
-	void setPosition(glm::vec3 newPosition) 
+	void setDirection(glm::vec3 passedInDirection)
 	{
-
+		direction = passedInDirection;
 	}
 
-
-	/* Method to set the Missile Site to inactive,
-	Missile is inactive if destroyed/ hit by a missile */
-	void destroy() 
+	void display()
 	{
-		
+		// Ship Missle is alive:
+		if (updateFrameCount <= missleLifetime)
+		{
+			// Update missle model:
+			orientationMatrix = translationMatrix * rotationMatrix;
+
+			modelMatrix[SHIPMISSILEINDEX] = translationMatrix * translationMatrix[SHIPMISSILEINDEX] * rotationMatrix * glm::scale(identityMatrix, glm::vec3(scale[SHIPMISSILEINDEX]));
+		}
+
+		// Ship Missle is dead:
+		else
+		{
+			destroy();
+		}
 	}
 
-
-
-	/* Method that updates the orientation of an object by
-	translation and rotation depending on translationAmount,
-	radians, and rotationAxis.
-	*/
+	/* Updates the direction of the missle and calls handle smart missile function */
 	void update() 
 	{
-
+		if (fired == true)
+		{
 			// If missle is active, update smart missle.
-			if (missleUpdateFrameCount >= missleActivationTimer)
+			if (updateFrameCount >= missileActivationTimer)
 			{
 				handleSmartMissle();
 			}
 			else // Keep going in the direction its going from the ship.
 			{
-				shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
+				translationMatrix = glm::translate(translationMatrix, direction * speed);
 			}
-			missleUpdateFrameCount++;
-
-		// Get the tranlation matrix the object is orbiting 
-		//translationMatrix = glm::translate(identity, translationAmount);
-		// Rotate the object by a given amount in radians
-		//rotationMatrix = identity;
-		// Update the location of the object
-		//orientationMatrix = orientationMatrix * translationMatrix * rotationMatrix;
+			updateFrameCount++;
+		}
 	}
 };
