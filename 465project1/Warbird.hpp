@@ -21,7 +21,6 @@ protected:
 
 	int step; // the direction the warbird will be moving: positive or negative
 	int pitch, roll, yaw; // Determines the axis the warbird will orientate on.
-	int missles = 9;
 
 	bool alive;
 
@@ -41,15 +40,6 @@ public:
 
 		alive = true;
 	}
-
-
-	/* Method that returns the number of missiles the warbird has.
-	*/
-	int getNumberOfMissiles() 
-	{
-		return missles;
-	}
-
 
 	/* Method returns true if the warbird is alive, otherwise false
 	*/
@@ -120,15 +110,6 @@ public:
 		translationMatrix[3][2] = newPosition.z;
 	}
 
-	/* Method to reduce the number of missiles that warbird has, the
-	number of missiles can not go lower than 0
-	*/
-	void reduceMissileCount() 
-	{
-		if (missles > 0)
-			missles = missles - 1;
-	}
-
 	/* Method sets the location of the object in the center of the
 	world and deactivates the warbird.
 	*/
@@ -146,7 +127,6 @@ public:
 	{
 		alive = true;
 		translationMatrix = glm::translate(translationMatrix, initialPosition);
-		missles = 9;
 	}
 
 

@@ -211,16 +211,19 @@ int shipSpeedState = 0;
 int totalSpeeds = 3;
 Warbird * warbird;
 float shipSpeed[3] = { 10.0f, 50.0f, 200.0f };
+int shipMissiles = 9;
 
 /* Ship Missle Global Variables */
 float shipMissleSpeed = 20;
 Missile * shipMissile;
+const int missleLifetime = 2000;
+const int missileActivationTimer = 200;
 
 /* Missle Site Variables */
 int unumMissles = 5;
 int secundusMissles = 5;
 float siteMissleSpeed = 5;
-Missile * missleSiteUnumMissile, missleSiteDuoMissile;
+//Missile * missleSiteUnumMissile, missleSiteDuoMissile;
 
 /* Timer variables */
 int timerDelay = 5, frameCount = 0; // A delay of 5 milliseconds is 200 updates / second
@@ -362,7 +365,7 @@ void fireShipMissile()
 {
 	if(shipMissile->hasFired() == false)
 	{
-		if (warbird->getNumberOfMissiles() > 0)
+		if (shipMissiles > 0)
 		{
 			shipMissile->fireMissile();
 
@@ -370,118 +373,15 @@ void fireShipMissile()
 			shipMissile->setRotationMatrix(warbird->getRotationMatrix());
 			shipMissile->setDirection(getIn(warbird->getRotationMatrix()));
 
-			warbird->reduceMissileCount();
+			shipMissiles--;
 
 			// Update title string for missle count
 			strcpy(warbirdMissleCount, "| Warbird ");
-			strcat(warbirdMissleCount, std::to_string(shipMissles).c_str());
+			strcat(warbirdMissleCount, std::to_string(shipMissiles).c_str());
 		}
 
 		else
 			; // Do Nothing, we have no more missles.
-	}
-}
-
-// Method that handles the logic for when a missle becomes smart.
-void handleSmartMissle()
-{
-	shipMissleLocation = getPosition(shipMissleTranslationMatrix);
-	float missleSiteUnum = glm::distance(shipMissleLocation, getPosition(transformMatrix[FIRSTMISSLESILOINDEX]));
-	float missleSiteSecundus = glm::distance(shipMissleLocation, getPosition(transformMatrix[SECONDMISSLESILOINDEX]));
-
-	// Determine which missile site is closer. Player's missile should target the closest one.
-	if (missleSiteUnum > 5000.0f && missleSiteSecundus > 5000.0f)
-		shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
-	else
-	{
-		if (missleSiteUnum <= missleSiteSecundus)
-		{
-			printf("Ship Missle Target = Unum\n");
-
-			// Get the position of the target:
-			glm::vec3 targetPosition = getPosition(transformMatrix[FIRSTMISSLESILOINDEX]);
-
-			// Get the "looking at" vector from the chaser (missle)
-			shipMissleDirection = getIn(shipMissleRotationMatrix);
-
-			// Get the distance between the target and the missle.
-			glm::vec3 distance = targetPosition - shipMissleLocation;
-
-			// Normalize the vectors:
-			distance = glm::normalize(distance);
-			shipMissleDirection = glm::normalize(shipMissleDirection);
-
-			if (!(colinear(distance, shipMissleDirection, 0.1f) || glm::distance(distance, glm::vec3(0, 0, 0)) == 0))
-			{
-				// Find the axis of rotation:
-				shipMissleAOR = glm::cross(distance, shipMissleDirection);
-				shipMissleAORDirection = shipMissleAOR.x + shipMissleAOR.y + shipMissleAOR.z;
-
-				// Get the rotation Amount of the Missile and Determine the Direction of Rotation.
-				// This equation allows to get the angle of rotation between the two vectors,
-				// The dot product of two vectors equals |A|*|B|*cos(angle), so to get the angle in between
-				// divide by |A|*|B|.
-				if (shipMissleAORDirection > 0) {
-					shipMissleRotationAmount = -glm::acos(glm::dot(shipMissleDirection, targetPosition) /
-						(glm::abs(glm::distance(targetPosition, glm::vec3(0, 0, 0))) * glm::abs(glm::distance(shipMissleDirection, glm::vec3(0, 0, 0)))));
-				}
-
-
-
-				else
-				{
-					shipMissleRotationAmount = glm::acos(glm::dot(shipMissleDirection, targetPosition) /
-						(glm::abs(glm::distance(targetPosition, glm::vec3(0, 0, 0))) * glm::abs(glm::distance(shipMissleDirection, glm::vec3(0, 0, 0)))));
-				}
-			}
-
-			// Only rotate the Missile only a 4th of the rotation amount, 
-			// this allows for smoother rotations in the simulation.
-			shipMissleRotationMatrix = glm::rotate(identityMatrix, shipMissleRotationAmount / 4, shipMissleAOR);
-
-			shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
-
-			// Update Orientation Of the Missle
-			shipMissleOrientationMatrix = shipMissleOrientationMatrix * shipMissleTranslationMatrix * shipMissleRotationMatrix;
-		}
-		//else
-		//{
-		//	printf("Ship Missle Target = Secundus\n");
-
-		//	// Get the position of the target:
-		//	glm::vec3 targetPosition = getPosition(transformMatrix[SECONDMISSLESILOINDEX]);
-
-		//	// Get the "looking at" vector from the chaser (missle)
-		//	shipMissleDirection = getIn(shipMissleOrientationMatrix);
-
-		//	// Get the distance between the target and the missle.
-		//	glm::vec3 distance = targetPosition - shipMissleLocation;
-
-		//	// Normalize the vectors:
-		//	distance = glm::normalize(distance);
-		//	shipMissleDirection = glm::normalize(shipMissleDirection);
-
-		//	// Find the axis of rotation:
-		//	shipMissleAOR = glm::cross(distance, shipMissleDirection);
-
-		//	// Normalize the Axis:
-		//	shipMissleAOR = glm::normalize(shipMissleAOR);
-
-		//	if (colinear(distance, shipMissleDirection, 0.1f))
-		//	{
-		//		radian = (2.0f * PI) - acos(glm::dot(distance, shipMissleDirection));
-		//	}
-		//	else
-		//	{
-		//		radian = (2.0f * PI) + acos(glm::dot(distance, shipMissleDirection));
-		//	}
-
-
-		//	// Normalize the Axis:
-		//	shipMissleAOR = glm::normalize(shipMissleAOR);
-
-		//	shipMissleRotationMatrix = glm::rotate(shipMissleRotationMatrix, radian, shipMissleAOR);
-		//	shipMissleTranslationMatrix = glm::translate(shipMissleTranslationMatrix, shipMissleDirection * shipMissleSpeed);
 	}
 }
 
@@ -565,7 +465,20 @@ void display()
 				break;
 
 			case SHIPMISSILEINDEX:
-				shipMissile->display();
+				// Ship Missle is alive:
+				if (shipMissile->getUpdateFrameCount() <= missleLifetime)
+				{
+					// Update missle model:
+					shipMissile->setOrientationMatrix(shipMissile->getTranslationMatrix() * shipMissile->getRotationMatrix());
+
+					//modelMatrix[SHIPMISSILEINDEX] = shipMissile->getTranslationMatrix() * translationMatrix[SHIPMISSILEINDEX] * shipMissile->getRotationMatrix() * glm::scale(identityMatrix, glm::vec3(scale[SHIPMISSILEINDEX]));
+				}
+				// Ship Missle is dead:
+				else
+				{
+					warbird->destroy();
+					printf("Ship Missle #%d Destroyed", shipMissiles + 1);
+				}
 				break;
 
 			default:
@@ -611,7 +524,38 @@ void update(int i)
 	object3D[SHIPINDEX]->setRotationMatrix(warbird->getRotationMatrix());
 	object3D[SHIPINDEX]->setRotationAmount(warbird->getRotationAmount());
 
-	shipMissile->update();
+	//shipMissile->update();
+	if (shipMissile->hasFired() == true)
+	{
+		// If missle is active, update smart missle.
+		if (shipMissile->getUpdateFrameCount() >= missileActivationTimer)
+		{
+			shipMissile->handleSmartMissle(transformMatrix[FIRSTMISSLESILOINDEX], transformMatrix[SECONDMISSLESILOINDEX]);
+		}
+		else // Keep going in the direction its going from the ship.
+		{
+			shipMissile->setTranslationMatrix(glm::translate(shipMissile->getTranslationMatrix(), shipMissile->getDirection() * shipMissile->getSpeed()));
+		}
+		shipMissile->setUpdateFrameCount(shipMissile->getUpdateFrameCount() + 1);
+	}
+	object3D[SHIPMISSILEINDEX]->setOrientationMatrix(shipMissile->getOrientationMatrix());
+	object3D[SHIPMISSILEINDEX]->setTranslationMatrix(shipMissile->getTranslationMatrix());
+	object3D[SHIPMISSILEINDEX]->setRotationMatrix(shipMissile->getRotationMatrix());
+	object3D[SHIPMISSILEINDEX]->setRotationAmount(shipMissile->getRotationAmount());
+
+	//if (shipMissile->hasFired() == true)
+	//{
+	//	// If missle is active, update smart missle.
+	//	if (shipMissile->getUpdateFrameCount() >= missileActivationTimer)
+	//	{
+	//		handleSmartMissle();
+	//	}
+	//	else // Keep going in the direction its going from the ship.
+	//	{
+	//		shipMissile->setTranslationMatrix(glm::translate(shipMissile->getTranslationMatrix, direction * speed));
+	//	}
+	//	updateFrameCount++;
+	//}
 
 	// Update Gravity:
 	if (gravityState == true)
@@ -748,6 +692,10 @@ void keyboard(unsigned char key, int x, int y)
 			warp(0);
 			warpit = 0;
 		}
+		break;
+	case 'r': case'R':
+		shipMissiles = 9;
+		warbird->restart();
 		break;
 	}
 }
