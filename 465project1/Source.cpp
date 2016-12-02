@@ -54,21 +54,23 @@ const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1,
 
 // Model indexes:
 RUBERINDEX = 0,
-UNUMINDEX = 1, 
+UNUMINDEX = 1,
 DUOINDEX = 2,
-PRIMUSINDEX = 3, 
-SECUNDUSINDEX = 4, 
-SHIPINDEX = 5, 
-FIRSTMISSLESILOINDEX = 6, 
-SECONDMISSLESILOINDEX = 7, 
-SHIPMISSILEINDEX = 8, 
+PRIMUSINDEX = 3,
+SECUNDUSINDEX = 4,
+SHIPINDEX = 5,
+UNUMMISSLESILOINDEX = 6,
+DUOMISSLESILOINDEX = 7,
+SHIPMISSILEINDEX = 8,
 CUBEINDEX = 9,
+UNUMMISSILEINDEX = 10,
+DUOMISSILEINDEX = 11,
 
 // Camera indexes:
 FRONTCAMERAINDEX = 0, TOPCAMERAINDEX = 1, SHIPCAMERAINDEX = 2, UNUMCAMERAINDEX = 3, DUOCAMERAINDEX = 4;
 
 /* Model Data: */
-const int nModels = 10;  // number of models in this scene
+const int nModels = 12;  // number of models in this scene
 
 char * modelFile[nModels] = {
 	"ruber.tri",
@@ -80,7 +82,9 @@ char * modelFile[nModels] = {
 	"MissileSite.tri",
 	"MissileSite.tri",
 	"Missile.tri",
-	"cube.tri" };
+	"cube.tri",
+	"Missile.tri", 
+	"Missile.tri"};
 
 int nVertices[nModels] = { // vertex count
 	264 * 3, // ruber
@@ -89,24 +93,30 @@ int nVertices[nModels] = { // vertex count
 	264 * 3, // primus
 	264 * 3, // secundus
 	996 * 3, // warbird
-	720 * 3, // Primus missleSilo
-	720 * 3, // Secundus missleSilo
-	282 * 3, // ship missle
-	6 * 6 }; // Cube
+	720 * 3, // Primus missileSilo
+	720 * 3, // Secundus missileSilo
+	282 * 3, // ship missile
+	6 * 6 ,  // Cube
+	282 * 3, // Unum missile
+	282 * 3  // Duo missile 
+};
 
 float modelBR[nModels];       // model's bounding radius
 
 float modelSize[nModels] = {  // size of model
 	2000.0f, // ruber
-	200.0f, // unum
-	400.0f, // duo
-	100.0f, // primus
-	150.0f, // secundus
-	100.0f, // warbird
-	100.0f, // Primus missleSilo
-	100.0f, // Secundus missleSilo 
-	75.0f, // ship missle
-	50000.0f }; // Cube
+	200.0f,  // unum
+	400.0f,  // duo
+	100.0f,  // primus
+	150.0f,  // secundus
+	100.0f,  // warbird
+	100.0f,  // Primus missileSilo
+	100.0f,  // Secundus missileSilo 
+	75.0f,   // ship missile
+	50000.0f, // Cube
+	75.0f,   // Unum missile
+	75.0f,   // Duo missile
+}; 
 
 glm::vec3 scale[nModels]; // set in init()
 
@@ -122,7 +132,10 @@ glm::vec3 translatePosition[nModels] = {
 	glm::vec3(8100, 0, 0), // Primus Missile Site
 	glm::vec3(7250,0,0), // Secundus Missile Site
 	glm::vec3(4900,1000,4850),  // missle
-	glm::vec3(1000, 1000, 1000) }; // Cube
+	glm::vec3(1000, 1000, 1000), // Cube
+	glm::vec3(0,0,0),  // Unum missle
+	glm::vec3(0,0,0)  // Duo missle
+}; 
 
 // The rotation amount (in radians) of each object
 float rotationAmount[nModels] = {
@@ -135,7 +148,9 @@ float rotationAmount[nModels] = {
 	0.0f,		// Primus Missile Site
 	0.0f,		// Secundus Missile Site
 	0.0f,		// Missile
-	0.0f		// Cube
+	0.0f,		// Cube
+	0.0f,		// Unum Missile
+	0.0f		// Duo Missile
 };
 
 Object3D * object3D[nModels];
@@ -230,9 +245,10 @@ float detectionRadius = 5000.0f; // or 25?
 
 /* Missle Site Variables */
 int unumMissles = 5;
-int secundusMissles = 5;
+int duoMissiles = 5;
 float siteMissleSpeed = 5;
-//Missile * missleSiteUnumMissile, missleSiteDuoMissile;
+Missile * unumMissile;
+Missile * duoMissile;
 
 /* Timer variables */
 int timerDelay = 5, frameCount = 0; // A delay of 5 milliseconds is 200 updates / second
@@ -248,7 +264,7 @@ char fpsStr[15];
 char baseStr[42] = "Warbird Simulator: {v, x, s, t, f, g, w} ";
 char warbirdMissleCount[14] = "| Warbird 9";
 char unumMissleCount[11] = " | Unum 5";
-char secundusMissleCount[15] = " | Secundus 5";
+char duoMissleCount[15] = " | Duo 5";
 char cameraStr[30] = "| View: Front Camera ";
 char * timerStr[4] = { " | U/S 200 ", " | U/S 25 ", " | U/S 10", " | U/S 2 " };
 
@@ -299,6 +315,12 @@ void init()
 
 	// Create the ship missle:
 	shipMissile = new Missile(modelSize[SHIPMISSILEINDEX], modelBR[SHIPMISSILEINDEX], shipMissleSpeed);
+
+	// Create the Unum Missile:
+	unumMissile = new Missile(modelSize[UNUMMISSILEINDEX], modelBR[UNUMMISSILEINDEX], siteMissleSpeed);
+
+	// Create the Duo Missile:
+	duoMissile = new Missile(modelSize[DUOMISSILEINDEX], modelBR[DUOMISSILEINDEX], siteMissleSpeed);
 
 	MVP = glGetUniformLocation(shaderProgram, "ModelViewProjection");
 
@@ -362,7 +384,7 @@ void updateTitle()
 	strcpy(titleStr, baseStr);
 	strcat(titleStr, warbirdMissleCount);
 	strcat(titleStr, unumMissleCount);
-	strcat(titleStr, secundusMissleCount);
+	strcat(titleStr, duoMissleCount);
 	strcat(titleStr, timerStr[timerIndex]);
 	strcat(titleStr, fpsStr);
 	strcat(titleStr, cameraStr);
@@ -387,9 +409,6 @@ void fireShipMissile()
 			strcpy(warbirdMissleCount, "| Warbird ");
 			strcat(warbirdMissleCount, std::to_string(shipMissiles).c_str());
 		}
-
-		else
-			; // Do Nothing, we have no more missles.
 	}
 }
 
@@ -460,6 +479,7 @@ void display()
 				modelMatrix[index] = object3D[index]->getModelMatrix();
 				shipOrientationMatrix = object3D[index]->getOrientationMatrix();
 
+				// Update Ship's Camera:
 				camPosition = getPosition(glm::translate(object3D[index]->getModelMatrix(), shipCamEyePosition));
 				shipPosition = getPosition(shipOrientationMatrix);
 				shipCamera = glm::lookAt(camPosition, glm::vec3(shipPosition.x, camPosition.y, shipPosition.z), upVector);
@@ -467,21 +487,34 @@ void display()
 					mainCamera = shipCamera;
 				break;
 
-			case FIRSTMISSLESILOINDEX:
+			case UNUMMISSLESILOINDEX:
 				transformMatrix[index] = glm::translate(transformMatrix[UNUMINDEX], glm::vec3(0,140,0));
 				object3D[index]->setOrientationMatrix(transformMatrix[index]);
 				break;
 
-			case SECONDMISSLESILOINDEX:
+			case DUOMISSLESILOINDEX:
 				transformMatrix[index] = glm::translate(transformMatrix[DUOINDEX], glm::vec3(0, 410, 0));
 				object3D[index]->setOrientationMatrix(transformMatrix[index]);
 				break;
 
 			case SHIPMISSILEINDEX:
-					object3D[SHIPMISSILEINDEX]->setOrientationMatrix(shipMissile->getOrientationMatrix());
-					object3D[SHIPMISSILEINDEX]->setTranslationMatrix(shipMissile->getTranslationMatrix());
-					object3D[SHIPMISSILEINDEX]->setRotationMatrix(shipMissile->getRotationMatrix());
-					object3D[SHIPMISSILEINDEX]->setRotationAmount(shipMissile->getRotationAmount());
+				object3D[SHIPMISSILEINDEX]->setOrientationMatrix(shipMissile->getOrientationMatrix());
+				object3D[SHIPMISSILEINDEX]->setTranslationMatrix(shipMissile->getTranslationMatrix());
+				object3D[SHIPMISSILEINDEX]->setRotationMatrix(shipMissile->getRotationMatrix());
+				object3D[SHIPMISSILEINDEX]->setRotationAmount(shipMissile->getRotationAmount());
+				break;
+
+			case UNUMMISSILEINDEX:
+				object3D[UNUMMISSILEINDEX]->setOrientationMatrix(unumMissile->getOrientationMatrix());
+				object3D[UNUMMISSILEINDEX]->setTranslationMatrix(unumMissile->getTranslationMatrix());
+				object3D[UNUMMISSILEINDEX]->setRotationMatrix(unumMissile->getRotationMatrix());
+				object3D[UNUMMISSILEINDEX]->setRotationAmount(unumMissile->getRotationAmount());
+				break;
+			case DUOMISSILEINDEX:
+				object3D[DUOMISSILEINDEX]->setOrientationMatrix(duoMissile->getOrientationMatrix());
+				object3D[DUOMISSILEINDEX]->setTranslationMatrix(duoMissile->getTranslationMatrix());
+				object3D[DUOMISSILEINDEX]->setRotationMatrix(duoMissile->getRotationMatrix());
+				object3D[DUOMISSILEINDEX]->setRotationAmount(duoMissile->getRotationAmount());
 				break;
 
 			default:
@@ -518,6 +551,20 @@ void handleMissiles()
 			shipMissile->activateSmart();
 	}
 
+	if (unumMissile->hasFired())
+	{
+		if (unumMissile->getUpdateFrameCount() > missileActivationTimer)
+			unumMissile->activateSmart();
+	}
+
+	if (duoMissile->hasFired())
+	{
+		if (duoMissile->getUpdateFrameCount() > missileActivationTimer)
+			duoMissile->activateSmart();
+	}
+
+	/* SHIP MISSILE: */
+
 	// If the ship missile has been fired and is smart it needs to find a target
 	if (shipMissile->hasFired())
 	{
@@ -528,22 +575,22 @@ void handleMissiles()
 			{
 				// Determine the closest target for the warbirds missile
 				missileLocation = shipMissile->getOrientationMatrix();
-				targetLocation = object3D[FIRSTMISSLESILOINDEX]->getOrientationMatrix();
+				targetLocation = object3D[UNUMMISSLESILOINDEX]->getOrientationMatrix();
 				missilePositionVector = getPosition(missileLocation);
 				targetPositionVector = getPosition(targetLocation);
 				length = distance(missilePositionVector, targetPositionVector);
 
-				targetLocation = object3D[FIRSTMISSLESILOINDEX]->getOrientationMatrix();
+				targetLocation = object3D[UNUMMISSLESILOINDEX]->getOrientationMatrix();
 				targetPositionVector = getPosition(targetLocation);
 
 				// The target will be one of the missile sites, the closest
 				// one to the missile that is within the missiles detection range.
 				if (distance(missilePositionVector, targetPositionVector) > length) {
-					shipMissileTarget = object3D[FIRSTMISSLESILOINDEX];
+					shipMissileTarget = object3D[UNUMMISSLESILOINDEX];
 				}
 				else {
 					length = distance(missilePositionVector, targetPositionVector);
-					shipMissileTarget = object3D[SECONDMISSLESILOINDEX];
+					shipMissileTarget = object3D[DUOMISSLESILOINDEX];
 				}
 
 				// Check to make sure the target is within the missile's range
@@ -566,9 +613,67 @@ void handleMissiles()
 		shipMissile->setOrientationMatrix(glm::translate(warbird->getOrientationMatrix(), glm::vec3(-33, 0, -30)));
 	}
 
+	/* UNUM MISSILE SITE MISSILE: */
+
+	// Check to see the update count of the Unum missile site's missile before activating smart.
+	if(!unumMissile->hasFired())
+	{
+		unumMissile->setOrientationMatrix(
+			glm::rotate(object3D[UNUMMISSLESILOINDEX]->getOrientationMatrix(), PI / 2, glm::vec3(1, 0, 0)));
+
+		// Check to see if the warbird is in the detection radius by getting the distance between the two objects:
+		missileLocation = unumMissile->getOrientationMatrix();
+		targetLocation = warbird->getOrientationMatrix();
+		missilePositionVector = getPosition(missileLocation);
+		targetPositionVector = getPosition(targetLocation);
+		length = distance(missilePositionVector, targetPositionVector);
+
+		if (length < detectionRadius)
+		{
+			unumMissile->fireMissile();
+			unumMissile->setTargetLocation(warbird->getOrientationMatrix());
+			unumMissles--;
+		}
+	}
+
+	// Once the missile becomes smart get the warbird's location.
+	if (unumMissile->isSmart())
+	{
+		unumMissile->setTargetLocation(warbird->getOrientationMatrix());
+	}
+
+	/* DUO MISSILE SITE MISSILE: */
+
+	if (!duoMissile->hasFired())
+	{
+		duoMissile->setOrientationMatrix(
+			glm::rotate(object3D[DUOMISSLESILOINDEX]->getOrientationMatrix(), PI / 2, glm::vec3(1, 0, 0)));
+
+		// Check to see if the warbird is in the detection radius by getting the distance between the two objects:
+		missileLocation = duoMissile->getOrientationMatrix();
+		targetLocation = warbird->getOrientationMatrix();
+		missilePositionVector = getPosition(missileLocation);
+		targetPositionVector = getPosition(targetLocation);
+		length = distance(missilePositionVector, targetPositionVector);
+
+		if (length < detectionRadius)
+		{
+			duoMissile->fireMissile();
+			duoMissile->setTargetLocation(warbird->getOrientationMatrix());
+			duoMissiles--;
+		}
+	}
+
+	// Once the missile becomes smart get the warbird's location.
+	if (duoMissile->isSmart())
+	{
+		duoMissile->setTargetLocation(warbird->getOrientationMatrix());
+	}
+
+	// Update all the missiles:
 	shipMissile->update();
-
-
+	unumMissile->update();
+	duoMissile->update();
 }
 
 // Animate scene objects by updating their transformation matrices
@@ -577,15 +682,16 @@ void update(int i)
 {
 	glutTimerFunc(timeQuantum[timeQuantumState], update, 1); // glutTimerFunc(time, fn, arg). This sets fn() to be called after time millisecond with arg as an argument to fn().
 
+	// Update all of the object3D's
 	for (int index = 0; index < nModels; index++)
 	{
 		object3D[index]->update();
 	}
 
-	// Update the warbird object and its object3D
+	// Update the warbird object
 	warbird->update();
 
-	// Update he missiles
+	// Update all the missiles
 	handleMissiles();
 
 	// Update Gravity:

@@ -49,10 +49,12 @@ public:
 		speed = passedMissleSpeed; 
 	}
 
-	/* Handles "removing" the missle from the 3D scene */
+	/* Handles "removing" the missile from the 3D scene */
 	void destroy() 
 	{
-		smart = fired = targetLocked = false;
+		smart = false;
+		fired = false;
+		targetLocked = false;
 		updateFrameCount = 0;
 		setTranslationMatrix(identity);
 		setOrientationMatrix(translationMatrix);
@@ -142,13 +144,14 @@ public:
 			translationMatrix = glm::translate(identity, distance);
 
 			// If the Missile exceeds its lifespan, destroy it
-			if (updateFrameCount > missleLifetime) {
+			if (updateFrameCount > missleLifetime) 
+			{
 				destroy();
 			}
 
 			// The Missile will only attempt to reorient itself if it has a target and is active
-			if (smart && targetLocked) {
-
+			if (smart && targetLocked) 
+			{
 				// Get the Missiles at Vector and the Vector from the missile to the target
 				targetVector = getPosition(targetMatrixLocation) - getPosition(orientationMatrix);
 				missileVector = getIn(orientationMatrix);
@@ -181,7 +184,6 @@ public:
 					// Only rotate the Missile only a 4th of the rotation amount, 
 					// this allows for smoother rotations in the simulation.
 					rotationMatrix = glm::rotate(identity, rotationAmount / 4, rotationAxis);
-
 				}
 			}
 		}

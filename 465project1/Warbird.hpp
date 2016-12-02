@@ -99,17 +99,6 @@ public:
 		yaw = newYaw;
 	}
 
-	/* Method that changes the current position of the warbird
-	to a new position without affecting the orientation of
-	the warbird.
-	*/
-	void setPosition(glm::vec3 newPosition) 
-	{
-		translationMatrix[3][0] = newPosition.x;
-		translationMatrix[3][1] = newPosition.y;
-		translationMatrix[3][2] = newPosition.z;
-	}
-
 	/* Method sets the location of the object in the center of the
 	world and deactivates the warbird.
 	*/
