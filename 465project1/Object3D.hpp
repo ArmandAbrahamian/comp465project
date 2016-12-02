@@ -134,7 +134,7 @@ public:
 		}
 		else
 		{
-			orientationMatrix = translationMatrix;
+			orientationMatrix = translationMatrix * rotationMatrix;
 		}
 	}
 };

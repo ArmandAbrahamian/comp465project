@@ -9,6 +9,9 @@ Description: Class that handles the intitialization and updates of a missile.
 # define __INCLUDES465__
 # endif
 
+# include <glm/gtc/quaternion.hpp> 
+# include <glm/gtx/quaternion.hpp>
+
 class Missile : public Object3D
 {
 
@@ -33,6 +36,9 @@ private:
 
 	const int missleLifetime = 2000;
 	const int missileActivationTimer = 200;
+
+	// Creates an identity quaternion (no rotation)
+	glm::quat MyQuaternion;
 
 // Constructor and functions:
 public:
@@ -160,7 +166,7 @@ public:
 					// The rotation axis the missile will be rotating about
 					AOR = glm::cross(missileVector, targetVector);
 					AOR = glm::normalize(AOR);
-
+					
 					AORDirection = AOR.x + AOR.y + AOR.z;
 
 					if (AORDirection <= 0)
@@ -173,6 +179,13 @@ public:
 					}
 
 					rotationAxis = AOR;
+
+					// Conversion from Euler angles (in radians) to Quaternion
+					MyQuaternion = glm::quat(rotationAxis);
+
+					//MyQuaternion = glm::angleAxis(rotationAmount, rotationAxis);
+
+					rotationAxis = glm::axis(MyQuaternion);
 
 					// Get the rotation Amount of the Missile and Determine the Direction of Rotation.
 					// This equation gets the angle of rotation between the two vectors,
@@ -191,7 +204,7 @@ public:
 
 					// Only rotate the Missile only a 4th of the rotation amount, 
 					// this allows for smoother rotations in the simulation.
-					rotationMatrix = glm::rotate(identity, rotationAmount / 4, rotationAxis);
+					rotationMatrix = glm::rotate(identity, rotationAmount, rotationAxis);
 				}
 			}
 		}
