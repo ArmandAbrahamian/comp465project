@@ -125,7 +125,8 @@ public:
 	*/
 	void update() 
 	{
-		if (!alive) {
+		if (!alive) 
+		{
 			return;
 		}
 

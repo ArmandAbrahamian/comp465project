@@ -111,23 +111,19 @@ public:
 		direction = passedInDirection;
 	}
 
-	void setUpdateFrameCount(int passedUpdateFrameCount)
-	{
-		updateFrameCount = passedUpdateFrameCount;
-	}
-
 	glm::mat4 getTargetMatrixLocation()
 	{
 		return targetMatrixLocation;
 	}
 
-	void setTargetLocation(glm::mat4 newLocation) {
+	void setTargetLocation(glm::mat4 newLocation) 
+	{
 		targetMatrixLocation = newLocation;
-		if (targetLocked == false)
-			targetLocked = true;
+		targetLocked = true;
 	}
 
-	void update() {
+	void update() 
+	{
 
 		// Initialy the missile does not rotate or translate
 		rotationMatrix = identity;
@@ -149,37 +145,50 @@ public:
 				destroy();
 			}
 
-			// The Missile will only attempt to reorient itself if it has a target and is active
+			// The Missile will only attempt to reorient itself if it has a target and is smart
 			if (smart && targetLocked) 
 			{
-				// Get the Missiles at Vector and the Vector from the missile to the target
-				targetVector = getPosition(targetMatrixLocation) - getPosition(orientationMatrix);
-				missileVector = getIn(orientationMatrix);
+				targetVector = getPosition(targetMatrixLocation) - getPosition(orientationMatrix); // Gets the distance the target is from the missile
+				missileVector = getIn(orientationMatrix); // Gets the direction the missile is going.
 
 				// Normalize the vectors
 				targetVector = glm::normalize(targetVector);
 				missileVector = glm::normalize(missileVector);
 
 				// If the two vectors are colinear, do not attempt to do any rotations
-				if (!(colinear(missileVector, targetVector, 0.1) || glm::distance(targetVector, glm::vec3(0, 0, 0)) == 0)) {
-
+				if (!(colinear(missileVector, targetVector, 0.1)))
+				{
 					// The rotation axis the missile will be rotating about
 					AOR = glm::cross(missileVector, targetVector);
-					AORDirection = AOR.x + AOR.y + AOR.z;
+					AOR = glm::normalize(AOR);
 
-					// Get the rotation Amount of the Missile and Determine the Direction of Rotation.
-					// This equation allows to get the angle of rotation between the two vectors,
-					// The dot product of two vectors equals |A|*|B|*cos(angle), so to get the angle in between
-					// divide by |A|*|B|.
-					if (AORDirection > 0) {
-						rotationAmount = -glm::acos(glm::dot(missileVector, targetVector) /
-							(glm::abs(glm::distance(targetVector, glm::vec3(0, 0, 0))) * glm::abs(glm::distance(missileVector, glm::vec3(0, 0, 0)))));
+					AORDirection = AOR.x + AOR.y + AOR.z;
+					radian = glm::acos(glm::dot(targetVector, missileVector));
+
+					if (AORDirection <= 0)
+					{
+						rotationAmount = -radian;
 					}
 					else
 					{
-						rotationAmount = glm::acos(glm::dot(missileVector, targetVector) /
-							(glm::abs(glm::distance(targetVector, glm::vec3(0, 0, 0))) * glm::abs(glm::distance(missileVector, glm::vec3(0, 0, 0)))));
+						rotationAmount = 2 * PI + radian;
 					}
+
+
+					// Get the rotation Amount of the Missile and Determine the Direction of Rotation.
+					// This equation gets the angle of rotation between the two vectors,
+					// The dot product of two vectors equals |A|*|B|*cos(angle), so to get the angle in between
+					// divide by |A|*|B|.
+					//if (AORDirection > 0) 
+					//{
+					//	rotationAmount = -glm::acos(glm::dot(missileVector, targetVector) /
+					//		(glm::abs(glm::distance(targetVector, glm::vec3(0, 0, 0))) * glm::abs(glm::distance(missileVector, glm::vec3(0, 0, 0)))));
+					//}
+					//else
+					//{
+					//	rotationAmount = glm::acos(glm::dot(missileVector, targetVector) /
+					//		(glm::abs(glm::distance(targetVector, glm::vec3(0, 0, 0))) * glm::abs(glm::distance(missileVector, glm::vec3(0, 0, 0)))));
+					//}
 
 					// Only rotate the Missile only a 4th of the rotation amount, 
 					// this allows for smoother rotations in the simulation.

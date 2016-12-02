@@ -237,10 +237,12 @@ Object3D * shipMissileTarget;
 glm::mat4 missileLocation;
 glm::mat4 targetLocation;
 float length;
+float unumLength;
+float duoLength;
 glm::vec3 targetPositionVector;
 glm::vec3 missilePositionVector;
 const int missleLifetime = 2000;
-const int missileActivationTimer = 20;
+const int missileActivationTimer = 200;
 float detectionRadius = 5000.0f; // or 25?
 
 /* Missle Site Variables */
@@ -494,33 +496,26 @@ void display()
 				break;
 
 			case UNUMMISSLESILOINDEX:
-				transformMatrix[index] = glm::translate(transformMatrix[UNUMINDEX], glm::vec3(0,140,0));
-				object3D[index]->setOrientationMatrix(transformMatrix[index]);
 				break;
 
 			case DUOMISSLESILOINDEX:
-				transformMatrix[index] = glm::translate(transformMatrix[DUOINDEX], glm::vec3(0, 410, 0));
-				object3D[index]->setOrientationMatrix(transformMatrix[index]);
 				break;
 
 			case SHIPMISSILEINDEX:
-				object3D[SHIPMISSILEINDEX]->setOrientationMatrix(shipMissile->getOrientationMatrix());
 				object3D[SHIPMISSILEINDEX]->setTranslationMatrix(shipMissile->getTranslationMatrix());
 				object3D[SHIPMISSILEINDEX]->setRotationMatrix(shipMissile->getRotationMatrix());
-				object3D[SHIPMISSILEINDEX]->setRotationAmount(shipMissile->getRotationAmount());
+				object3D[SHIPMISSILEINDEX]->setOrientationMatrix(shipMissile->getOrientationMatrix());
 				break;
 
 			case UNUMMISSILEINDEX:
-				object3D[UNUMMISSILEINDEX]->setOrientationMatrix(unumMissile->getOrientationMatrix());
 				object3D[UNUMMISSILEINDEX]->setTranslationMatrix(unumMissile->getTranslationMatrix());
 				object3D[UNUMMISSILEINDEX]->setRotationMatrix(unumMissile->getRotationMatrix());
-				object3D[UNUMMISSILEINDEX]->setRotationAmount(unumMissile->getRotationAmount());
+				object3D[UNUMMISSILEINDEX]->setOrientationMatrix(unumMissile->getOrientationMatrix());
 				break;
 			case DUOMISSILEINDEX:
-				object3D[DUOMISSILEINDEX]->setOrientationMatrix(duoMissile->getOrientationMatrix());
 				object3D[DUOMISSILEINDEX]->setTranslationMatrix(duoMissile->getTranslationMatrix());
 				object3D[DUOMISSILEINDEX]->setRotationMatrix(duoMissile->getRotationMatrix());
-				object3D[DUOMISSILEINDEX]->setRotationAmount(duoMissile->getRotationAmount());
+				object3D[DUOMISSILEINDEX]->setOrientationMatrix(duoMissile->getOrientationMatrix());
 				break;
 
 			default:
@@ -613,18 +608,18 @@ void collisionCheck()
 		}
 
 		// Check if the warbird collides with Unum Missile Site:
-		length = distance(objectPosition, getPosition(object3D[UNUMINDEX]->getOrientationMatrix()));
+		length = distance(objectPosition, getPosition(object3D[UNUMMISSLESILOINDEX]->getOrientationMatrix()));
 
-		if (length < modelSize[SHIPINDEX] + modelSize[UNUMINDEX])
+		if (length < modelSize[SHIPINDEX] + modelSize[UNUMMISSLESILOINDEX])
 		{
 			warbird->destroy();
 			currentCamera = 0;
 		}
 
 		// Check if the warbird collides with Duo Missile Site:
-		length = distance(objectPosition, getPosition(object3D[DUOINDEX]->getOrientationMatrix()));
+		length = distance(objectPosition, getPosition(object3D[DUOMISSLESILOINDEX]->getOrientationMatrix()));
 
-		if (length < modelSize[SHIPINDEX] + modelSize[DUOINDEX])
+		if (length < modelSize[SHIPINDEX] + modelSize[DUOMISSLESILOINDEX])
 		{
 			warbird->destroy();
 			currentCamera = 0;
@@ -635,17 +630,17 @@ void collisionCheck()
 	// Missiles Collision Detection:
 ////////////////////////////////////////////////////
 
+	objectPosition = getPosition(shipMissile->getOrientationMatrix());
+
 	// Check ship missile for collision:
 	if (shipMissile->isSmart()) // We only check for the collision when the missile becomes smart
 	{
-		objectPosition = getPosition(shipMissile->getOrientationMatrix());
-
 		// Check if it collides with a missile site:
 
 			// Unum Missile Site:
-		length = distance(objectPosition, getPosition(object3D[UNUMINDEX]->getOrientationMatrix()));
+		length = distance(objectPosition, getPosition(object3D[UNUMMISSLESILOINDEX]->getOrientationMatrix()));
 
-		if (length < modelSize[UNUMINDEX] + modelSize[SHIPMISSILEINDEX])
+		if (length < modelSize[UNUMMISSLESILOINDEX] * 10 + modelSize[SHIPMISSILEINDEX])
 		{
 			shipMissile->destroy();
 			unumMissileSiloAlive = false;
@@ -653,9 +648,9 @@ void collisionCheck()
 		}
 
 			// Duo Missile Site:
-		length = distance(objectPosition, getPosition(object3D[DUOINDEX]->getOrientationMatrix()));
+		length = distance(objectPosition, getPosition(object3D[DUOMISSLESILOINDEX]->getOrientationMatrix()));
 
-		if (length < modelSize[DUOINDEX] + modelSize[SHIPMISSILEINDEX])
+		if (length < modelSize[DUOMISSLESILOINDEX] * 10 + modelSize[SHIPMISSILEINDEX])
 		{
 			shipMissile->destroy();
 			duoMissileSiloAlive = false;
@@ -676,15 +671,15 @@ void collisionCheck()
 		}
 	}
 
+	objectPosition = getPosition(unumMissile->getOrientationMatrix());
+
 	// Check Unum missile for collision:
 	if (unumMissile->isSmart()) // We only check for the collision when the missile becomes smart
 	{
-		objectPosition = getPosition(unumMissile->getOrientationMatrix());
-
 		// Check if it collides with Unum missile site:
-		length = distance(objectPosition, getPosition(object3D[UNUMINDEX]->getOrientationMatrix()));
+		length = distance(objectPosition, getPosition(object3D[UNUMMISSLESILOINDEX]->getOrientationMatrix()));
 
-		if (length < modelSize[UNUMINDEX] + modelSize[UNUMMISSILEINDEX])
+		if (length < modelSize[UNUMMISSLESILOINDEX] * 10 + modelSize[UNUMMISSILEINDEX])
 		{
 			unumMissile->destroy();
 			printf("Unum Missile %d is gone \n", unumMissles);
@@ -693,9 +688,9 @@ void collisionCheck()
 		}
 
 		// Check if it collides with Duo missile site:
-		length = distance(objectPosition, getPosition(object3D[DUOINDEX]->getOrientationMatrix()));
+		length = distance(objectPosition, getPosition(object3D[DUOMISSLESILOINDEX]->getOrientationMatrix()));
 
-		if (length < modelSize[DUOINDEX] + modelSize[UNUMMISSILEINDEX])
+		if (length < modelSize[DUOMISSLESILOINDEX] * 10 + modelSize[UNUMMISSILEINDEX])
 		{
 			unumMissile->destroy();
 			printf("Unum Missile %d is gone \n", unumMissles);
@@ -717,15 +712,15 @@ void collisionCheck()
 		}
 	}
 
+	objectPosition = getPosition(duoMissile->getOrientationMatrix());
+
 	// Check Duo missile for collision:
 	if (duoMissile->isSmart()) // We only check for the collision when the missile becomes smart
 	{
-		objectPosition = getPosition(duoMissile->getOrientationMatrix());
-
 		// Check if it collides with Unum missile site:
-		length = distance(objectPosition, getPosition(object3D[UNUMINDEX]->getOrientationMatrix()));
+		length = distance(objectPosition, getPosition(object3D[UNUMMISSLESILOINDEX]->getOrientationMatrix()));
 
-		if (length < modelSize[UNUMINDEX] + modelSize[DUOMISSILEINDEX])
+		if (length < modelSize[UNUMMISSLESILOINDEX] * 10 + modelSize[DUOMISSILEINDEX])
 		{
 			duoMissile->destroy();
 			printf("Duo Missile %d is gone \n", duoMissiles);
@@ -734,9 +729,9 @@ void collisionCheck()
 		}
 
 		// Check if it collides with Duo missile site:
-		length = distance(objectPosition, getPosition(object3D[DUOINDEX]->getOrientationMatrix()));
+		length = distance(objectPosition, getPosition(object3D[DUOMISSLESILOINDEX]->getOrientationMatrix()));
 
-		if (length < modelSize[DUOINDEX] + modelSize[DUOMISSILEINDEX])
+		if (length < modelSize[DUOMISSLESILOINDEX] * 10 + modelSize[DUOMISSILEINDEX])
 		{
 			duoMissile->destroy();
 			printf("Duo Missile %d is gone \n", duoMissiles);
@@ -797,30 +792,34 @@ void handleMissiles()
 			if (!shipMissile->isTargetLocked())
 			{
 				// Determine the closest target for the warbirds missile
+
+				// Get the distance from Unum
 				missileLocation = shipMissile->getOrientationMatrix();
-				targetLocation = object3D[UNUMINDEX]->getOrientationMatrix();
+				targetLocation = object3D[UNUMMISSLESILOINDEX]->getOrientationMatrix();
 				missilePositionVector = getPosition(missileLocation);
 				targetPositionVector = getPosition(targetLocation);
-				length = distance(missilePositionVector, targetPositionVector);
+				unumLength = distance(missilePositionVector, targetPositionVector);
+
+				// Get the distance from Duo
+				missileLocation = shipMissile->getOrientationMatrix();
+				targetLocation = object3D[DUOMISSLESILOINDEX]->getOrientationMatrix();
+				missilePositionVector = getPosition(missileLocation);
+				targetPositionVector = getPosition(targetLocation);
+				duoLength = distance(missilePositionVector, targetPositionVector);
 
 				// The target will be one of the missile sites, the closest
 				// one to the missile that is within the missiles detection range.
-				if (distance(missilePositionVector, targetPositionVector) > length) 
+				if (unumLength <= duoLength)
 				{
-					shipMissileTarget = object3D[UNUMINDEX];
-					printf("Ship Missile Target is UNUM \n");
-				}
-				else 
-				{
-					length = distance(missilePositionVector, targetPositionVector);
-					shipMissileTarget = object3D[UNUMINDEX];
-					printf("Ship Missile Target is DUO \n");
-				}
-
-				// Check to make sure the target is within the missile's range
-				if (length < detectionRadius) 
-				{
+					shipMissileTarget = object3D[UNUMMISSLESILOINDEX];
 					shipMissile->setTargetLocation(shipMissileTarget->getOrientationMatrix());
+					printf("Ship Missile Target is UNUM Missile Site \n");
+				}
+				else if(unumLength > duoLength)
+				{
+					shipMissileTarget = object3D[DUOMISSLESILOINDEX];
+					shipMissile->setTargetLocation(shipMissileTarget->getOrientationMatrix());
+					printf("Ship Missile Target is DUO Missile Site \n");
 				}
 			}
 
@@ -832,18 +831,17 @@ void handleMissiles()
 		}
 	}
 
-	else // The ship missile hasn't been fired
+	else // The ship missile hasn't been fired yet so keep it next to the warbird
 	{
 		shipMissile->setOrientationMatrix(glm::translate(warbird->getOrientationMatrix(), glm::vec3(-33, 0, -30)));
 	}
 
 	/* UNUM MISSILE SITE MISSILE: */
 
-	// Check to see the update count of the Unum missile site's missile before activating smart.
 	if(!unumMissile->hasFired())
 	{
 		// Set position of the missile if it has not been fired to the missile silo
-		unumMissile->setOrientationMatrix(object3D[UNUMINDEX]->getOrientationMatrix());
+		unumMissile->setOrientationMatrix(object3D[UNUMMISSLESILOINDEX]->getOrientationMatrix());
 
 		// Check to see if the warbird is in the detection radius by getting the distance between the two objects:
 		missileLocation = unumMissile->getOrientationMatrix();
@@ -852,7 +850,7 @@ void handleMissiles()
 		targetPositionVector = getPosition(targetLocation);
 		length = distance(missilePositionVector, targetPositionVector);
 
-		if (length < detectionRadius)
+		if (length <= detectionRadius)
 		{
 			unumMissile->fireMissile();
 			unumMissile->setTargetLocation(warbird->getOrientationMatrix());
@@ -860,7 +858,7 @@ void handleMissiles()
 		}
 	}
 
-	// Once the missile becomes smart get the warbird's location.
+	// Once the missile becomes smart keep updating it to get the warbird's location.
 	if (unumMissile->isSmart())
 	{
 		unumMissile->setTargetLocation(warbird->getOrientationMatrix());
@@ -871,7 +869,7 @@ void handleMissiles()
 	if (!duoMissile->hasFired())
 	{
 		// Set position of the missile if it has not been fired to the missile silo
-		duoMissile->setOrientationMatrix(object3D[DUOINDEX]->getOrientationMatrix()); 
+		duoMissile->setOrientationMatrix(object3D[DUOMISSLESILOINDEX]->getOrientationMatrix()); 
 
 		// Check to see if the warbird is in the detection radius by getting the distance between the two objects:
 		missileLocation = duoMissile->getOrientationMatrix();
@@ -880,7 +878,7 @@ void handleMissiles()
 		targetPositionVector = getPosition(targetLocation);
 		length = distance(missilePositionVector, targetPositionVector);
 
-		if (length < detectionRadius)
+		if (length <= detectionRadius)
 		{
 			duoMissile->fireMissile();
 			duoMissile->setTargetLocation(warbird->getOrientationMatrix());
@@ -888,7 +886,7 @@ void handleMissiles()
 		}
 	}
 
-	// Once the missile becomes smart get the warbird's location.
+	// Once the missile becomes smart keep updating it to get the warbird's location.
 	if (duoMissile->isSmart())
 	{
 		duoMissile->setTargetLocation(warbird->getOrientationMatrix());
@@ -911,6 +909,22 @@ void update(int i)
 	{
 		object3D[index]->update();
 	}
+
+	// Update the missile silo orientation matrices
+
+		// Update the Unum Missile Silo
+	object3D[UNUMMISSLESILOINDEX]->setTranslationMatrix(object3D[UNUMINDEX]->getTranslationMatrix());
+	object3D[UNUMMISSLESILOINDEX]->setOrientationMatrix(object3D[UNUMINDEX]->getRotationMatrix());
+	object3D[UNUMMISSLESILOINDEX]->setTranslationMatrix(glm::translate(object3D[UNUMINDEX]->getTranslationMatrix(), glm::vec3(0, 140, 0)));
+	transformMatrix[UNUMMISSLESILOINDEX] = glm::translate(object3D[UNUMINDEX]->getOrientationMatrix(), glm::vec3(0, 140, 0));
+	object3D[UNUMMISSLESILOINDEX]->setOrientationMatrix(transformMatrix[UNUMMISSLESILOINDEX]);
+
+		// Update the Duo Missile Silo
+	object3D[DUOMISSLESILOINDEX]->setTranslationMatrix(object3D[DUOINDEX]->getTranslationMatrix());
+	object3D[DUOMISSLESILOINDEX]->setOrientationMatrix(object3D[DUOINDEX]->getRotationMatrix());
+	object3D[DUOMISSLESILOINDEX]->setTranslationMatrix(glm::translate(object3D[DUOINDEX]->getTranslationMatrix(), glm::vec3(0, 410, 0)));
+	transformMatrix[DUOMISSLESILOINDEX] = glm::translate(object3D[DUOINDEX]->getOrientationMatrix(), glm::vec3(0, 410, 0));
+	object3D[DUOMISSLESILOINDEX]->setOrientationMatrix(transformMatrix[DUOMISSLESILOINDEX]);
 
 	// Update the warbird object
 	warbird->update();
