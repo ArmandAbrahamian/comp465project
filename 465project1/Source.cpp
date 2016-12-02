@@ -240,7 +240,7 @@ float length;
 glm::vec3 targetPositionVector;
 glm::vec3 missilePositionVector;
 const int missleLifetime = 2000;
-const int missileActivationTimer = 200;
+const int missileActivationTimer = 20;
 float detectionRadius = 5000.0f; // or 25?
 
 /* Missle Site Variables */
@@ -488,7 +488,7 @@ void display()
 				// Update Ship's Camera:
 				camPosition = getPosition(glm::translate(object3D[index]->getModelMatrix(), shipCamEyePosition));
 				shipPosition = getPosition(shipOrientationMatrix);
-				shipCamera = glm::lookAt(camPosition, glm::vec3(shipPosition.x, camPosition.y, shipPosition.z), upVector);
+				shipCamera = glm::lookAt(camPosition, glm::vec3(shipPosition.x, shipPosition.y, shipPosition.z), upVector);
 				if (currentCamera == SHIPCAMERAINDEX) //If we're on ship camera
 					mainCamera = shipCamera;
 				break;
@@ -579,7 +579,7 @@ void collisionCheck()
 			{
 				warbird->destroy();
 				shipMissile->destroy();
-				printf("Ship Missile %d is gone", shipMissiles);
+				printf("Ship Missile %d is gone \n", shipMissiles);
 				currentCamera = 0;
 			}
 		}
@@ -593,7 +593,7 @@ void collisionCheck()
 			{
 				warbird->destroy();
 				unumMissile->destroy();
-				printf("Unum Missile %d is gone", unumMissles);
+				printf("Unum Missile %d is gone \n", unumMissles);
 				currentCamera = 0;
 			}
 		}
@@ -607,24 +607,24 @@ void collisionCheck()
 			{
 				warbird->destroy();
 				duoMissile->destroy();
-				printf("Duo Missile %d is gone", duoMissiles);
+				printf("Duo Missile %d is gone \n", duoMissiles);
 				currentCamera = 0;
 			}
 		}
 
 		// Check if the warbird collides with Unum Missile Site:
-		length = distance(objectPosition, getPosition(object3D[UNUMMISSLESILOINDEX]->getOrientationMatrix()));
+		length = distance(objectPosition, getPosition(object3D[UNUMINDEX]->getOrientationMatrix()));
 
-		if (length < modelSize[SHIPINDEX] + modelSize[UNUMMISSLESILOINDEX])
+		if (length < modelSize[SHIPINDEX] + modelSize[UNUMINDEX])
 		{
 			warbird->destroy();
 			currentCamera = 0;
 		}
 
 		// Check if the warbird collides with Duo Missile Site:
-		length = distance(objectPosition, getPosition(object3D[DUOMISSLESILOINDEX]->getOrientationMatrix()));
+		length = distance(objectPosition, getPosition(object3D[DUOINDEX]->getOrientationMatrix()));
 
-		if (length < modelSize[SHIPINDEX] + modelSize[DUOMISSLESILOINDEX])
+		if (length < modelSize[SHIPINDEX] + modelSize[DUOINDEX])
 		{
 			warbird->destroy();
 			currentCamera = 0;
@@ -643,23 +643,23 @@ void collisionCheck()
 		// Check if it collides with a missile site:
 
 			// Unum Missile Site:
-		length = distance(objectPosition, getPosition(object3D[UNUMMISSLESILOINDEX]->getOrientationMatrix()));
+		length = distance(objectPosition, getPosition(object3D[UNUMINDEX]->getOrientationMatrix()));
 
-		if (length < modelSize[UNUMMISSLESILOINDEX] + modelSize[SHIPMISSILEINDEX])
+		if (length < modelSize[UNUMINDEX] + modelSize[SHIPMISSILEINDEX])
 		{
 			shipMissile->destroy();
 			unumMissileSiloAlive = false;
-			printf("Unum Missile Silo is dead");
+			printf("Unum Missile Silo is dead \n");
 		}
 
 			// Duo Missile Site:
-		length = distance(objectPosition, getPosition(object3D[DUOMISSLESILOINDEX]->getOrientationMatrix()));
+		length = distance(objectPosition, getPosition(object3D[DUOINDEX]->getOrientationMatrix()));
 
-		if (length < modelSize[DUOMISSLESILOINDEX] + modelSize[SHIPMISSILEINDEX])
+		if (length < modelSize[DUOINDEX] + modelSize[SHIPMISSILEINDEX])
 		{
 			shipMissile->destroy();
 			duoMissileSiloAlive = false;
-			printf("Duo Missile Silo is dead");
+			printf("Duo Missile Silo is dead \n");
 		}
 
 		// Check if it collides with a planetary body:
@@ -667,11 +667,11 @@ void collisionCheck()
 		{
 			length = distance(objectPosition, getPosition(object3D[index]->getOrientationMatrix()));
 
-			if (length < (modelSize[index] + 10 + modelSize[SHIPMISSILEINDEX])) {
+			if (length < (modelSize[index] + modelSize[SHIPMISSILEINDEX])) {
 
 				// If there is a collision with a planet, the missile is destroyed
 				shipMissile->destroy();
-				printf("Ship Missile %d is gone", shipMissiles);
+				printf("Ship Missile %d is gone \n", shipMissiles);
 			}
 		}
 	}
@@ -682,25 +682,25 @@ void collisionCheck()
 		objectPosition = getPosition(unumMissile->getOrientationMatrix());
 
 		// Check if it collides with Unum missile site:
-		length = distance(objectPosition, getPosition(object3D[UNUMMISSLESILOINDEX]->getOrientationMatrix()));
+		length = distance(objectPosition, getPosition(object3D[UNUMINDEX]->getOrientationMatrix()));
 
-		if (length < modelSize[UNUMMISSLESILOINDEX] + modelSize[UNUMMISSILEINDEX])
+		if (length < modelSize[UNUMINDEX] + modelSize[UNUMMISSILEINDEX])
 		{
 			unumMissile->destroy();
-			printf("Unum Missile %d is gone", unumMissles);
+			printf("Unum Missile %d is gone \n", unumMissles);
 			unumMissileSiloAlive = false;
-			printf("Unum Missile Silo is dead");
+			printf("Unum Missile Silo is dead \n");
 		}
 
 		// Check if it collides with Duo missile site:
-		length = distance(objectPosition, getPosition(object3D[DUOMISSLESILOINDEX]->getOrientationMatrix()));
+		length = distance(objectPosition, getPosition(object3D[DUOINDEX]->getOrientationMatrix()));
 
-		if (length < modelSize[DUOMISSLESILOINDEX] + modelSize[UNUMMISSILEINDEX])
+		if (length < modelSize[DUOINDEX] + modelSize[UNUMMISSILEINDEX])
 		{
 			unumMissile->destroy();
-			printf("Unum Missile %d is gone", unumMissles);
+			printf("Unum Missile %d is gone \n", unumMissles);
 			duoMissileSiloAlive = false;
-			printf("Duo Missile Silo is dead");
+			printf("Duo Missile Silo is dead \n");
 		}
 
 		// Check if it collides with a planetary body:
@@ -712,7 +712,7 @@ void collisionCheck()
 
 				// If there is a collision with a planet, the missile is destroyed
 				unumMissile->destroy();
-				printf("Unum Missile %d is gone", unumMissles);
+				printf("Unum Missile %d is gone \n", unumMissles);
 			}
 		}
 	}
@@ -723,25 +723,25 @@ void collisionCheck()
 		objectPosition = getPosition(duoMissile->getOrientationMatrix());
 
 		// Check if it collides with Unum missile site:
-		length = distance(objectPosition, getPosition(object3D[UNUMMISSLESILOINDEX]->getOrientationMatrix()));
+		length = distance(objectPosition, getPosition(object3D[UNUMINDEX]->getOrientationMatrix()));
 
-		if (length < modelSize[UNUMMISSLESILOINDEX] + modelSize[DUOMISSILEINDEX])
+		if (length < modelSize[UNUMINDEX] + modelSize[DUOMISSILEINDEX])
 		{
 			duoMissile->destroy();
-			printf("Duo Missile %d is gone", duoMissiles);
+			printf("Duo Missile %d is gone \n", duoMissiles);
 			unumMissileSiloAlive = false;
-			printf("Unum Missile Silo is dead");
+			printf("Unum Missile Silo is dead \n");
 		}
 
 		// Check if it collides with Duo missile site:
-		length = distance(objectPosition, getPosition(object3D[DUOMISSLESILOINDEX]->getOrientationMatrix()));
+		length = distance(objectPosition, getPosition(object3D[DUOINDEX]->getOrientationMatrix()));
 
-		if (length < modelSize[DUOMISSLESILOINDEX] + modelSize[DUOMISSILEINDEX])
+		if (length < modelSize[DUOINDEX] + modelSize[DUOMISSILEINDEX])
 		{
 			duoMissile->destroy();
-			printf("Duo Missile %d is gone", duoMissiles);
+			printf("Duo Missile %d is gone \n", duoMissiles);
 			duoMissileSiloAlive = false;
-			printf("Duo Missile Silo is dead");
+			printf("Duo Missile Silo is dead \n");
 		}
 
 		// Check if it collides with a planetary body:
@@ -753,7 +753,7 @@ void collisionCheck()
 
 				// If there is a collision with a planet, the missile is destroyed
 				duoMissile->destroy();
-				printf("Duo Missile %d is gone", duoMissiles);
+				printf("Duo Missile %d is gone \n", duoMissiles);
 			}
 		}
 	}
@@ -798,7 +798,7 @@ void handleMissiles()
 			{
 				// Determine the closest target for the warbirds missile
 				missileLocation = shipMissile->getOrientationMatrix();
-				targetLocation = object3D[UNUMMISSLESILOINDEX]->getOrientationMatrix();
+				targetLocation = object3D[UNUMINDEX]->getOrientationMatrix();
 				missilePositionVector = getPosition(missileLocation);
 				targetPositionVector = getPosition(targetLocation);
 				length = distance(missilePositionVector, targetPositionVector);
@@ -807,13 +807,13 @@ void handleMissiles()
 				// one to the missile that is within the missiles detection range.
 				if (distance(missilePositionVector, targetPositionVector) > length) 
 				{
-					shipMissileTarget = object3D[UNUMMISSLESILOINDEX];
+					shipMissileTarget = object3D[UNUMINDEX];
 					printf("Ship Missile Target is UNUM \n");
 				}
 				else 
 				{
 					length = distance(missilePositionVector, targetPositionVector);
-					shipMissileTarget = object3D[DUOMISSLESILOINDEX];
+					shipMissileTarget = object3D[UNUMINDEX];
 					printf("Ship Missile Target is DUO \n");
 				}
 
@@ -843,7 +843,7 @@ void handleMissiles()
 	if(!unumMissile->hasFired())
 	{
 		// Set position of the missile if it has not been fired to the missile silo
-		unumMissile->setOrientationMatrix(object3D[UNUMMISSLESILOINDEX]->getOrientationMatrix());
+		unumMissile->setOrientationMatrix(object3D[UNUMINDEX]->getOrientationMatrix());
 
 		// Check to see if the warbird is in the detection radius by getting the distance between the two objects:
 		missileLocation = unumMissile->getOrientationMatrix();
@@ -871,7 +871,7 @@ void handleMissiles()
 	if (!duoMissile->hasFired())
 	{
 		// Set position of the missile if it has not been fired to the missile silo
-		duoMissile->setOrientationMatrix(object3D[DUOMISSLESILOINDEX]->getOrientationMatrix()); 
+		duoMissile->setOrientationMatrix(object3D[DUOINDEX]->getOrientationMatrix()); 
 
 		// Check to see if the warbird is in the detection radius by getting the distance between the two objects:
 		missileLocation = duoMissile->getOrientationMatrix();
