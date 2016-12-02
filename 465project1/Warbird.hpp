@@ -106,6 +106,7 @@ public:
 	{
 		orientationMatrix = identity;
 		alive = false;
+		printf("The ship is dead.");
 	}
 
 
@@ -117,8 +118,6 @@ public:
 		alive = true;
 		translationMatrix = glm::translate(translationMatrix, initialPosition);
 	}
-
-
 
 	/* Method that updates the location of an object and
 	rotates the object by a given amount in radians if any
