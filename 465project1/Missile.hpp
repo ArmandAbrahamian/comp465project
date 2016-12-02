@@ -18,7 +18,6 @@ private:
 	float speed;
 	float AORDirection;
 	int updateFrameCount;
-	float radian;
 	float detectionRadius = 5000.0f; // or 25?
 	bool smart;		// Flag to check if the missile becomes smart
 	bool targetLocked; // Flag for if a target was locked
@@ -163,17 +162,17 @@ public:
 					AOR = glm::normalize(AOR);
 
 					AORDirection = AOR.x + AOR.y + AOR.z;
-					radian = glm::acos(glm::dot(targetVector, missileVector));
 
 					if (AORDirection <= 0)
 					{
-						rotationAmount = -radian;
+						rotationAmount = -glm::acos(glm::dot(targetVector, missileVector));;
 					}
 					else
 					{
-						rotationAmount = 2 * PI + radian;
+						rotationAmount = 2 * PI + glm::acos(glm::dot(targetVector, missileVector));;
 					}
 
+					rotationAxis = AOR;
 
 					// Get the rotation Amount of the Missile and Determine the Direction of Rotation.
 					// This equation gets the angle of rotation between the two vectors,
