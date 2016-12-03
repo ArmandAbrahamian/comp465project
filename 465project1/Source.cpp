@@ -184,8 +184,8 @@ glm::mat4 duoCamera;
 int currentCamera = 0;
 int maxCameras = 5;
 
-const glm::vec3 upVector(0.0f, 1.0f, 0.0f);
-const glm::vec3 topVector(1.0f, 0.0f, 0.0f);
+glm::vec3 upVector(0.0f, 1.0f, 0.0f);
+glm::vec3 topVector(1.0f, 0.0f, 0.0f);
 glm::vec3 shipPosition;
 glm::vec3 shipCamEyePosition(0, 200, 500);
 glm::vec3 planetCamEyePosition(0, 0.0f, -8000);
@@ -209,11 +209,11 @@ const float gravityFieldUnum = 6000;
 const float gravityFieldDuo = 2000;
 bool gravityState = false;
 
-/* warp variables */
+/* Warp Variables */
 glm::mat4 shipCameraSave;
 int warpit = 0;
+const int maxWarpSpots = 3;
 glm::vec3 warpPosition(1000, 0.0f,-3000);
-glm::mat4 shipTranslationMatrix;
 
 /* Ship Global variables */
 glm::mat4 shipOrientationMatrix;
@@ -1033,32 +1033,6 @@ void switchCamera(int camera)
 	display();
 }
 
-void warp(int x) {
-	// set x to 1 for the first planet
-	if (x == 1) {
-		//copy orientation matrix, set ship to unum then translate out the required distance and flip it pie radians to set correct ship orientation
-		
-		warbird->setOrientationMatrix(object3D[UNUMINDEX]->getOrientationMatrix());
-		warbird->setOrientationMatrix(glm::translate(warbird->getOrientationMatrix(), warpPosition));
-		// have ship point a planet
-		// create a 4x4 matrix to save warbirds translation matrix
-		//shipTranslationMatrix = warbird->getTranslationMatrix();
-		
-		//warbird->setTranslationMatrix(glm::translate(shipTranslationMatrix, getIn(warbird->getOrientationMatrix())));
-	}
-	// set x to 2 for second planet
-	//else if (x == 2) {
-		//warbird->setTranslationMatrix(glm::translate(transformMatrix[DUOINDEX], warpPosition));
-		//have ship point at planet
-		//shipTranslationMatrix = glm::translate(shipTranslationMatrix, forward);
-	//}
-	// if x is anything else the ship should return to original location
-	//else {
-		//original camera point for ship for warp back
-		//warbird->setTranslationMatrix(glm::translate(identityMatrix, getPosition(shipCameraSave)));
-	//}
-}
-
 void keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
@@ -1097,20 +1071,28 @@ void keyboard(unsigned char key, int x, int y)
 		gravitySwitch();
 		break;
 	case 'w': case'W':
-		if (warpit == 0) {
-			warp(1);
-			warpit = 1;
+		warpit = (warpit + 1) % maxWarpSpots;
+
+		switch (warpit)
+		{
+		case 0:
+			warbird->setTranslationMatrix(glm::translate(identityMatrix, translatePosition[SHIPINDEX]));
+			printf("Ship Warped back to original position\n");
+			break;
+
+		case 1:
+			warbird->setTranslationMatrix(glm::translate(identityMatrix, getPosition(glm::translate
+			(transformMatrix[UNUMINDEX], planetCamEyePosition)) ));
+			printf("Ship Warped to Unum\n");
+			break;
+
+		case 2:
+			warbird->setTranslationMatrix(glm::translate(identityMatrix, getPosition(glm::translate
+			(transformMatrix[DUOINDEX], planetCamEyePosition)) ));
+			printf("Ship Warped to Duo\n");
+			break;
 		}
-		else if (warpit == 1) {
-			warp(2);
-			// return change warpit to anything but 0,1,2 so that 
-			// it forces the next warp back to the starting ship point
-			warpit = 2;
-		}
-		else {
-			warp(0);
-			warpit = 0;
-		}
+
 		break;
 	case 'r': case'R':
 		// Reset Unum Missile Site:

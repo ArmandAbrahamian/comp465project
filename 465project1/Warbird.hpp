@@ -116,7 +116,7 @@ public:
 	void restart() 
 	{
 		alive = true;
-		translationMatrix = glm::translate(translationMatrix, initialPosition);
+		translationMatrix = glm::translate(identity, initialPosition);
 	}
 
 	/* Method that updates the location of an object and
