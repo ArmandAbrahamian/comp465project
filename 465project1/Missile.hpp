@@ -181,11 +181,13 @@ public:
 					rotationAxis = AOR;
 
 					// Conversion from Euler angles (in radians) to Quaternion
-					MyQuaternion = glm::quat(rotationAxis);
+					//MyQuaternion = glm::quat(rotationAxis);
 
-					//MyQuaternion = glm::angleAxis(rotationAmount, rotationAxis);
+					MyQuaternion = glm::angleAxis(rotationAmount, rotationAxis);
 
 					rotationAxis = glm::axis(MyQuaternion);
+
+					rotationAmount = glm::angle(MyQuaternion);
 
 					// Get the rotation Amount of the Missile and Determine the Direction of Rotation.
 					// This equation gets the angle of rotation between the two vectors,

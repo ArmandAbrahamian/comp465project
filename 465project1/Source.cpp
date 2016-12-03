@@ -27,9 +27,10 @@ COMP 465 - Fall 2016
 User commands:
 'v' cycles to the next camera
 'x' cycles to the previous camera
-'w' warps the warbird to Unum or Duo
+'w' warps the warbird to Unum, Duo, or the warbird's start state
 't' changes the Time Quantum to either ACE, PILOT, TRAINEE, or DEBUG
 'f' fires a missile from the warbird
+'r' restarts the game
 'g' toggle gravity on or off
 't' cycle TQ value
 's' cycle ship speed
@@ -50,9 +51,8 @@ User commands:
 # include "Warbird.hpp"
 # include "Missile.hpp"
 
-const int X = 0, Y = 1, Z = 2, START = 0, STOP = 1,
-
 // Model indexes:
+const int
 RUBERINDEX = 0,
 UNUMINDEX = 1,
 DUOINDEX = 2,
@@ -266,14 +266,18 @@ bool idleTimerFlag = false;  // interval or idle timer ?
 
 /* Display state and "state strings" for title display */
 int timerIndex = 0;
+int gameState = 0;
+const int start = 0, win = 1, lose = 2;
 char titleStr[175];
 char fpsStr[15];
-char baseStr[42] = "Warbird Simulator: {v, x, s, t, f, g, w} ";
+char baseStr[45] = "Warbird Simulator: {v, x, s, t, f, g, w, r} ";
 char warbirdMissleCount[14] = "| Warbird 9";
 char unumMissleCount[11] = " | Unum 5";
 char duoMissleCount[15] = " | Duo 5";
 char cameraStr[30] = "| View: Front Camera ";
-char * timerStr[4] = { " | U/S 200 ", " | U/S 25 ", " | U/S 10", " | U/S 2 " };
+char * timerStr[4] = { " | U/S 200 ", " | U/S 25 ", " | U/S 10 ", " | U/S 2 " };
+char winGameStr[29] = "Cadet passes flight training";
+char loseGameStr[31] = "Cadet resigns from War College";
 
 // To maximize efficiency, operations that only need to be called once are called in init().
 void init()
@@ -309,8 +313,8 @@ void init()
 		object3D[i]->setTranslationMatrix(translatePosition[i]);
 		object3D[i]->setRotationAmount(rotationAmount[i]);
 
-		// Set the planet and moon orbit flags:
-		if(i == UNUMINDEX || i == DUOINDEX || i == PRIMUSINDEX || i == SECUNDUSINDEX)
+		// Set the planet flags:
+		if(i == UNUMINDEX || i == DUOINDEX)
 			object3D[i]->setOrbit();
 	}
 
@@ -417,6 +421,22 @@ void fireShipMissile()
 			strcat(warbirdMissleCount, std::to_string(shipMissiles).c_str());
 		}
 	}
+}
+
+// Handle the lose game state
+void gameLose()
+{
+	gameState = lose;
+	strcpy(titleStr, loseGameStr);
+	glutSetWindowTitle(titleStr);
+}
+
+// Handle the win game state
+void gameWin()
+{
+	gameState = win;
+	strcpy(titleStr, winGameStr);
+	glutSetWindowTitle(titleStr);
 }
 
 void gravitySwitch()
@@ -541,7 +561,9 @@ void display()
 		sprintf(fpsStr, "| F/S %4d ", (int)(frameCount / (timeInterval / 1000.0f)));
 		lastTime = currentTime;
 		frameCount = 0;
-		updateTitle();
+
+		if(gameState == start)
+			updateTitle();
 	}
 }
 
@@ -850,11 +872,15 @@ void handleMissiles()
 		targetPositionVector = getPosition(targetLocation);
 		length = distance(missilePositionVector, targetPositionVector);
 
-		if (length <= detectionRadius)
+		if (length <= detectionRadius && unumMissles > 0)
 		{
 			unumMissile->fireMissile();
 			unumMissile->setTargetLocation(warbird->getOrientationMatrix());
 			unumMissles--;
+
+			// Update title string for the Unum Missile Site missile count
+			strcpy(unumMissleCount, " | Unum ");
+			strcat(unumMissleCount, std::to_string(unumMissles).c_str());
 		}
 	}
 
@@ -878,11 +904,15 @@ void handleMissiles()
 		targetPositionVector = getPosition(targetLocation);
 		length = distance(missilePositionVector, targetPositionVector);
 
-		if (length <= detectionRadius)
+		if (length <= detectionRadius && duoMissiles > 0)
 		{
 			duoMissile->fireMissile();
 			duoMissile->setTargetLocation(warbird->getOrientationMatrix());
 			duoMissiles--;
+
+			// Update title string for the Duo Missile Site missile count
+			strcpy(duoMissleCount, " | Duo ");
+			strcat(duoMissleCount, std::to_string(duoMissiles).c_str());
 		}
 	}
 
@@ -949,6 +979,18 @@ void update(int i)
 			glm::vec3 gravity = (vectorPointingFromShipToRuber / distanceToRuber);
 			warbird->setTranslationMatrix(gravity * glm::vec3(0.8f, 0.8f, 0.8f));
 		}
+	}
+
+	// Check if the player won the game:
+	if (unumMissileSiloAlive == false && duoMissileSiloAlive == false)
+	{
+		gameWin();
+	}
+
+	// Check if the player lost the game:
+	if (warbird->isAlive() == false || (shipMissiles == 0 && (unumMissileSiloAlive == true || duoMissileSiloAlive == true)))
+	{
+		gameLose();
 	}
 
 	glutPostRedisplay();
@@ -1071,8 +1113,20 @@ void keyboard(unsigned char key, int x, int y)
 		}
 		break;
 	case 'r': case'R':
+		// Reset Unum Missile Site:
+		unumMissles = 5;
+		unumMissileSiloAlive = true;
+
+		// Reset Duo Missile Site:
+		duoMissiles = 5;
+		duoMissileSiloAlive = true;
+
+		// Reset Warbird:
 		shipMissiles = 9;
 		warbird->restart();
+
+		// Reset the game state flag:
+		gameState = start;
 		break;
 	}
 }

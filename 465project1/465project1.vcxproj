@@ -28,7 +28,6 @@
     <ClInclude Include="..\includes465\texture.hpp" />
     <ClInclude Include="..\includes465\triModel465.hpp" />
     <ClInclude Include="Missile.hpp" />
-    <ClInclude Include="MissleSite.hpp" />
     <ClInclude Include="Object3D.hpp" />
     <ClInclude Include="Warbird.hpp" />
   </ItemGroup>

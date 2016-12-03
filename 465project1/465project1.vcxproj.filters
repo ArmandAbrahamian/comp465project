@@ -41,9 +41,6 @@
     <ClInclude Include="Object3D.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MissleSite.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Missile.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
