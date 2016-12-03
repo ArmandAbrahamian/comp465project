@@ -578,7 +578,7 @@ void collisionCheck()
 		{
 			length = distance(objectPosition, getPosition(object3D[index]->getOrientationMatrix()));
 
-			if (length < (modelBR[SHIPINDEX] + 10.0f + modelBR[index]))
+			if (length < (modelBR[SHIPINDEX] + 10.0f + modelSize[index]))
 			{
 				// If there is a collision with a planet the warbird gets destroyed
 				// The camera view is set to front camera
@@ -684,7 +684,7 @@ void collisionCheck()
 		{
 			length = distance(objectPosition, getPosition(object3D[index]->getOrientationMatrix()));
 
-			if (length < (modelBR[index] + modelBR[SHIPMISSILEINDEX] + 10.0f)) {
+			if (length < (modelSize[index] + modelBR[SHIPMISSILEINDEX] + 10.0f)) {
 
 				// If there is a collision with a planet, the missile is destroyed
 				shipMissile->destroy();
@@ -725,7 +725,7 @@ void collisionCheck()
 		{
 			length = distance(objectPosition, getPosition(object3D[index]->getOrientationMatrix()));
 
-			if (length < (modelBR[index] + modelBR[UNUMMISSILEINDEX] + 10.0f)) {
+			if (length < (modelSize[index] + modelBR[UNUMMISSILEINDEX] + 10.0f)) {
 
 				// If there is a collision with a planet, the missile is destroyed
 				unumMissile->destroy();
@@ -766,7 +766,7 @@ void collisionCheck()
 		{
 			length = distance(objectPosition, getPosition(object3D[index]->getOrientationMatrix()));
 
-			if (length < (modelBR[index] + modelBR[DUOMISSILEINDEX] + 10.0f)) {
+			if (length < (modelSize[index] + modelBR[DUOMISSILEINDEX] + 10.0f)) {
 
 				// If there is a collision with a planet, the missile is destroyed
 				duoMissile->destroy();
