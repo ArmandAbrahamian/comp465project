@@ -1077,18 +1077,23 @@ void keyboard(unsigned char key, int x, int y)
 		{
 		case 0:
 			warbird->setTranslationMatrix(glm::translate(identityMatrix, translatePosition[SHIPINDEX]));
+			warbird->setRotationMatrix(glm::rotate(identityMatrix, 0.0f, glm::vec3(0, 1, 0)));
 			printf("Ship Warped back to original position\n");
 			break;
 
 		case 1:
 			warbird->setTranslationMatrix(glm::translate(identityMatrix, getPosition(glm::translate
-			(transformMatrix[UNUMINDEX], planetCamEyePosition) * glm::rotate(glm::mat4(), -(PI / 2), glm::vec3(1, 0, 0)))));
+			(transformMatrix[UNUMINDEX], planetCamEyePosition))));
+			warbird->setRotationMatrix(glm::rotate(object3D[UNUMINDEX]->getRotationMatrix(), PI, glm::vec3(0, 1, 0)) );
+
 			printf("Ship Warped to Unum\n");
 			break;
 
 		case 2:
 			warbird->setTranslationMatrix(glm::translate(identityMatrix, getPosition(glm::translate
-			(transformMatrix[DUOINDEX], planetCamEyePosition)* glm::rotate(glm::mat4(), -(PI / 2), glm::vec3(1, 0, 0)))));
+			(transformMatrix[DUOINDEX], planetCamEyePosition))));
+			warbird->setRotationMatrix(glm::rotate(object3D[DUOINDEX]->getRotationMatrix(), PI, glm::vec3(0, 1, 0)));
+
 			printf("Ship Warped to Duo\n");
 			break;
 		}
