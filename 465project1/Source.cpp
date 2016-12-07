@@ -377,6 +377,25 @@ void init()
 	lastTime = glutGet(GLUT_ELAPSED_TIME);  // get elapsed system time
 }
 
+//work in progress. Following tutorial https://www.youtube.com/watch?v=RqRxhY6iLto but it uses SDL, which our project does not
+unsigned int loadCubemap(std::string* filenames)
+{
+	//right, left, top, bottom, near, far
+	unsigned int tex;
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
+	
+	for (int i = 0; i < 6; i++) {
+		//SDL_Surface* img = loadTexture(filenames[i]);
+		//glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITION_X + i, 0, GL_RGBA, img->w, img->h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, img->pixels);
+		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		//SDL_FreeSurface(img);
+	}
+}
+
 // Indicates what action should be taken when the window is resized.
 void reshape(int width, int height)
 {

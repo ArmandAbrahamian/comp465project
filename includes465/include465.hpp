@@ -64,7 +64,7 @@ Mike Barnes
 # include "../includes465/glmUtils465.hpp"  // print matrices and vectors, ... 
 # include "../includes465/shader465.hpp"    // load vertex and fragment shaders
 # include "../includes465/triModel465.hpp"  // load AC3D *.tri model 
-
+#include "../includes465/texture.hpp"
 // PI to 10 digits
 const float PI = 3.14159265358f;  
  
