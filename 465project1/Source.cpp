@@ -78,7 +78,7 @@ char * modelFile[nModels] = {
 	"MountainPlanet.tri",
 	"primus.tri",
 	"secundus.tri",
-	"spaceShip-bs100.tri",
+	"warbird.tri",
 	"MissileSite.tri",
 	"MissileSite.tri",
 	"Missile.tri",
@@ -92,7 +92,7 @@ int nVertices[nModels] = { // vertex count
 	264 * 3, // duo
 	264 * 3, // primus
 	264 * 3, // secundus
-	996 * 3, // warbird
+	2568 * 3, // warbird
 	720 * 3, // Primus missileSilo
 	720 * 3, // Secundus missileSilo
 	282 * 3, // ship missile
@@ -378,23 +378,23 @@ void init()
 }
 
 //work in progress. Following tutorial https://www.youtube.com/watch?v=RqRxhY6iLto but it uses SDL, which our project does not
-unsigned int loadCubemap(std::string* filenames)
-{
-	//right, left, top, bottom, near, far
-	unsigned int tex;
-	glGenTextures(1, &tex);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
-	
-	for (int i = 0; i < 6; i++) {
-		//SDL_Surface* img = loadTexture(filenames[i]);
-		//glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITION_X + i, 0, GL_RGBA, img->w, img->h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, img->pixels);
-		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		//SDL_FreeSurface(img);
-	}
-}
+//unsigned int loadCubemap(std::string* filenames)
+//{
+//	//right, left, top, bottom, near, far
+//	unsigned int tex;
+//	glGenTextures(1, &tex);
+//	glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
+//	
+//	for (int i = 0; i < 6; i++) {
+//		//SDL_Surface* img = loadTexture(filenames[i]);
+//		//glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITION_X + i, 0, GL_RGBA, img->w, img->h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, img->pixels);
+//		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//		//SDL_FreeSurface(img);
+//	}
+//}
 
 // Indicates what action should be taken when the window is resized.
 void reshape(int width, int height)
@@ -971,8 +971,8 @@ void update(int i)
 		// Update the Duo Missile Silo
 	object3D[DUOMISSLESILOINDEX]->setTranslationMatrix(object3D[DUOINDEX]->getTranslationMatrix());
 	object3D[DUOMISSLESILOINDEX]->setOrientationMatrix(object3D[DUOINDEX]->getRotationMatrix());
-	object3D[DUOMISSLESILOINDEX]->setTranslationMatrix(glm::translate(object3D[DUOINDEX]->getTranslationMatrix(), glm::vec3(0, 410, 0)));
-	transformMatrix[DUOMISSLESILOINDEX] = glm::translate(object3D[DUOINDEX]->getOrientationMatrix(), glm::vec3(0, 410, 0));
+	object3D[DUOMISSLESILOINDEX]->setTranslationMatrix(glm::translate(object3D[DUOINDEX]->getTranslationMatrix(), glm::vec3(0, 385, 0)));
+	transformMatrix[DUOMISSLESILOINDEX] = glm::translate(object3D[DUOINDEX]->getOrientationMatrix(), glm::vec3(0, 385, 0));
 	object3D[DUOMISSLESILOINDEX]->setOrientationMatrix(transformMatrix[DUOMISSLESILOINDEX]);
 
 	// Update the warbird object

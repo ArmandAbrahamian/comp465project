@@ -40,12 +40,14 @@
     <None Include="MissileSite.tri" />
     <None Include="MountainPlanet.tri" />
     <None Include="obelisk-10-20-10.tri" />
+    <None Include="StarRed.raw" />
     <None Include="unum.tri" />
     <None Include="simpleFragment.glsl" />
     <None Include="simpleVertex.glsl" />
     <None Include="spaceShip-bs100.tri" />
     <None Include="ruber.tri" />
     <None Include="primus.tri" />
+    <None Include="warbird.tri" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{12087D28-1F55-43F5-84FE-AB2C584607BA}</ProjectGuid>
