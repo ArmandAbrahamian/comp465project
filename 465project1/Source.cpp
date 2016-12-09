@@ -46,10 +46,20 @@ User commands:
 
 # define __Windows__
 # include <string>
+# include <iostream>
+#include <windows.h>
 # include "../includes465/include465.hpp"
 # include "Object3D.hpp"
 # include "Warbird.hpp"
 # include "Missile.hpp"
+# include "include/irrKlang.h"
+
+using namespace std;
+using namespace irrklang;
+
+#pragma comment(lib, "irrKlang.lib")
+
+ISoundEngine *SoundEngine = createIrrKlangDevice();
 
 // Model indexes:
 const int
@@ -481,6 +491,8 @@ void init()
 		printf("Texture in file %s NOT LOADED !!! \n");
 
 	lastTime = glutGet(GLUT_ELAPSED_TIME);  // get elapsed system time
+
+	SoundEngine->play2D("media/Star Trek- Armada II - Romulan Music.mp3", GL_TRUE);
 }
 
 // Indicates what action should be taken when the window is resized.
@@ -1343,6 +1355,14 @@ int main(int argc, char** argv)
 			glGetString(GL_VERSION),
 			glGetString(GL_SHADING_LANGUAGE_VERSION));
 	}
+
+	// Check if the sound engine was initiated without any errors
+	if (!SoundEngine)
+	{
+		cout << "Error: Sound Engine could not be created." << endl;
+		return 0;
+	}
+
 	// initialize scene
 	init();
 
