@@ -106,7 +106,7 @@ public:
 	{
 		orientationMatrix = identity;
 		alive = false;
-		printf("The warbird is dead.");
+		printf("The warbird is dead. \n");
 	}
 
 

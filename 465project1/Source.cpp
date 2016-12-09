@@ -274,6 +274,7 @@ bool idleTimerFlag = false;  // interval or idle timer ?
 /* Display state and "state strings" for title display */
 int timerIndex = 0;
 int gameState = 0;
+bool hasRestarted = false;
 const int start = 0, win = 1, lose = 2;
 char titleStr[175];
 char fpsStr[15];
@@ -356,6 +357,15 @@ glm::vec3 squareRotationAxis[6] = {
 
 };
 
+void playMusic()
+{
+	int randomNumber = rand() % 2;
+
+	if (randomNumber == 0)
+		SoundEngine->play2D("media/Star Trek- Armada II - Romulan Music.mp3", GL_TRUE);
+	else
+		SoundEngine->play2D("media/MRom300.wav", GL_TRUE);
+}
 
 // To maximize efficiency, operations that only need to be called once are called in init().
 void init()
@@ -505,16 +515,8 @@ void init()
 
 	else if (randomNumber == 2)
 		SoundEngine->play2D("media/warbird_reporting.wav");
-	printf("Random Number: %d \n", randomNumber);
 
-	randomNumber = rand() % 2;
-
-	printf("Random Number: %d \n", randomNumber);
-
-	if (randomNumber == 0)
-		SoundEngine->play2D("media/Star Trek- Armada II - Romulan Music.mp3", GL_TRUE);
-	else
-		SoundEngine->play2D("media/MRom300.wav", GL_TRUE);
+	playMusic();
 }
 
 // Indicates what action should be taken when the window is resized.
@@ -591,6 +593,12 @@ void gameWin()
 	gameState = win;
 	strcpy(titleStr, winGameStr);
 	glutSetWindowTitle(titleStr);
+	if (hasRestarted == false)
+	{
+		SoundEngine->stopAllSounds();
+		SoundEngine->play2D("media/ClosingCredits.wav");
+		hasRestarted = true;
+	}
 }
 
 void gravitySwitch()
@@ -764,6 +772,7 @@ void collisionCheck()
 				// The camera view is set to front camera
 				warbird->destroy();
 				SoundEngine->play2D("media/tos_hullhit_2.mp3");
+				printf("Warbird Hit Planetary Body \n");
 				currentCamera = 0;
 			}
 		}
@@ -778,7 +787,7 @@ void collisionCheck()
 				warbird->destroy();
 				SoundEngine->play2D("media/tos_hullhit_2.mp3");
 				shipMissile->destroy();
-				printf("Ship Missile %d is gone \n", shipMissiles);
+				printf("Ship Missile %d hit warbird \n", shipMissiles);
 				currentCamera = 0;
 			}
 		}
@@ -803,7 +812,7 @@ void collisionCheck()
 		{
 			length = distance(objectPosition, getPosition(duoMissile->getOrientationMatrix()));
 
-			if (length < (modelBR[SHIPINDEX] + 10.0f + modelBR[DUOMISSILEINDEX]))
+			if (length < (modelBR[SHIPINDEX] + modelBR[DUOMISSILEINDEX] + 10.0f))
 			{
 				warbird->destroy();
 				SoundEngine->play2D("media/tos_hullhit_2.mp3");
@@ -816,20 +825,22 @@ void collisionCheck()
 		// Check if the warbird collides with Unum Missile Site:
 		length = distance(objectPosition, getPosition(object3D[UNUMMISSLESILOINDEX]->getOrientationMatrix()));
 
-		if (length < (modelBR[SHIPINDEX] + 10.0f + modelBR[UNUMMISSLESILOINDEX]))
+		if (length < (modelBR[SHIPINDEX] + modelBR[UNUMMISSLESILOINDEX] + 10.0f))
 		{
 			warbird->destroy();
 			SoundEngine->play2D("media/tos_hullhit_2.mp3");
+			printf("Warbird Hit Unum Missile Site \n");
 			currentCamera = 0;
 		}
 
 		// Check if the warbird collides with Duo Missile Site:
 		length = distance(objectPosition, getPosition(object3D[DUOMISSLESILOINDEX]->getOrientationMatrix()));
 
-		if (length < (modelBR[SHIPINDEX] + 10.0f + modelBR[DUOMISSLESILOINDEX]))
+		if (length < (modelBR[SHIPINDEX] + modelBR[DUOMISSLESILOINDEX] + 10.0f))
 		{
 			warbird->destroy();
 			SoundEngine->play2D("media/tos_hullhit_2.mp3");
+			printf("Warbird Hit Duo Missile Site \n");
 			currentCamera = 0;
 		}
 	}
@@ -870,11 +881,11 @@ void collisionCheck()
 		{
 			length = distance(objectPosition, getPosition(object3D[index]->getOrientationMatrix()));
 
-			if (length < (modelSize[index] + modelBR[SHIPMISSILEINDEX] + 10.0f)) {
+			if (length < (modelBR[index] + modelBR[SHIPMISSILEINDEX] + 10.0f)) {
 
 				// If there is a collision with a planet, the missile is destroyed
 				shipMissile->destroy();
-				printf("Ship Missile %d is gone \n", shipMissiles);
+				printf("Ship Missile %d hit planet \n", shipMissiles);
 			}
 		}
 	}
@@ -911,7 +922,7 @@ void collisionCheck()
 		{
 			length = distance(objectPosition, getPosition(object3D[index]->getOrientationMatrix()));
 
-			if (length < (modelSize[index] + modelBR[UNUMMISSILEINDEX] + 10.0f)) {
+			if (length < (modelBR[index] + modelBR[UNUMMISSILEINDEX] + 10.0f)) {
 
 				// If there is a collision with a planet, the missile is destroyed
 				unumMissile->destroy();
@@ -952,7 +963,7 @@ void collisionCheck()
 		{
 			length = distance(objectPosition, getPosition(object3D[index]->getOrientationMatrix()));
 
-			if (length < (modelSize[index] + modelBR[DUOMISSILEINDEX] + 10.0f)) {
+			if (length < (modelBR[index] + modelBR[DUOMISSILEINDEX] + 10.0f)) {
 
 				// If there is a collision with a planet, the missile is destroyed
 				duoMissile->destroy();
@@ -1138,8 +1149,8 @@ void update(int i)
 		// Update the Duo Missile Silo
 	object3D[DUOMISSLESILOINDEX]->setTranslationMatrix(object3D[DUOINDEX]->getTranslationMatrix());
 	object3D[DUOMISSLESILOINDEX]->setOrientationMatrix(object3D[DUOINDEX]->getRotationMatrix());
-	object3D[DUOMISSLESILOINDEX]->setTranslationMatrix(glm::translate(object3D[DUOINDEX]->getTranslationMatrix(), glm::vec3(0, 385, 0)));
-	transformMatrix[DUOMISSLESILOINDEX] = glm::translate(object3D[DUOINDEX]->getOrientationMatrix(), glm::vec3(0, 385, 0));
+	object3D[DUOMISSLESILOINDEX]->setTranslationMatrix(glm::translate(object3D[DUOINDEX]->getTranslationMatrix(), glm::vec3(0, 400, 0)));
+	transformMatrix[DUOMISSLESILOINDEX] = glm::translate(object3D[DUOINDEX]->getOrientationMatrix(), glm::vec3(0, 400, 0));
 	object3D[DUOMISSLESILOINDEX]->setOrientationMatrix(transformMatrix[DUOMISSLESILOINDEX]);
 
 	// Update the warbird object
@@ -1283,7 +1294,7 @@ void keyboard(unsigned char key, int x, int y)
 			printf("Ship Warped to Duo\n");
 			break;
 		}
-
+		SoundEngine->play2D("media/tng_warp_out1.mp3");
 		break;
 	case 'r': case'R':
 		// Reset Unum Missile Site:
@@ -1301,6 +1312,10 @@ void keyboard(unsigned char key, int x, int y)
 
 		// Reset the game state flag:
 		gameState = start;
+
+		SoundEngine->stopAllSounds();
+		playMusic();
+		hasRestarted = false;
 		break;
 
 	case 'p': case 'P':
