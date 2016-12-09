@@ -4,7 +4,10 @@ Second and Third Phase of Warbird Simulator.
 Second Phase Description: The Warbird's camera, movement, and warp capabilities, gravity, missle sites,
 and intelligens-semita missles are added to the simulation in this phase.
 
-Third Phase Description:
+Third Phase Description: The star field and lights have been implemented.
+Star Field: Implemented as 6 different planes that create a cube around the gameplay area.
+	The image we used was placed into IrfanView and converted to a 640x480 .raw file
+BONUS: Sound effects and music were implemented for funsies using the Irrklang audio library
 
 File: Source.cpp
 
@@ -390,6 +393,7 @@ glm::vec3 squareRotationAxis[6] = {
 
 };
 
+/*Randomly choose a song to play*/
 void playMusic()
 {
 	int randomNumber = rand() % 2;
@@ -576,6 +580,7 @@ void init()
 
 	srand(time(NULL));
 
+	/*Randomly choose the start sound that plays*/
 	int randomNumber = rand() % 3;
 	if(randomNumber == 0)
 		SoundEngine->play2D("media/start.wav");
@@ -618,6 +623,7 @@ void fireShipMissile()
 {
 	if(shipMissile->hasFired() == false)
 	{
+		/*If there is a missile*/
 		if (shipMissiles > 0)
 		{
 			shipMissile->setTranslationMatrix(warbird->getTranslationMatrix());
@@ -636,6 +642,7 @@ void fireShipMissile()
 	}
 	else
 	{
+		/*Randomly choose a sound file that plays when you try to fire a missile but have none left*/
 		int randomNumber = rand() % 2;
 		if (randomNumber == 0)
 		{
@@ -664,12 +671,14 @@ void gameWin()
 	glutSetWindowTitle(titleStr);
 	if (hasRestarted == false)
 	{
+		/*Make sure not to overlap sounds*/
 		SoundEngine->stopAllSounds();
 		SoundEngine->play2D("media/ClosingCredits.wav");
 		hasRestarted = true;
 	}
 }
 
+/*Toggle Gravity*/
 void gravitySwitch()
 {
 	gravityState = !gravityState;
@@ -791,7 +800,7 @@ void display()
 		}
 	}
 
-		//indicate texture being drawn
+		/*Indicate that the starfield is being drawn using textures*/
 		glUniform1ui(IsTexture, true);
 
 		for (int i = 0; i < numberOfSquares; i++) {
@@ -801,6 +810,7 @@ void display()
 			else {
 				squareRotationAmount = 0.0f;
 			}
+			/*Apply the correct transformation/rotation based on which plane it is*/
 			modelViewMatrix = viewMatrix * glm::translate(translateSquare, squareTranslationAmounts[i])
 				* glm::rotate(squareRotation, squareRotationAmount, squareRotationAxis[i]);
 
@@ -812,6 +822,7 @@ void display()
 			glBindVertexArray(textVao);
 
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, textIBO);
+			/*Draw!*/
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
 		}
 
@@ -823,6 +834,8 @@ void display()
 	// see if a second has passed to set estimated fps information
 	currentTime = glutGet(GLUT_ELAPSED_TIME);  // get elapsed system time
 	timeInterval = currentTime - lastTime;
+
+	/*FPS*/
 	if (timeInterval >= 1000)
 	{
 		sprintf(fpsStr, "| F/S %4d ", (int)(frameCount / (timeInterval / 1000.0f)));
@@ -838,6 +851,7 @@ void collisionCheck()
 {
 	objectPosition = getPosition(warbird->getOrientationMatrix());
 
+	/*Only check for collision if the player is alive*/
 	if (warbird->isAlive())
 	{
 		// Check if the warbird collides with planetary bodies:
@@ -845,6 +859,7 @@ void collisionCheck()
 		{
 			length = distance(objectPosition, getPosition(object3D[index]->getOrientationMatrix()));
 
+			/*Collision detection using bounding radii*/
 			if (length < (modelBR[SHIPINDEX] + 10.0f + modelSize[index]))
 			{
 				// If there is a collision with a planet the warbird gets destroyed
@@ -1392,6 +1407,7 @@ void keyboard(unsigned char key, int x, int y)
 		// Reset the game state flag:
 		gameState = start;
 
+		/*Restart the music*/
 		SoundEngine->stopAllSounds();
 		playMusic();
 		SoundEngine->play2D("media/decloak_romulan.mp3");
