@@ -273,15 +273,13 @@ char * timerStr[4] = { " | U/S 200 ", " | U/S 25 ", " | U/S 10 ", " | U/S 2 " };
 char winGameStr[29] = "Cadet passes flight training";
 char loseGameStr[31] = "Cadet resigns from War College";
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Vertex Buffer and Array Objects
+/* Vertex Buffer and Array Objects */
 GLuint textIBO;
 GLuint textBuf;
 GLuint textVao;
 
-// Variables that reference texture information
-// in the vertex and fragment shader programs
+/* Variables that reference texture information
+   in the vertex and fragment shader programs*/
 GLuint TexturePosition;
 GLuint vTextCoord;
 GLuint IsTexture;
@@ -293,32 +291,30 @@ GLuint ModelViewMatrix;
 glm::mat3 normalMatrix;
 glm::mat4 modelViewProjectionMatrix;
 
-// Square information used to draw the Square texture Box for the program //
+/* Square information used to draw the Square texture Box for the program */
 
-// Default rotation and translation matrices for th texture
+/* Default rotation and translation matrices for th texture*/
 glm::mat4 squareRotation = glm::mat4();
 glm::mat4 translateSquare = glm::mat4();
 
-const int numberOfSquares = 6;		// number of squares that will be drawn
-float squareRotationAmount = 0.0f;	// default rotation amount for texture
+const int numberOfSquares = 6;
+float squareRotationAmount = 0.0f;	// default rotation amount
 
-									// The locations of the vertices that will be used to draw
-									// the square's ending points
+/*Locations of the vertices*/
 static const GLfloat squareVertices[16] = {
-	-80000.0f, -80000.0f, 0.0f, 1.0f,	// bottom left vertex
-	80000.0f, -80000.0f, 0.0f, 1.0f,	// bottom right vertex
-	80000.0f, 80000.0f, 0.0f, 1.0f,		// top right vertex
-	-80000.0f, 80000.0f, 0.0f, 1.0f		// top left vertex
+	-50000.0f, -50000.0f, 0.0f, 1.0f,	// BL
+	50000.0f, -50000.0f, 0.0f, 1.0f,	// BR
+	50000.0f, 50000.0f, 0.0f, 1.0f,		// TR
+	-50000.0f, 50000.0f, 0.0f, 1.0f		// TL
 };
 
-// The order the vertices of the square will be drawn
-// These are in counter clockwise direction
+/*The order the vertices will be drawn*/
 static const unsigned int indices[] = {
 	0, 1, 2,
 	2, 3, 0
 };
 
-// The order the texture coordinates are drawn
+/*The texture coordinates and order */
 static const GLfloat textCoords[] = {
 	0.0f, 1.0f,
 	1.0f, 1.0f,
@@ -326,19 +322,17 @@ static const GLfloat textCoords[] = {
 	0.0f, 0.0f,
 };
 
-// The translation amounts for the 6 squares
-// that will be drawn on the screen
+/* Locations of each plane */
 glm::vec3 squareTranslationAmounts[6] = {
-	glm::vec3(0.0f, 0.0f, -80000.0f),
-	glm::vec3(0.0f, 0.0f, 80000.0f),
-	glm::vec3(0.0f, -80000.0f, 0.0f),
-	glm::vec3(0.0f, 80000.0f, 0.0f),
-	glm::vec3(-80000.0f, 0.0f, 0.0f),
-	glm::vec3(80000.0f, 0.0f, 0.0f)
+	glm::vec3(0.0f, 0.0f, -50000.0f),
+	glm::vec3(0.0f, 0.0f, 50000.0f),
+	glm::vec3(0.0f, -50000.0f, 0.0f),
+	glm::vec3(0.0f, 50000.0f, 0.0f),
+	glm::vec3(-50000.0f, 0.0f, 0.0f),
+	glm::vec3(50000.0f, 0.0f, 0.0f)
 };
 
-// The rotation axis for the 6 squares that will be draw to the screen
-// some of these axises are not used for any rotation
+/* What axis to rotate each plane on */
 glm::vec3 squareRotationAxis[6] = {
 	glm::vec3(0.0f, 1.0f, 0.0f),
 	glm::vec3(0.0f, 1.0f, 0.0f),
@@ -348,8 +342,6 @@ glm::vec3 squareRotationAxis[6] = {
 	glm::vec3(0.0f, 1.0f, 0.0f),
 
 };
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 // To maximize efficiency, operations that only need to be called once are called in init().
@@ -407,6 +399,8 @@ void init()
 	duoMissile = new Missile(modelSize[DUOMISSILEINDEX], modelBR[DUOMISSILEINDEX], siteMissleSpeed);
 
 	MVP = glGetUniformLocation(shaderProgram, "ModelViewProjection");
+	ModelViewMatrix = glGetUniformLocation(shaderProgram, "ModelViewMatrix");
+	NormalMatrix = glGetUniformLocation(shaderProgram, "NormalMatrix");
 
 	printf("Shader program variable locations:\n");
 	printf("  vPosition = %d  vColor = %d  vNormal = %d MVP = %d\n",
@@ -478,7 +472,7 @@ void init()
 	glUniform1ui(IsTexture, false);
 
 	// load texture
-	texture = loadRawTexture(texture, "StarRed.raw", 640, 480);
+	texture = loadRawTexture(texture, "stars.raw", 640, 425);
 	if (texture != 0) {
 		Texture = glGetUniformLocation(shaderProgram, "Texture");
 		printf("texture file, read, texture %1d generated and bound  \n", Texture);

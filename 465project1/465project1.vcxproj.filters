@@ -1,100 +1,34 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="includes465">
-      <UniqueIdentifier>{1299e823-404a-460a-acf1-731510eebf84}</UniqueIdentifier>
-    </Filter>
+    <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClInclude Include="..\includes465\glmUtils465.hpp" />
+    <ClInclude Include="..\includes465\include465.hpp" />
+    <ClInclude Include="..\includes465\shader465.hpp" />
+    <ClInclude Include="..\includes465\texture.hpp" />
+    <ClInclude Include="..\includes465\triModel465.hpp" />
+    <ClInclude Include="Missile.hpp" />
+    <ClInclude Include="Object3D.hpp" />
+    <ClInclude Include="Warbird.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\includes465\triModel465.hpp">
-      <Filter>includes465</Filter>
-    </ClInclude>
-    <ClInclude Include="..\includes465\glmUtils465.hpp">
-      <Filter>includes465</Filter>
-    </ClInclude>
-    <ClInclude Include="..\includes465\include465.hpp">
-      <Filter>includes465</Filter>
-    </ClInclude>
-    <ClInclude Include="..\includes465\shader465.hpp">
-      <Filter>includes465</Filter>
-    </ClInclude>
-    <ClInclude Include="..\includes465\texture.hpp">
-      <Filter>includes465</Filter>
-    </ClInclude>
-    <ClInclude Include="Object3D.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Missile.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Warbird.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <None Include="axes-r100.tri" />
+    <None Include="cube.tri" />
+    <None Include="secundus.tri" />
+    <None Include="duo.tri" />
+    <None Include="Missile.tri" />
+    <None Include="MissileSite.tri" />
+    <None Include="MountainPlanet.tri" />
+    <None Include="obelisk-10-20-10.tri" />
+    <None Include="unum.tri" />
+    <None Include="simpleFragment.glsl" />
+    <None Include="simpleVertex.glsl" />
+    <None Include="spaceShip-bs100.tri" />
+    <None Include="ruber.tri" />
+    <None Include="primus.tri" />
+    <None Include="warbird.tri" />
+    <None Include="stars.raw" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="axes-r100.tri">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="MissileSite.tri">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="MountainPlanet.tri">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="obelisk-10-20-10.tri">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="simpleFragment.glsl">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="simpleVertex.glsl">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="spaceShip-bs100.tri">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="ruber.tri">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="unum.tri">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="duo.tri">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="primus.tri">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="secundus.tri">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Missile.tri">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="cube.tri">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="StarRed.raw">
-      <Filter>Resource Files</Filter>
-    </None>
-<None Include="warbird.tri">
-      <Filter>Resource Files</Filter>
-    </None></ItemGroup>
 </Project>

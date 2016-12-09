@@ -9,15 +9,15 @@ Mike Barnes
 
 # version 330 core
 
-in vec4 color;
-out vec4 FragColor;
-
 uniform sampler2D Texture;
 uniform bool IsTexture;
 
 in vec3 Position;
-
+in vec3 Normal;
+in vec4 color;
 in vec2 TextCoord;
+
+out vec4 FragColor;
 
 void main() {
   FragColor = color;
