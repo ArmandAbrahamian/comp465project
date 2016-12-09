@@ -4,7 +4,7 @@ Second and Third Phase of Warbird Simulator.
 Second Phase Description: The Warbird's camera, movement, and warp capabilities, gravity, missle sites,
 and intelligens-semita missles are added to the simulation in this phase.
 
-Third Phase Description: The star field and lights have been implemented.
+Third Phase Description: The star field and lights have been implemented, along with the vertex and fragment shaders for them.
 Star Field: Implemented as 6 different planes that create a cube around the gameplay area.
 	The image we used was placed into IrfanView and converted to a 640x480 .raw file
 BONUS: Sound effects and music were implemented for funsies using the Irrklang audio library
