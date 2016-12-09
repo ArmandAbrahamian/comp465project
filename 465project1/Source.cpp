@@ -305,6 +305,36 @@ GLuint ModelViewMatrix;
 glm::mat3 normalMatrix;
 glm::mat4 modelViewProjectionMatrix;
 
+/* Light Variables */
+GLuint Ruber;
+GLuint Ambient;
+bool ambient = true;
+// Point Light from Ruber
+GLuint PointLightRuber;
+GLuint PointLightPosition;
+glm::vec3 pointLightRuber = glm::vec3(0, 0, 0);
+glm::vec3 pointLightPosition = glm::vec3(0.0, 0.0, 0.0);
+GLuint Point;
+bool point = true;
+//headlamp
+GLuint HeadLampPosition;
+glm::vec3 headLampPosition = glm::vec3(0.0, 0.0, 1.0);
+GLuint HeadLamp;
+bool headLamp = true;
+// Light variables 
+GLuint LightColor;
+glm::vec3 lightColor = glm::vec3(1.0, 1.0, 1.0);
+GLuint ConstantAttentuation;
+float constantAttentuation = 1.0f;
+GLuint LinearAttenuation;
+float linearAttenuation = 1.0f;
+GLuint QuadraticAttenuation;
+float quadraticAttenuation = 1.0f;
+GLuint Shininess;
+float shininess = 1.0;
+GLuint Strength;
+float strength = 1.0;
+
 /* Square information used to draw the Square texture Box for the program */
 
 /* Default rotation and translation matrices for th texture*/
@@ -494,6 +524,7 @@ void init()
 	IsTexture = glGetUniformLocation(shaderProgram, "IsTexture");
 	glUniform1ui(IsTexture, false);
 
+
 	// load texture
 	texture = loadRawTexture(texture, "stars.raw", 640, 425);
 	if (texture != 0) {
@@ -503,7 +534,42 @@ void init()
 	else  // texture file loaded
 		printf("Texture in file %s NOT LOADED !!! \n");
 
-	lastTime = glutGet(GLUT_ELAPSED_TIME);  // get elapsed system time
+	//point light references
+	PointLightRuber = glGetUniformLocation(shaderProgram, "pointLightRuber");
+	PointLightPosition = glGetUniformLocation(shaderProgram, "pointLightPosition");
+	glUniform3f(PointLightPosition, pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
+
+	//headlamplight references
+	HeadLampPosition = glGetUniformLocation(shaderProgram, "headLampPosition");
+	glUniform3f(HeadLampPosition, headLampPosition.x, headLampPosition.y, headLampPosition.z);
+	headLamp = glGetUniformLocation(shaderProgram, "headLamp");
+
+	//light references 
+	Ruber = glGetUniformLocation(shaderProgram, "ruber");
+	Ambient = glGetUniformLocation(shaderProgram, "ambient");
+	glUniform1f(ambient, true);
+	glUniform1ui(Ambient, ambient);
+
+	LightColor = glGetUniformLocation(shaderProgram, "lightColor");
+	glUniform3f(LightColor, lightColor.x, lightColor.y, lightColor.z);
+
+	ConstantAttentuation = glGetUniformLocation(shaderProgram, "constantAttenuation");
+	glUniform1ui(ConstantAttentuation, constantAttentuation);
+
+	LinearAttenuation = glGetUniformLocation(shaderProgram, "linearAttenuation");
+	glUniform1ui(LinearAttenuation, linearAttenuation);
+
+	QuadraticAttenuation = glGetUniformLocation(shaderProgram, "quadraticAttenuation");
+	glUniform1ui(QuadraticAttenuation, quadraticAttenuation);
+
+	shininess = glGetUniformLocation(shaderProgram, "shininess");
+	glUniform1ui(Shininess, shininess);
+
+	strength = glGetUniformLocation(shaderProgram, "strength");
+	glUniform1ui(Strength, strength);
+
+	//get ellapsed time
+	lastTime = glutGet(GLUT_ELAPSED_TIME);
 
 	srand(time(NULL));
 
@@ -710,6 +776,16 @@ void display()
 		ModelViewProjectionMatrix = projectionMatrix * viewMatrix * object3D[index]->getModelMatrix();
 		glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
 		glDrawArrays(GL_TRIANGLES, 0, nVertices[index]);  // Initializes vertex shader, for contiguous groups of vertices.
+		//not sure about this being correct. 
+		pointLightPosition = getPosition(object3D[RUBERINDEX]->getOrientationMatrix()* viewMatrix);
+		glUniform3f(PointLightPosition, pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
+
+		if (index == 0) {
+			glUniform1ui(Ruber, true);
+		}
+		else {
+			glUniform1ui(Ruber, false);
+		}
 	}
 
 		//indicate texture being drawn
@@ -1319,14 +1395,40 @@ void keyboard(unsigned char key, int x, int y)
 		hasRestarted = false;
 
 		break;
-
-	case 'p': case 'P':
+	case 'a':
+		// turn the ambient light effect on if off, and off if on.
+		if (ambient) {
+			ambient = false;
+			glUniform1ui(Ambient, ambient);
+		}
+		else {
+			ambient = true;
+			glUniform1ui(Ambient, ambient);
+		}
 		break;
 
-	case 'h': case'H':
+	case 'p':
+		// turn the point light effect on if off, and off if on.
+		if (point) {
+			point = false;
+			glUniform1ui(PointLightRuber, point);
+		}
+		else {
+			point = true;
+			glUniform1ui(PointLightRuber, point);
+		}
 		break;
 
-	case 'd': case'D':
+	case 'h':
+		// turn the spot light effect on if off, and off if on.
+		if (headLamp) {
+			headLamp = false;
+			glUniform1ui(HeadLamp, headLamp);
+		}
+		else {
+			headLamp = true;
+			glUniform1ui(HeadLamp, headLamp);
+		}
 		break;
 	}
 }
