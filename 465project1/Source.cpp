@@ -1307,7 +1307,7 @@ void keyboard(unsigned char key, int x, int y)
 
 		// Reset Warbird:
 		shipMissiles = 9;
-		SoundEngine->play2D("media/decloak_romulan.mp3");
+
 		warbird->restart();
 
 		// Reset the game state flag:
@@ -1315,7 +1315,9 @@ void keyboard(unsigned char key, int x, int y)
 
 		SoundEngine->stopAllSounds();
 		playMusic();
+		SoundEngine->play2D("media/decloak_romulan.mp3");
 		hasRestarted = false;
+
 		break;
 
 	case 'p': case 'P':
