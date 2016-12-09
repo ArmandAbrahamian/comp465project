@@ -1077,8 +1077,8 @@ void update(int i)
 		// Update the Unum Missile Silo
 	object3D[UNUMMISSLESILOINDEX]->setTranslationMatrix(object3D[UNUMINDEX]->getTranslationMatrix());
 	object3D[UNUMMISSLESILOINDEX]->setOrientationMatrix(object3D[UNUMINDEX]->getRotationMatrix());
-	object3D[UNUMMISSLESILOINDEX]->setTranslationMatrix(glm::translate(object3D[UNUMINDEX]->getTranslationMatrix(), glm::vec3(0, 140, 0)));
-	transformMatrix[UNUMMISSLESILOINDEX] = glm::translate(object3D[UNUMINDEX]->getOrientationMatrix(), glm::vec3(0, 140, 0));
+	object3D[UNUMMISSLESILOINDEX]->setTranslationMatrix(glm::translate(object3D[UNUMINDEX]->getTranslationMatrix(), glm::vec3(0, 135, 0)));
+	transformMatrix[UNUMMISSLESILOINDEX] = glm::translate(object3D[UNUMINDEX]->getOrientationMatrix(), glm::vec3(0, 135, 0));
 	object3D[UNUMMISSLESILOINDEX]->setOrientationMatrix(transformMatrix[UNUMMISSLESILOINDEX]);
 
 		// Update the Duo Missile Silo
@@ -1246,6 +1246,15 @@ void keyboard(unsigned char key, int x, int y)
 
 		// Reset the game state flag:
 		gameState = start;
+		break;
+
+	case 'p': case 'P':
+		break;
+
+	case 'h': case'H':
+		break;
+
+	case 'd': case'D':
 		break;
 	}
 }
