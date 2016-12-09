@@ -47,6 +47,9 @@ User commands:
 # define __Windows__
 # include <string>
 # include <iostream>
+#include <stdlib.h>     /* srand, rand */
+#include <stdio.h>      /* printf, NULL */
+#include <time.h>       /* time */
 #include <windows.h>
 # include "../includes465/include465.hpp"
 # include "Object3D.hpp"
@@ -492,7 +495,26 @@ void init()
 
 	lastTime = glutGet(GLUT_ELAPSED_TIME);  // get elapsed system time
 
-	SoundEngine->play2D("media/Star Trek- Armada II - Romulan Music.mp3", GL_TRUE);
+	srand(time(NULL));
+
+	int randomNumber = rand() % 3;
+	if(randomNumber == 0)
+		SoundEngine->play2D("media/start.wav");
+	else if (randomNumber == 1)
+		SoundEngine->play2D("media/start2.wav");
+
+	else if (randomNumber == 2)
+		SoundEngine->play2D("media/warbird_reporting.wav");
+	printf("Random Number: %d \n", randomNumber);
+
+	randomNumber = rand() % 2;
+
+	printf("Random Number: %d \n", randomNumber);
+
+	if (randomNumber == 0)
+		SoundEngine->play2D("media/Star Trek- Armada II - Romulan Music.mp3", GL_TRUE);
+	else
+		SoundEngine->play2D("media/MRom300.wav", GL_TRUE);
 }
 
 // Indicates what action should be taken when the window is resized.
@@ -537,6 +559,20 @@ void fireShipMissile()
 			// Update title string for missle count
 			strcpy(warbirdMissleCount, "| Warbird ");
 			strcat(warbirdMissleCount, std::to_string(shipMissiles).c_str());
+
+			SoundEngine->play2D("media/missileFire.mp3");
+		}
+	}
+	else
+	{
+		int randomNumber = rand() % 2;
+		if (randomNumber == 0)
+		{
+			SoundEngine->play2D("media/cannotCommander.wav");
+		}
+		else
+		{
+			SoundEngine->play2D("media/patienceCenturion.wav");
 		}
 	}
 }
@@ -727,6 +763,7 @@ void collisionCheck()
 				// If there is a collision with a planet the warbird gets destroyed
 				// The camera view is set to front camera
 				warbird->destroy();
+				SoundEngine->play2D("media/tos_hullhit_2.mp3");
 				currentCamera = 0;
 			}
 		}
@@ -739,6 +776,7 @@ void collisionCheck()
 			if (length < (modelBR[SHIPINDEX] + 10.0f + modelBR[SHIPMISSILEINDEX]))
 			{
 				warbird->destroy();
+				SoundEngine->play2D("media/tos_hullhit_2.mp3");
 				shipMissile->destroy();
 				printf("Ship Missile %d is gone \n", shipMissiles);
 				currentCamera = 0;
@@ -753,6 +791,7 @@ void collisionCheck()
 			if (length < (modelBR[SHIPINDEX] + 10.0f + modelBR[UNUMMISSILEINDEX]))
 			{
 				warbird->destroy();
+				SoundEngine->play2D("media/tos_hullhit_2.mp3");
 				unumMissile->destroy();
 				printf("Unum Missile %d is gone \n", unumMissles);
 				currentCamera = 0;
@@ -767,6 +806,7 @@ void collisionCheck()
 			if (length < (modelBR[SHIPINDEX] + 10.0f + modelBR[DUOMISSILEINDEX]))
 			{
 				warbird->destroy();
+				SoundEngine->play2D("media/tos_hullhit_2.mp3");
 				duoMissile->destroy();
 				printf("Duo Missile %d is gone \n", duoMissiles);
 				currentCamera = 0;
@@ -779,6 +819,7 @@ void collisionCheck()
 		if (length < (modelBR[SHIPINDEX] + 10.0f + modelBR[UNUMMISSLESILOINDEX]))
 		{
 			warbird->destroy();
+			SoundEngine->play2D("media/tos_hullhit_2.mp3");
 			currentCamera = 0;
 		}
 
@@ -788,6 +829,7 @@ void collisionCheck()
 		if (length < (modelBR[SHIPINDEX] + 10.0f + modelBR[DUOMISSLESILOINDEX]))
 		{
 			warbird->destroy();
+			SoundEngine->play2D("media/tos_hullhit_2.mp3");
 			currentCamera = 0;
 		}
 	}
@@ -1254,6 +1296,7 @@ void keyboard(unsigned char key, int x, int y)
 
 		// Reset Warbird:
 		shipMissiles = 9;
+		SoundEngine->play2D("media/decloak_romulan.mp3");
 		warbird->restart();
 
 		// Reset the game state flag:
@@ -1378,5 +1421,6 @@ int main(int argc, char** argv)
 	glutMainLoop();  // This call passes control to enter GLUT event processing cycle.
 
 	printf("done\n");
+	SoundEngine->drop(); // delete engine
 	return 0;
 }

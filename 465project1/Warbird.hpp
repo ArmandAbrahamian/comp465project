@@ -117,6 +117,7 @@ public:
 	{
 		alive = true;
 		translationMatrix = glm::translate(identity, initialPosition);
+		rotationMatrix = glm::rotate(identity, 0.0f, glm::vec3(0, 1, 0));
 	}
 
 	/* Method that updates the location of an object and
