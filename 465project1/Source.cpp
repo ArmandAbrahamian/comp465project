@@ -309,6 +309,7 @@ glm::mat4 modelViewProjectionMatrix;
 GLuint Ruber;
 GLuint Ambient;
 bool ambient = true;
+
 // Point Light from Ruber
 GLuint PointLightRuber;
 GLuint PointLightPosition;
@@ -316,11 +317,13 @@ glm::vec3 pointLightRuber = glm::vec3(0, 0, 0);
 glm::vec3 pointLightPosition = glm::vec3(0.0, 0.0, 0.0);
 GLuint Point;
 bool point = true;
+
 //headlamp
 GLuint HeadLampPosition;
 glm::vec3 headLampPosition = glm::vec3(0.0, 0.0, 1.0);
 GLuint HeadLamp;
 bool headLamp = true;
+
 // Light variables 
 GLuint LightColor;
 glm::vec3 lightColor = glm::vec3(1.0, 1.0, 1.0);
