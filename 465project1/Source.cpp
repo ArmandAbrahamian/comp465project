@@ -77,7 +77,7 @@ char * modelFile[nModels] = {
 	"MountainPlanet.tri",
 	"primus.tri",
 	"secundus.tri",
-	"spaceShip-bs100.tri",
+	"warbird.tri",
 	"MissileSite.tri",
 	"MissileSite.tri",
 	"Missile.tri",
@@ -90,7 +90,7 @@ int nVertices[nModels] = { // vertex count
 	264 * 3, // duo
 	264 * 3, // primus
 	264 * 3, // secundus
-	996 * 3, // warbird
+	2568 * 3, // warbird
 	720 * 3, // Primus missileSilo
 	720 * 3, // Secundus missileSilo
 	282 * 3, // ship missile
@@ -1090,8 +1090,8 @@ void update(int i)
 		// Update the Duo Missile Silo
 	object3D[DUOMISSLESILOINDEX]->setTranslationMatrix(object3D[DUOINDEX]->getTranslationMatrix());
 	object3D[DUOMISSLESILOINDEX]->setOrientationMatrix(object3D[DUOINDEX]->getRotationMatrix());
-	object3D[DUOMISSLESILOINDEX]->setTranslationMatrix(glm::translate(object3D[DUOINDEX]->getTranslationMatrix(), glm::vec3(0, 410, 0)));
-	transformMatrix[DUOMISSLESILOINDEX] = glm::translate(object3D[DUOINDEX]->getOrientationMatrix(), glm::vec3(0, 410, 0));
+	object3D[DUOMISSLESILOINDEX]->setTranslationMatrix(glm::translate(object3D[DUOINDEX]->getTranslationMatrix(), glm::vec3(0, 385, 0)));
+	transformMatrix[DUOMISSLESILOINDEX] = glm::translate(object3D[DUOINDEX]->getOrientationMatrix(), glm::vec3(0, 385, 0));
 	object3D[DUOMISSLESILOINDEX]->setOrientationMatrix(transformMatrix[DUOMISSLESILOINDEX]);
 
 	// Update the warbird object

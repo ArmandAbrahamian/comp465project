@@ -47,6 +47,7 @@
     <None Include="spaceShip-bs100.tri" />
     <None Include="ruber.tri" />
     <None Include="primus.tri" />
+    <None Include="warbird.tri" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{12087D28-1F55-43F5-84FE-AB2C584607BA}</ProjectGuid>

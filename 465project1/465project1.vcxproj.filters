@@ -94,5 +94,7 @@
     <None Include="StarRed.raw">
       <Filter>Resource Files</Filter>
     </None>
-  </ItemGroup>
+<None Include="warbird.tri">
+      <Filter>Resource Files</Filter>
+    </None></ItemGroup>
 </Project>
