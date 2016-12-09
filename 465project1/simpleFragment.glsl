@@ -10,8 +10,20 @@ Mike Barnes
 # version 330 core
 
 in vec4 color;
-out vec4 fragColor;
+out vec4 FragColor;
+
+uniform sampler2D Texture;
+uniform bool IsTexture;
+
+in vec3 Position;
+
+in vec2 TextCoord;
 
 void main() {
-  fragColor = color;
+  FragColor = color;
+
+  if(IsTexture) {
+	FragColor = texture(Texture, TextCoord);
   }
+  
+}

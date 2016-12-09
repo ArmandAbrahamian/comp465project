@@ -40,6 +40,7 @@
     <None Include="MissileSite.tri" />
     <None Include="MountainPlanet.tri" />
     <None Include="obelisk-10-20-10.tri" />
+    <None Include="StarRed.raw" />
     <None Include="unum.tri" />
     <None Include="simpleFragment.glsl" />
     <None Include="simpleVertex.glsl" />

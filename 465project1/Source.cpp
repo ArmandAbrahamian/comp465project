@@ -62,15 +62,14 @@ SHIPINDEX = 5,
 UNUMMISSLESILOINDEX = 6,
 DUOMISSLESILOINDEX = 7,
 SHIPMISSILEINDEX = 8,
-CUBEINDEX = 9,
-UNUMMISSILEINDEX = 10,
-DUOMISSILEINDEX = 11,
+UNUMMISSILEINDEX = 9,
+DUOMISSILEINDEX = 10,
 
 // Camera indexes:
 FRONTCAMERAINDEX = 0, TOPCAMERAINDEX = 1, SHIPCAMERAINDEX = 2, UNUMCAMERAINDEX = 3, DUOCAMERAINDEX = 4;
 
 /* Model Data: */
-const int nModels = 12;  // number of models in this scene
+const int nModels = 11;  // number of models in this scene
 
 char * modelFile[nModels] = {
 	"ruber.tri",
@@ -82,7 +81,6 @@ char * modelFile[nModels] = {
 	"MissileSite.tri",
 	"MissileSite.tri",
 	"Missile.tri",
-	"cube.tri",
 	"Missile.tri", 
 	"Missile.tri"};
 
@@ -96,7 +94,6 @@ int nVertices[nModels] = { // vertex count
 	720 * 3, // Primus missileSilo
 	720 * 3, // Secundus missileSilo
 	282 * 3, // ship missile
-	6 * 6 ,  // Cube
 	282 * 3, // Unum missile
 	282 * 3  // Duo missile 
 };
@@ -113,7 +110,6 @@ float modelSize[nModels] = {  // size of model
 	100.0f,  // Primus missileSilo
 	100.0f,  // Secundus missileSilo 
 	75.0f,   // ship missile
-	50000.0f, // Cube
 	75.0f,   // Unum missile
 	75.0f,   // Duo missile
 }; 
@@ -132,7 +128,6 @@ glm::vec3 translatePosition[nModels] = {
 	glm::vec3(8100, 0, 0), // Primus Missile Site
 	glm::vec3(7250,0,0), // Secundus Missile Site
 	glm::vec3(4900,1000,4850),  // missle
-	glm::vec3(1000, 1000, 1000), // Cube
 	glm::vec3(0,0,0),  // Unum missle
 	glm::vec3(0,0,0)  // Duo missle
 }; 
@@ -148,7 +143,6 @@ float rotationAmount[nModels] = {
 	0.0f,		// Primus Missile Site
 	0.0f,		// Secundus Missile Site
 	0.0f,		// Missile
-	0.0f,		// Cube
 	0.0f,		// Unum Missile
 	0.0f		// Duo Missile
 };
@@ -279,6 +273,85 @@ char * timerStr[4] = { " | U/S 200 ", " | U/S 25 ", " | U/S 10 ", " | U/S 2 " };
 char winGameStr[29] = "Cadet passes flight training";
 char loseGameStr[31] = "Cadet resigns from War College";
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Vertex Buffer and Array Objects
+GLuint textIBO;
+GLuint textBuf;
+GLuint textVao;
+
+// Variables that reference texture information
+// in the vertex and fragment shader programs
+GLuint TexturePosition;
+GLuint vTextCoord;
+GLuint IsTexture;
+GLuint texture;
+GLuint Texture;
+glm::mat4 modelViewMatrix;
+GLuint NormalMatrix;
+GLuint ModelViewMatrix;
+glm::mat3 normalMatrix;
+glm::mat4 modelViewProjectionMatrix;
+
+// Square information used to draw the Square texture Box for the program //
+
+// Default rotation and translation matrices for th texture
+glm::mat4 squareRotation = glm::mat4();
+glm::mat4 translateSquare = glm::mat4();
+
+const int numberOfSquares = 6;		// number of squares that will be drawn
+float squareRotationAmount = 0.0f;	// default rotation amount for texture
+
+									// The locations of the vertices that will be used to draw
+									// the square's ending points
+static const GLfloat squareVertices[16] = {
+	-80000.0f, -80000.0f, 0.0f, 1.0f,	// bottom left vertex
+	80000.0f, -80000.0f, 0.0f, 1.0f,	// bottom right vertex
+	80000.0f, 80000.0f, 0.0f, 1.0f,		// top right vertex
+	-80000.0f, 80000.0f, 0.0f, 1.0f		// top left vertex
+};
+
+// The order the vertices of the square will be drawn
+// These are in counter clockwise direction
+static const unsigned int indices[] = {
+	0, 1, 2,
+	2, 3, 0
+};
+
+// The order the texture coordinates are drawn
+static const GLfloat textCoords[] = {
+	0.0f, 1.0f,
+	1.0f, 1.0f,
+	1.0f, 0.0f,
+	0.0f, 0.0f,
+};
+
+// The translation amounts for the 6 squares
+// that will be drawn on the screen
+glm::vec3 squareTranslationAmounts[6] = {
+	glm::vec3(0.0f, 0.0f, -80000.0f),
+	glm::vec3(0.0f, 0.0f, 80000.0f),
+	glm::vec3(0.0f, -80000.0f, 0.0f),
+	glm::vec3(0.0f, 80000.0f, 0.0f),
+	glm::vec3(-80000.0f, 0.0f, 0.0f),
+	glm::vec3(80000.0f, 0.0f, 0.0f)
+};
+
+// The rotation axis for the 6 squares that will be draw to the screen
+// some of these axises are not used for any rotation
+glm::vec3 squareRotationAxis[6] = {
+	glm::vec3(0.0f, 1.0f, 0.0f),
+	glm::vec3(0.0f, 1.0f, 0.0f),
+	glm::vec3(1.0f, 0.0f, 0.0f),
+	glm::vec3(1.0f, 0.0f, 0.0f),
+	glm::vec3(0.0f, 1.0f, 0.0f),
+	glm::vec3(0.0f, 1.0f, 0.0f),
+
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 // To maximize efficiency, operations that only need to be called once are called in init().
 void init()
 {
@@ -374,26 +447,46 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.7f, 0.7f, 0.7f, 1.0f); // Establishes what color the window will be cleared to.
 
-	lastTime = glutGet(GLUT_ELAPSED_TIME);  // get elapsed system time
-}
+										  // set up the indices buffer
+	glGenBuffers(1, &textIBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, textIBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-//work in progress. Following tutorial https://www.youtube.com/watch?v=RqRxhY6iLto but it uses SDL, which our project does not
-unsigned int loadCubemap(std::string* filenames)
-{
-	//right, left, top, bottom, near, far
-	unsigned int tex;
-	glGenTextures(1, &tex);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
-	
-	for (int i = 0; i < 6; i++) {
-		//SDL_Surface* img = loadTexture(filenames[i]);
-		//glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITION_X + i, 0, GL_RGBA, img->w, img->h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, img->pixels);
-		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		//SDL_FreeSurface(img);
+	// set up the vertex attributes
+	glGenVertexArrays(1, &textVao);
+	glBindVertexArray(textVao);
+
+	//  initialize a buffer object
+	glGenBuffers(1, &textBuf);
+	glBindBuffer(GL_ARRAY_BUFFER, textBuf);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(squareVertices) + sizeof(textCoords), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(squareVertices), squareVertices);
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(squareVertices), sizeof(textCoords), textCoords);
+
+	// set up vertex arrays
+	TexturePosition = glGetAttribLocation(shaderProgram, "vPosition");
+	glVertexAttribPointer(TexturePosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+	glEnableVertexAttribArray(TexturePosition);
+
+	vTextCoord = glGetAttribLocation(shaderProgram, "vTextCoord");
+	glVertexAttribPointer(vTextCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(squareVertices)));
+	glEnableVertexAttribArray(vTextCoord);
+
+	// Set the intial texture indicator to false
+	// This variable indicates when the texture is being drawn
+	IsTexture = glGetUniformLocation(shaderProgram, "IsTexture");
+	glUniform1ui(IsTexture, false);
+
+	// load texture
+	texture = loadRawTexture(texture, "StarRed.raw", 640, 480);
+	if (texture != 0) {
+		Texture = glGetUniformLocation(shaderProgram, "Texture");
+		printf("texture file, read, texture %1d generated and bound  \n", Texture);
 	}
+	else  // texture file loaded
+		printf("Texture in file %s NOT LOADED !!! \n");
+
+	lastTime = glutGet(GLUT_ELAPSED_TIME);  // get elapsed system time
 }
 
 // Indicates what action should be taken when the window is resized.
@@ -482,85 +575,85 @@ void display()
 	{
 		glBindVertexArray(VAO[index]); // set model for its instance. Have to rebind everytime its changed.
 		//translationMatrix[index] = glm::translate(identityMatrix, translatePosition[index]);
-		
+
 		switch (index)
 		{
-			case UNUMINDEX: // If it's planet Unum (planet closest to Ruber with no moons):
-				transformMatrix[index] = object3D[index]->getOrientationMatrix();
+		case UNUMINDEX: // If it's planet Unum (planet closest to Ruber with no moons):
+			transformMatrix[index] = object3D[index]->getOrientationMatrix();
 
-				// Update Unum's Camera:
-				unumCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[index], planetCamEyePosition)), getPosition(transformMatrix[index]), upVector);
-				if (currentCamera == UNUMCAMERAINDEX) // Update Unum's Camera:
-					mainCamera = unumCamera;
-				break;
+			// Update Unum's Camera:
+			unumCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[index], planetCamEyePosition)), getPosition(transformMatrix[index]), upVector);
+			if (currentCamera == UNUMCAMERAINDEX) // Update Unum's Camera:
+				mainCamera = unumCamera;
+			break;
 
-			case DUOINDEX: // If it's planet Duo (planest farthest from Ruber with moons Secundus and Primus):
+		case DUOINDEX: // If it's planet Duo (planest farthest from Ruber with moons Secundus and Primus):
 
-				transformMatrix[index] = object3D[index]->getOrientationMatrix();
+			transformMatrix[index] = object3D[index]->getOrientationMatrix();
 
-				// Update Duo's Camera:
-				duoCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[index], planetCamEyePosition)), getPosition(object3D[index]->getOrientationMatrix()), upVector);
-				if (currentCamera == DUOCAMERAINDEX)
-					mainCamera = duoCamera;
-				break;
+			// Update Duo's Camera:
+			duoCamera = glm::lookAt(getPosition(glm::translate(transformMatrix[index], planetCamEyePosition)), getPosition(object3D[index]->getOrientationMatrix()), upVector);
+			if (currentCamera == DUOCAMERAINDEX)
+				mainCamera = duoCamera;
+			break;
 
-			case PRIMUSINDEX: // If its Primus, one of the moons, orbit around planet Duo.
-				transformMatrix[index] = transformMatrix[DUOINDEX] * object3D[index]->getRotationMatrix() * glm::translate(identityMatrix, (translatePosition[index] - translatePosition[DUOINDEX]));
-				object3D[index]->setOrientationMatrix(transformMatrix[index]);
+		case PRIMUSINDEX: // If its Primus, one of the moons, orbit around planet Duo.
+			transformMatrix[index] = transformMatrix[DUOINDEX] * object3D[index]->getRotationMatrix() * glm::translate(identityMatrix, (translatePosition[index] - translatePosition[DUOINDEX]));
+			object3D[index]->setOrientationMatrix(transformMatrix[index]);
 
-				// For Debugging:
-				//showMat4("rotation", moonRotationMatrix);
-				//showMat4("transform", transformMatrix[index]);
-				break;
+			// For Debugging:
+			//showMat4("rotation", moonRotationMatrix);
+			//showMat4("transform", transformMatrix[index]);
+			break;
 
-			case SECUNDUSINDEX: // If its Secundus, one of the moons, orbit around planet Duo.
-				transformMatrix[SECUNDUSINDEX] = transformMatrix[DUOINDEX] * object3D[index]->getRotationMatrix() * glm::translate(identityMatrix, (translatePosition[SECUNDUSINDEX] - translatePosition[DUOINDEX]));
-				object3D[index]->setOrientationMatrix(transformMatrix[index]);
+		case SECUNDUSINDEX: // If its Secundus, one of the moons, orbit around planet Duo.
+			transformMatrix[SECUNDUSINDEX] = transformMatrix[DUOINDEX] * object3D[index]->getRotationMatrix() * glm::translate(identityMatrix, (translatePosition[SECUNDUSINDEX] - translatePosition[DUOINDEX]));
+			object3D[index]->setOrientationMatrix(transformMatrix[index]);
 
-				break;
+			break;
 
-			case SHIPINDEX:
-				object3D[SHIPINDEX]->setTranslationMatrix(warbird->getTranslationMatrix());
-				object3D[SHIPINDEX]->setRotationMatrix(warbird->getRotationMatrix());
-				object3D[SHIPINDEX]->setRotationAmount(warbird->getRotationAmount());
-				object3D[SHIPINDEX]->setOrientationMatrix(warbird->getOrientationMatrix());
+		case SHIPINDEX:
+			object3D[SHIPINDEX]->setTranslationMatrix(warbird->getTranslationMatrix());
+			object3D[SHIPINDEX]->setRotationMatrix(warbird->getRotationMatrix());
+			object3D[SHIPINDEX]->setRotationAmount(warbird->getRotationAmount());
+			object3D[SHIPINDEX]->setOrientationMatrix(warbird->getOrientationMatrix());
 
-				modelMatrix[index] = object3D[index]->getModelMatrix();
-				shipOrientationMatrix = object3D[index]->getOrientationMatrix();
+			modelMatrix[index] = object3D[index]->getModelMatrix();
+			shipOrientationMatrix = object3D[index]->getOrientationMatrix();
 
-				// Update Ship's Camera:
-				camPosition = getPosition(glm::translate(object3D[index]->getModelMatrix(), shipCamEyePosition));
-				shipPosition = getPosition(shipOrientationMatrix);
-				shipCamera = glm::lookAt(camPosition, glm::vec3(shipPosition.x, shipPosition.y, shipPosition.z), upVector);
-				if (currentCamera == SHIPCAMERAINDEX) //If we're on ship camera
-					mainCamera = shipCamera;
-				break;
+			// Update Ship's Camera:
+			camPosition = getPosition(glm::translate(object3D[index]->getModelMatrix(), shipCamEyePosition));
+			shipPosition = getPosition(shipOrientationMatrix);
+			shipCamera = glm::lookAt(camPosition, glm::vec3(shipPosition.x, shipPosition.y, shipPosition.z), upVector);
+			if (currentCamera == SHIPCAMERAINDEX) //If we're on ship camera
+				mainCamera = shipCamera;
+			break;
 
-			case UNUMMISSLESILOINDEX:
-				break;
+		case UNUMMISSLESILOINDEX:
+			break;
 
-			case DUOMISSLESILOINDEX:
-				break;
+		case DUOMISSLESILOINDEX:
+			break;
 
-			case SHIPMISSILEINDEX:
-				object3D[SHIPMISSILEINDEX]->setTranslationMatrix(shipMissile->getTranslationMatrix());
-				object3D[SHIPMISSILEINDEX]->setRotationMatrix(shipMissile->getRotationMatrix());
-				object3D[SHIPMISSILEINDEX]->setOrientationMatrix(shipMissile->getOrientationMatrix());
-				break;
+		case SHIPMISSILEINDEX:
+			object3D[SHIPMISSILEINDEX]->setTranslationMatrix(shipMissile->getTranslationMatrix());
+			object3D[SHIPMISSILEINDEX]->setRotationMatrix(shipMissile->getRotationMatrix());
+			object3D[SHIPMISSILEINDEX]->setOrientationMatrix(shipMissile->getOrientationMatrix());
+			break;
 
-			case UNUMMISSILEINDEX:
-				object3D[UNUMMISSILEINDEX]->setTranslationMatrix(unumMissile->getTranslationMatrix());
-				object3D[UNUMMISSILEINDEX]->setRotationMatrix(unumMissile->getRotationMatrix());
-				object3D[UNUMMISSILEINDEX]->setOrientationMatrix(unumMissile->getOrientationMatrix());
-				break;
-			case DUOMISSILEINDEX:
-				object3D[DUOMISSILEINDEX]->setTranslationMatrix(duoMissile->getTranslationMatrix());
-				object3D[DUOMISSILEINDEX]->setRotationMatrix(duoMissile->getRotationMatrix());
-				object3D[DUOMISSILEINDEX]->setOrientationMatrix(duoMissile->getOrientationMatrix());
-				break;
+		case UNUMMISSILEINDEX:
+			object3D[UNUMMISSILEINDEX]->setTranslationMatrix(unumMissile->getTranslationMatrix());
+			object3D[UNUMMISSILEINDEX]->setRotationMatrix(unumMissile->getRotationMatrix());
+			object3D[UNUMMISSILEINDEX]->setOrientationMatrix(unumMissile->getOrientationMatrix());
+			break;
+		case DUOMISSILEINDEX:
+			object3D[DUOMISSILEINDEX]->setTranslationMatrix(duoMissile->getTranslationMatrix());
+			object3D[DUOMISSILEINDEX]->setRotationMatrix(duoMissile->getRotationMatrix());
+			object3D[DUOMISSILEINDEX]->setOrientationMatrix(duoMissile->getOrientationMatrix());
+			break;
 
-			default:
-				break;
+		default:
+			break;
 		}
 
 		viewMatrix = mainCamera;
@@ -568,6 +661,32 @@ void display()
 		glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
 		glDrawArrays(GL_TRIANGLES, 0, nVertices[index]);  // Initializes vertex shader, for contiguous groups of vertices.
 	}
+
+		//indicate texture being drawn
+		glUniform1ui(IsTexture, true);
+
+		for (int i = 0; i < numberOfSquares; i++) {
+			if (i > 1) {
+				squareRotationAmount = PI / 2;
+			}
+			else {
+				squareRotationAmount = 0.0f;
+			}
+			modelViewMatrix = viewMatrix * glm::translate(translateSquare, squareTranslationAmounts[i])
+				* glm::rotate(squareRotation, squareRotationAmount, squareRotationAxis[i]);
+
+			glUniformMatrix4fv(ModelViewMatrix, 1, GL_FALSE, glm::value_ptr(modelViewMatrix));
+			normalMatrix = glm::mat3(modelViewMatrix);
+			glUniformMatrix3fv(NormalMatrix, 1, GL_FALSE, glm::value_ptr(normalMatrix));
+			ModelViewProjectionMatrix = projectionMatrix * modelViewMatrix;
+			glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
+			glBindVertexArray(textVao);
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, textIBO);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+		}
+
+		glUniform1ui(IsTexture, false);
 
 	glutSwapBuffers();
 
