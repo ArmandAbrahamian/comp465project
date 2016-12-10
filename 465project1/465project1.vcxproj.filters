@@ -30,5 +30,6 @@
     <None Include="primus.tri" />
     <None Include="warbird.tri" />
     <None Include="stars.raw" />
+    <None Include="bryantFragment.glsl" />
   </ItemGroup>
 </Project>

@@ -34,6 +34,7 @@
   <ItemGroup>
     <None Include="axes-r100.tri" />
     <None Include="cube.tri" />
+    <None Include="bryantFragment.glsl" />
     <None Include="secundus.tri" />
     <None Include="duo.tri" />
     <None Include="Missile.tri" />
