@@ -10,6 +10,7 @@ Mike Barnes
 
 # version 330 core
 
+// Input of vertex shader
 in vec4 vPosition;
 in vec4 vColor;
 in vec3 vNormal;  // not used
@@ -21,7 +22,7 @@ uniform mat4 ModelViewProjection;  // = projection * view * model
 uniform mat4 ModelViewMatrix; //model*view
 uniform mat3 NormalMatrix; //mat3(model*view)
 
-//output of vertex shader program
+// Output of vertex shader
 out vec3 Position;
 out vec2 TextCoord;
 out vec4 color; // fragments final color
