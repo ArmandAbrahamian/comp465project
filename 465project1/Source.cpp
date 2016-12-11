@@ -328,7 +328,6 @@ glm::vec3 headLampPosition = glm::vec3(0.0, 0.0, 1.0);
 GLuint HeadLampOn;
 bool headLampOn = true;
 
-glm::vec3 direction = glm::vec3(0.0, 0.0, 1.0);
 // Light variables 
 GLuint LightColor;
 glm::vec3 lightColor = glm::vec3(1.0, 1.0, 1.0);
@@ -1424,6 +1423,7 @@ void keyboard(unsigned char key, int x, int y)
 			ambientLightOn = true;
 			glUniform1ui(AmbientLightOn, ambientLightOn);
 		}
+		printf("ambient light effect changed\n");
 		break;
 
 	case 'p':
@@ -1436,6 +1436,7 @@ void keyboard(unsigned char key, int x, int y)
 			pointLightOn = true;
 			glUniform1ui(PointLightRuber, pointLightOn);
 		}
+		printf("pointlight effect changed\n");
 		break;
 
 	case 'h':
@@ -1448,6 +1449,7 @@ void keyboard(unsigned char key, int x, int y)
 			headLampOn = true;
 			glUniform1ui(HeadLampOn, headLampOn);
 		}
+		printf("headlamp effect changed\n");
 		break;
 	}
 }
