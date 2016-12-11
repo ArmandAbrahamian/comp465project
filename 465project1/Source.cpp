@@ -312,7 +312,7 @@ glm::mat4 modelViewProjectionMatrix;
 /* Light Variables */
 GLuint AmbientOn;
 bool ambientOn = true;
-GLuint SunObject;
+GLuint Ruber;
 
 // Point Light from Ruber
 GLuint PointLightPosition;
@@ -324,9 +324,9 @@ bool pointLightOn = true;
 
 //headlamp
 GLuint LightDirection;
-GLuint DirectionalLightOn;
+GLuint HeadLampLightOn;
 glm::vec3 direction = glm::vec3(0.0, 0.0, 1.0);
-bool directionalLightOn = true;
+bool headLampLightOn = true;
 
 // Spot Light
 GLuint SpotLightOn;
@@ -451,18 +451,18 @@ void init()
 	//	glGetAttribLocation(shaderProgram, "vColor"),
 	//	glGetAttribLocation(shaderProgram, "vNormal"), MVP);
 
-	//point light references
+	// point light references
 	PointLightPosition = glGetUniformLocation(shaderProgram, "PointLightPosition");
 	EyeDirection = glGetUniformLocation(shaderProgram, "EyeDirection");
 	PointLightOn = glGetUniformLocation(shaderProgram, "PointLightOn");
 
-	//headlamplight references
+	// headlamplight references
 	LightDirection = glGetUniformLocation(shaderProgram, "LightDirection");
-	DirectionalLightOn = glGetUniformLocation(shaderProgram, "DirectionalLightOn");
+	HeadLampLightOn = glGetUniformLocation(shaderProgram, "HeadLampLightOn");
 
-	//light references 
+	// general light references 
 	AmbientOn = glGetUniformLocation(shaderProgram, "AmbientOn");
-	SunObject = glGetUniformLocation(shaderProgram, "SunObject");
+	Ruber = glGetUniformLocation(shaderProgram, "Ruber");
 	LightColor = glGetUniformLocation(shaderProgram, "LightColor");
 	ConstantAttentuation = glGetUniformLocation(shaderProgram, "ConstantAttenuation");
 	LinearAttenuation = glGetUniformLocation(shaderProgram, "LinearAttenuation");
@@ -474,9 +474,8 @@ void init()
 	glUniform1ui(PointLightOn, pointLightOn);
 
 	glUniform3f(LightDirection, direction.x, direction.y, direction.z);
-	glUniform1ui(DirectionalLightOn, directionalLightOn);
+	glUniform1ui(HeadLampLightOn, headLampLightOn);
 
-	// glUniform1f(ambientLightOn, true);
 	glUniform1ui(AmbientOn, ambientOn);
 	glUniform3f(LightColor, lightColor.x, lightColor.y, lightColor.z);
 	glUniform1ui(ConstantAttentuation, constantAttentuation);
@@ -485,6 +484,7 @@ void init()
 	glUniform1ui(Shininess, shininess);
 	glUniform1ui(Strength, strength);
 
+	// Set the cameras:
 	//THE PLANETS ARE TOO SMALL. If you want to see them, decrease the
 	//10000 and 20000 to 1000 and 2000 or smaller
 	frontCamera = glm::lookAt(
@@ -518,7 +518,7 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.7f, 0.7f, 0.7f, 1.0f); // Establishes what color the window will be cleared to.
 
-										  // Load the buffers from the model files
+	// Create and set all the 3D objects:
 	for (int i = 0; i < nModels; i++)
 	{
 		object3D[i] = new Object3D(modelSize[i], modelBR[i]);
@@ -588,8 +588,11 @@ void init()
 	//get ellapsed time
 	lastTime = glutGet(GLUT_ELAPSED_TIME);
 
+
+	// srand is needed in order to generate new random values everytime rand() is called.
 	srand(time(NULL));
 
+	// Randomly select the voice line to play:
 	int randomNumber = rand() % 3;
 	if(randomNumber == 0)
 		SoundEngine->play2D("media/start.wav");
@@ -599,6 +602,7 @@ void init()
 	else if (randomNumber == 2)
 		SoundEngine->play2D("media/warbird_reporting.wav");
 
+	// Randomly select the music track to play:
 	playMusic();
 }
 
@@ -634,6 +638,7 @@ void fireShipMissile()
 	{
 		if (shipMissiles > 0)
 		{
+			// Set the orientation of the missile
 			shipMissile->setTranslationMatrix(warbird->getTranslationMatrix());
 			shipMissile->setRotationMatrix(warbird->getRotationMatrix());
 			shipMissile->setDirection(getIn(warbird->getRotationMatrix()));
@@ -645,6 +650,7 @@ void fireShipMissile()
 			strcpy(warbirdMissleCount, "| Warbird ");
 			strcat(warbirdMissleCount, std::to_string(shipMissiles).c_str());
 
+			// Play firing sound:
 			SoundEngine->play2D("media/missileFire.mp3");
 		}
 	}
@@ -799,10 +805,10 @@ void display()
 		glUniformMatrix4fv(ModelViewMatrix, 1, GL_FALSE, glm::value_ptr(modelViewMatrix));
 
 		if (index == 0) {
-			glUniform1ui(SunObject, true);
+			glUniform1ui(Ruber, true);
 		}
 		else {
-			glUniform1ui(SunObject, false);
+			glUniform1ui(Ruber, false);
 		}
 
 		glBindVertexArray(VAO[index]); // set model for its instance. Have to rebind everytime its changed.
@@ -1430,7 +1436,7 @@ void keyboard(unsigned char key, int x, int y)
 			ambientOn = true;
 			glUniform1ui(AmbientOn, ambientOn);
 		}
-		printf("ambient light effect changed\n");
+		printf("ambient light changed\n");
 		break;
 
 	case 'p': case'P':
@@ -1444,22 +1450,22 @@ void keyboard(unsigned char key, int x, int y)
 			pointLightOn = true;
 			glUniform1ui(PointLightOn, pointLightOn);
 		}
-		printf("pointlight effect changed\n");
+		printf("point light changed\n");
 		break;
 
 	case 'h': case'H':
 		// toggle head lamp light
-		if (directionalLightOn)
+		if (headLampLightOn)
 		{
-			directionalLightOn = false;
-			glUniform1ui(DirectionalLightOn, directionalLightOn);
+			headLampLightOn = false;
+			glUniform1ui(HeadLampLightOn, headLampLightOn);
 		}
 		else 
 		{
-			directionalLightOn = true;
-			glUniform1ui(DirectionalLightOn, directionalLightOn);
+			headLampLightOn = true;
+			glUniform1ui(HeadLampLightOn, headLampLightOn);
 		}
-		printf("headlamp effect changed\n");
+		printf("head lamp light changed\n");
 		break;
 
 	case 'l': case'L':

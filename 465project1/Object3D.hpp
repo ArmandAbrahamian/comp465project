@@ -83,12 +83,13 @@ public:
 		translationMatrix = glm::translate(translationMatrix, passedTranslation);
 	}
 
-	// Set the translation matrix to an outside matrix.
+	// Sets the translation matrix to an outside matrix.
 	void setTranslationMatrix(glm::mat4 passedTranslationMatrix)
 	{
 		translationMatrix = passedTranslationMatrix;
 	}
-
+	
+	// Sets the rotation matrix to an outside matrix.
 	void setRotationMatrix(glm::mat4 passedRotationMatrix)
 	{
 		rotationMatrix = passedRotationMatrix;
@@ -122,7 +123,7 @@ public:
 		orientationMatrix[3][2] = newPosition.z;
 	}
 
-	// Update the rotation and orientation matrix.
+	// Updates the rotation and orientation matrix.
 	void update()
 	{
 		rotationMatrix = glm::rotate(rotationMatrix, rotationAmount, rotationAxis);

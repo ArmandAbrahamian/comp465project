@@ -189,21 +189,6 @@ public:
 
 					rotationAmount = glm::angle(MyQuaternion);
 
-					// Get the rotation Amount of the Missile and Determine the Direction of Rotation.
-					// This equation gets the angle of rotation between the two vectors,
-					// The dot product of two vectors equals |A|*|B|*cos(angle), so to get the angle in between
-					// divide by |A|*|B|.
-					//if (AORDirection > 0) 
-					//{
-					//	rotationAmount = -glm::acos(glm::dot(missileVector, targetVector) /
-					//		(glm::abs(glm::distance(targetVector, glm::vec3(0, 0, 0))) * glm::abs(glm::distance(missileVector, glm::vec3(0, 0, 0)))));
-					//}
-					//else
-					//{
-					//	rotationAmount = glm::acos(glm::dot(missileVector, targetVector) /
-					//		(glm::abs(glm::distance(targetVector, glm::vec3(0, 0, 0))) * glm::abs(glm::distance(missileVector, glm::vec3(0, 0, 0)))));
-					//}
-
 					// Only rotate the Missile only a 4th of the rotation amount, 
 					// this allows for smoother rotations in the simulation.
 					rotationMatrix = glm::rotate(identity, rotationAmount, rotationAxis);
@@ -211,7 +196,7 @@ public:
 			}
 		}
 
-		// Update the orientation of the missile
+		// Update the orientation matrix of the missile
 		orientationMatrix = orientationMatrix * translationMatrix * rotationMatrix;
 	}
 };

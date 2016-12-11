@@ -6,7 +6,7 @@ Fragment shader with color input and output.
 Mike Barnes
 8/16/2014
 
-updated to our Warbird Simulation by
+Updated to our Warbird Simulation by:
 Armand Abrahamian
 Ben Villalobos
 Bryant Barron
@@ -14,14 +14,14 @@ Bryant Barron
 
 # version 330 core
 
-//pointLight Variables
+//Point Light Variables
 uniform vec3 PointLightPosition;
 uniform vec3 EyeDirection;
 uniform bool PointLightOn;
 
-//headLamp Variables
+//Head Lamp Variables
 uniform vec3 LightDirection; // Direction toward the light.
-uniform bool DirectionalLightOn; 
+uniform bool HeadLampLightOn; 
 
 // Spot Light Variables
 uniform bool SpotLightOn;
@@ -29,7 +29,7 @@ uniform vec3 ConeDirection; // adding spotlight attributes
 uniform float SpotCosCutoff; // how wide the spot is, as a cosine
 uniform float SpotExponent; // control light fall-off in the spot
 
-//light Variables
+// General Light Variables
 uniform vec3 LightColor; 
 uniform float ConstantAttenuation;
 uniform float LinearAttenuation;
@@ -37,19 +37,19 @@ uniform float QuadraticAttenuation;
 uniform float Shininess; // exponent for sharping highlights
 uniform float Strength; // extra factor to adjust brightness of shininess
 uniform bool AmbientOn; 
-uniform bool SunObject;
+uniform bool Ruber;
 
-//texture 
+// Texture 
 uniform sampler2D Texture;
 uniform bool IsTexture;
 
-//input info from vertex shader output
+// Input info from vertex shader output
 in vec4 Color;
 in vec3 Position;
 in vec3 Normal; // surface normal, interpolated between vertices
 in vec2 TextCoord;
 
-// output from fragment shader prog
+// Output from fragment shader
 out vec4 FragColor;
 
 //pointLight method in GLSL
@@ -57,7 +57,7 @@ vec3 pointLight(vec3 LightPosition){
 	
 	float ambient;
 
-	// Check for whether to apply an ambient effect
+	// Check for whether to apply ambient lighting
 	if (AmbientOn)
 		ambient = 0.2f;
 	else
@@ -85,7 +85,7 @@ vec3 pointLight(vec3 LightPosition){
 	// compute cosine of the directions, using dot products,
 	// to see how much light would be reflected
 
-	if (SunObject) 
+	if (Ruber) 
 	{ 
 		diffuse = max(0.0, dot(-Normal, lightDirection));
 	    specular = max(0.0, dot(-Normal, halfVector));
@@ -112,11 +112,11 @@ vec3 pointLight(vec3 LightPosition){
 	return rgb;
 }
 
-vec3 directionalLight()
+vec3 headLampLight()
 {
 	float ambient;
 
-	// Check for whether to apply an ambient effect
+	// Check for whether to apply ambient lighting
 	if (AmbientOn)
 		ambient = 0.2f;
 	else
@@ -153,7 +153,7 @@ vec3 spotLight()
 {
 	float ambient;
 
-	// Check for whether to apply an ambient effect
+	// Check for whether to apply ambient lighting
 	if (AmbientOn)
 		ambient = 0.2f;
 	else
@@ -218,8 +218,8 @@ void main() {
 		vec3 tempColor = vec3(Color) * 0.1f; // initial value
 
 		// if the directional light is on, apply directional light effect to color
-		if (DirectionalLightOn)
-			tempColor += directionalLight();
+		if (HeadLampLightOn)
+			tempColor += headLampLight();
 			
 		// if the point light is on, apply point light effect to color
 		if (PointLightOn) 
