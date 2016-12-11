@@ -170,8 +170,53 @@ GLuint shaderProgram;
 GLuint VAO[nModels];      // Vertex Array Objects
 GLuint buffer[nModels];   // Vertex Buffer Objects
 GLuint MVP;  // Model View Projection matrix's handle
+
+// Reference to Vertex Shader input variables:
 GLuint vPosition[nModels], vColor[nModels], vNormal[nModels];   // vPosition, vColor, vNormal handles for models
 																// model, view, projection matrices and values to create modelMatrix.
+
+// References for Point Light from Fragment Shader:
+GLuint PointLightPosition;
+GLuint EyeDirection;
+GLuint PointLightOn;
+
+// References for Spot Light
+GLuint LightDirection;
+GLuint DirectionalLightOn;
+
+// References for Lighting Effect
+GLuint AmbientOn;
+GLuint SunObject;
+GLuint LightColor;
+GLuint ConstantAttenuation;
+GLuint LinearAttenuation;
+GLuint QuadraticAttenuation;
+GLuint Shininess;
+GLuint Strength;
+
+// Variables to handle the point light variables passed
+// to the vertex and fragment shader
+glm::vec3 pointLightPosition = glm::vec3(0, 0, 0);
+glm::vec3 eyeDirection = glm::vec3(0.0, 0.0, 0.0);
+
+// Variables to handle the spot light variables passed
+// to the vertex and fragment shader
+glm::vec3 direction = glm::vec3(0.0, 0.0, 1.0);
+
+// Variables to handle the light effect variables passed
+// to the vertex and fragment shader
+glm::vec3 lightColor = glm::vec3(1.0, 1.0, 1.0);
+float constantAttenuation = 1.0f;
+float linearAttenuation = 1.0f;
+float quadraticAttenuation = 1.0f;
+float shininess = 1.0f;
+float strength = 1.0f;
+
+// Variables to turn the light effects on or off
+bool ambientOn = true;
+bool pointLightOn = true;
+bool directionalLightOn = true;
+
 glm::mat4 modelMatrix[nModels];          // set in display()
 glm::mat4 viewMatrix;
 glm::mat4 projectionMatrix;     // set in reshape()
@@ -292,8 +337,7 @@ GLuint textIBO;
 GLuint textBuf;
 GLuint textVao;
 
-/* Variables that reference texture information
-   in the vertex and fragment shader programs*/
+/* Variables that reference texture information in the vertex and fragment shaders */
 GLuint TexturePosition;
 GLuint vTextCoord;
 GLuint IsTexture;
@@ -421,9 +465,50 @@ void init()
 	// Create the Duo Missile:
 	duoMissile = new Missile(modelSize[DUOMISSILEINDEX], modelBR[DUOMISSILEINDEX], siteMissleSpeed);
 
-	MVP = glGetUniformLocation(shaderProgram, "ModelViewProjection");
+	// References for the vertex and fragment shaders:
+
+	// Object references:
+	MVP = glGetUniformLocation(shaderProgram, "ModelViewProjectionMatrix");
 	ModelViewMatrix = glGetUniformLocation(shaderProgram, "ModelViewMatrix");
 	NormalMatrix = glGetUniformLocation(shaderProgram, "NormalMatrix");
+
+	// Pointlight information references
+	PointLightPosition = glGetUniformLocation(shaderProgram, "PointLightPosition");
+	EyeDirection = glGetUniformLocation(shaderProgram, "EyeDirection");
+	PointLightOn = glGetUniformLocation(shaderProgram, "PointLightOn");
+
+	// directional light information references
+	LightDirection = glGetUniformLocation(shaderProgram, "LightDirection");
+	DirectionalLightOn = glGetUniformLocation(shaderProgram, "DirectionalLightOn");
+
+	// General Light effect references
+	AmbientOn = glGetUniformLocation(shaderProgram, "AmbientOn");
+	SunObject = glGetUniformLocation(shaderProgram, "SunObject");
+	LightColor = glGetUniformLocation(shaderProgram, "LightColor");
+	ConstantAttenuation = glGetUniformLocation(shaderProgram, "ConstantAttenuation");
+	LinearAttenuation = glGetUniformLocation(shaderProgram, "LinearAttenuation");
+	QuadraticAttenuation = glGetUniformLocation(shaderProgram, "QuadraticAttenuation");
+	Shininess = glGetUniformLocation(shaderProgram, "Shininess");
+	Strength = glGetUniformLocation(shaderProgram, "Strength");
+
+	// Set all the initial values for the vertex and fragment shader programs //
+
+	// Set the initial Point Light information
+	glUniform3f(EyeDirection, eyeDirection.x, eyeDirection.y, eyeDirection.z);
+	glUniform1ui(PointLightOn, pointLightOn);
+
+	// Set the initial Directional Light information
+	glUniform3f(LightDirection, direction.x, direction.y, direction.z);
+	glUniform1ui(DirectionalLightOn, directionalLightOn);
+
+	// Set the initial Light Effect information
+	glUniform1ui(AmbientOn, ambientOn);
+	glUniform3f(LightColor, lightColor.x, lightColor.y, lightColor.z);
+	glUniform1ui(ConstantAttenuation, constantAttenuation);
+	glUniform1ui(LinearAttenuation, linearAttenuation);
+	glUniform1ui(QuadraticAttenuation, quadraticAttenuation);
+	glUniform1ui(Shininess, shininess);
+	glUniform1ui(Strength, strength);
 
 	printf("Shader program variable locations:\n");
 	printf("  vPosition = %d  vColor = %d  vNormal = %d MVP = %d\n",
@@ -731,6 +816,15 @@ void display()
 			ModelViewProjectionMatrix = projectionMatrix * modelViewMatrix;
 			glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
 			glBindVertexArray(textVao);
+
+			// Check if the object being drawn is the Sun (Ruber). If so indicate that to the shader program
+			// The sun will be handle differently in terms of its light effects and coloring.
+			if (i == 0) {
+				glUniform1ui(SunObject, true);
+			}
+			else {
+				glUniform1ui(SunObject, false);
+			}
 
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, textIBO);
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
@@ -1320,13 +1414,40 @@ void keyboard(unsigned char key, int x, int y)
 
 		break;
 
+	case 'a': case 'A':
+		// turn the ambient light effect on if off, and off if on.
+		if (ambientOn) {
+			ambientOn = false;
+			glUniform1ui(AmbientOn, ambientOn);
+		}
+		else {
+			ambientOn = true;
+			glUniform1ui(AmbientOn, ambientOn);
+		}
+		break;
+
 	case 'p': case 'P':
+		// turn the point light effect on if off, and off if on.
+		if (pointLightOn) {
+			pointLightOn = false;
+			glUniform1ui(PointLightOn, pointLightOn);
+		}
+		else {
+			pointLightOn = true;
+			glUniform1ui(PointLightOn, pointLightOn);
+		}
 		break;
 
-	case 'h': case'H':
-		break;
-
-	case 'd': case'D':
+	case 'h': case 'H':
+		// turn the spot light effect on if off, and off if on.
+		if (directionalLightOn) {
+			directionalLightOn = false;
+			glUniform1ui(DirectionalLightOn, directionalLightOn);
+		}
+		else {
+			directionalLightOn = true;
+			glUniform1ui(DirectionalLightOn, directionalLightOn);
+		}
 		break;
 	}
 }

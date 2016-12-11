@@ -4,25 +4,24 @@ SimpleVertex.glsl
 Vertex shader with position, color, normal and ModelViewProject
 input and color output.
 
-Mike Barnes
-8/17/2013
+12/10/2016
 */
 
 # version 330 core
 
-// Input of vertex shader
+// Input of vertex shader:
 in vec4 vPosition;
 in vec4 vColor;
 in vec3 vNormal;  // not used
 in vec2 vTextCoord;
 
-uniform bool IsTexture;
+uniform bool IsTexture; // Are we using a texture?
 
 uniform mat4 ModelViewProjection;  // = projection * view * model
 uniform mat4 ModelViewMatrix; //model*view
 uniform mat3 NormalMatrix; //mat3(model*view)
 
-// Output of vertex shader
+// Output of vertex shader:
 out vec3 Position;
 out vec2 TextCoord;
 out vec4 color; // fragments final color
