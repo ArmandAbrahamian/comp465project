@@ -24,11 +24,12 @@ uniform mat3 NormalMatrix; //mat3(model*view)
 //output of vertex shader program
 out vec3 Position;
 out vec2 TextCoord;
-out vec4 color; // fragments final color
+out vec4 Color; // fragments final color
 out vec3 Normal;
 
 void main() {
 
+  // transform the normal, without perspective, and normalize it
   Normal = normalize(NormalMatrix * vNormal);
 
   //2d coord position
@@ -39,11 +40,11 @@ void main() {
 
   if(IsTexture) {
 	TextCoord = vTextCoord;
-	color = vec4(0.0, 0, 0, 0);
+	Color = vec4(0.0, 0, 0, 0);
   }
   else {
 	TextCoord = vec2(0, 0);
-	color = vColor;
+	Color = vColor;
   }
   
   }

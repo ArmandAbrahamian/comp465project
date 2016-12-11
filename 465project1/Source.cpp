@@ -310,23 +310,23 @@ glm::mat3 normalMatrix;
 glm::mat4 modelViewProjectionMatrix;
 
 /* Light Variables */
-GLuint Ruber;
-GLuint AmbientLightOn;
-bool ambientLightOn = true;
+GLuint AmbientOn;
+bool ambientOn = true;
+GLuint SunObject;
 
 // Point Light from Ruber
-GLuint PointLightRuber;
 GLuint PointLightPosition;
-glm::vec3 pointLightRuber = glm::vec3(0, 0, 0);
-glm::vec3 pointLightPosition = glm::vec3(0.0, 0.0, 0.0);
+GLuint EyeDirection;
 GLuint PointLightOn;
+glm::vec3 pointLightPosition = glm::vec3(0, 0, 0);
+glm::vec3 eyeDirection = glm::vec3(0.0, 0.0, 0.0);
 bool pointLightOn = true;
 
 //headlamp
-GLuint HeadLampPosition;
-glm::vec3 headLampPosition = glm::vec3(0.0, 0.0, 1.0);
-GLuint HeadLampOn;
-bool headLampOn = true;
+GLuint LightDirection;
+GLuint DirectionalLightOn;
+glm::vec3 direction = glm::vec3(0.0, 0.0, 1.0);
+bool directionalLightOn = true;
 
 // Light variables 
 GLuint LightColor;
@@ -434,41 +434,52 @@ void init()
 
 		// set scale for models given bounding radius  
 		scale[i] = glm::vec3(modelSize[i] / modelBR[i]);
-
-		object3D[i] = new Object3D(modelSize[i], modelBR[i]);
-		object3D[i]->setTranslationMatrix(translatePosition[i]);
-		object3D[i]->setRotationAmount(rotationAmount[i]);
-
-		// Set the planet flags:
-		if(i == UNUMINDEX || i == DUOINDEX)
-			object3D[i]->setOrbit();
 	}
-
-	// Create the warbird:
-	warbird = new Warbird(modelSize[SHIPINDEX], modelBR[SHIPINDEX], translatePosition[SHIPINDEX]);
-	warbird->setTranslationMatrix(translatePosition[SHIPINDEX]);
-	warbird->setRotationAmount(rotationAmount[SHIPINDEX]);
-	warbird->setPosition(translatePosition[SHIPINDEX]);
-
-	// Create the ship missle:
-	shipMissile = new Missile(modelSize[SHIPMISSILEINDEX], modelBR[SHIPMISSILEINDEX], shipMissleSpeed);
-
-	// Create the Unum Missile:
-	unumMissile = new Missile(modelSize[UNUMMISSILEINDEX], modelBR[UNUMMISSILEINDEX], siteMissleSpeed);
-
-	// Create the Duo Missile:
-	duoMissile = new Missile(modelSize[DUOMISSILEINDEX], modelBR[DUOMISSILEINDEX], siteMissleSpeed);
 
 	MVP = glGetUniformLocation(shaderProgram, "ModelViewProjection");
 	ModelViewMatrix = glGetUniformLocation(shaderProgram, "ModelViewMatrix");
 	NormalMatrix = glGetUniformLocation(shaderProgram, "NormalMatrix");
 
 	// Set up vertex arrays (after shaders are loaded)
-	printf("Shader program variable locations:\n");
-	printf("  vPosition = %d  vColor = %d  vNormal = %d MVP = %d\n",
-		glGetAttribLocation(shaderProgram, "vPosition"), // vPosition maps to shader var "vPosition"
-		glGetAttribLocation(shaderProgram, "vColor"),
-		glGetAttribLocation(shaderProgram, "vNormal"), MVP);
+	//printf("Shader program variable locations:\n");
+	//printf("  vPosition = %d  vColor = %d  vNormal = %d MVP = %d\n",
+	//	glGetAttribLocation(shaderProgram, "vPosition"), // vPosition maps to shader var "vPosition"
+	//	glGetAttribLocation(shaderProgram, "vColor"),
+	//	glGetAttribLocation(shaderProgram, "vNormal"), MVP);
+
+	//point light references
+	PointLightPosition = glGetUniformLocation(shaderProgram, "PointLightPosition");
+	EyeDirection = glGetUniformLocation(shaderProgram, "EyeDirection");
+	PointLightOn = glGetUniformLocation(shaderProgram, "PointLightOn");
+
+	//headlamplight references
+	LightDirection = glGetUniformLocation(shaderProgram, "LightDirection");
+	DirectionalLightOn = glGetUniformLocation(shaderProgram, "DirectionalLightOn");
+
+	//light references 
+	AmbientOn = glGetUniformLocation(shaderProgram, "AmbientOn");
+	SunObject = glGetUniformLocation(shaderProgram, "SunObject");
+	LightColor = glGetUniformLocation(shaderProgram, "LightColor");
+	ConstantAttentuation = glGetUniformLocation(shaderProgram, "ConstantAttenuation");
+	LinearAttenuation = glGetUniformLocation(shaderProgram, "LinearAttenuation");
+	QuadraticAttenuation = glGetUniformLocation(shaderProgram, "QuadraticAttenuation");
+	shininess = glGetUniformLocation(shaderProgram, "Shininess");
+	strength = glGetUniformLocation(shaderProgram, "Strength");
+
+	glUniform3f(EyeDirection, eyeDirection.x, eyeDirection.y, eyeDirection.z);
+	glUniform1ui(PointLightOn, pointLightOn);
+
+	glUniform3f(LightDirection, direction.x, direction.y, direction.z);
+	glUniform1ui(DirectionalLightOn, directionalLightOn);
+
+	// glUniform1f(ambientLightOn, true);
+	glUniform1ui(AmbientOn, ambientOn);
+	glUniform3f(LightColor, lightColor.x, lightColor.y, lightColor.z);
+	glUniform1ui(ConstantAttentuation, constantAttentuation);
+	glUniform1ui(LinearAttenuation, linearAttenuation);
+	glUniform1ui(QuadraticAttenuation, quadraticAttenuation);
+	glUniform1ui(Shininess, shininess);
+	glUniform1ui(Strength, strength);
 
 	//THE PLANETS ARE TOO SMALL. If you want to see them, decrease the
 	//10000 and 20000 to 1000 and 2000 or smaller
@@ -503,7 +514,34 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.7f, 0.7f, 0.7f, 1.0f); // Establishes what color the window will be cleared to.
 
-										  // set up the indices buffer
+										  // Load the buffers from the model files
+	for (int i = 0; i < nModels; i++)
+	{
+		object3D[i] = new Object3D(modelSize[i], modelBR[i]);
+		object3D[i]->setTranslationMatrix(translatePosition[i]);
+		object3D[i]->setRotationAmount(rotationAmount[i]);
+
+		// Set the planet flags:
+		if (i == UNUMINDEX || i == DUOINDEX)
+			object3D[i]->setOrbit();
+	}
+
+	// Create the warbird:
+	warbird = new Warbird(modelSize[SHIPINDEX], modelBR[SHIPINDEX], translatePosition[SHIPINDEX]);
+	warbird->setTranslationMatrix(translatePosition[SHIPINDEX]);
+	warbird->setRotationAmount(rotationAmount[SHIPINDEX]);
+	warbird->setPosition(translatePosition[SHIPINDEX]);
+
+	// Create the ship missle:
+	shipMissile = new Missile(modelSize[SHIPMISSILEINDEX], modelBR[SHIPMISSILEINDEX], shipMissleSpeed);
+
+	// Create the Unum Missile:
+	unumMissile = new Missile(modelSize[UNUMMISSILEINDEX], modelBR[UNUMMISSILEINDEX], siteMissleSpeed);
+
+	// Create the Duo Missile:
+	duoMissile = new Missile(modelSize[DUOMISSILEINDEX], modelBR[DUOMISSILEINDEX], siteMissleSpeed);
+
+	// set up the indices buffer
 	glGenBuffers(1, &textIBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, textIBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
@@ -542,43 +580,6 @@ void init()
 	}
 	else  // texture file loaded
 		printf("Texture in file %s NOT LOADED !!! \n");
-
-	//point light references
-	PointLightRuber = glGetUniformLocation(shaderProgram, "PointLightRuber");
-	PointLightPosition = glGetUniformLocation(shaderProgram, "PointLightPosition");
-	PointLightOn = glGetUniformLocation(shaderProgram, "PointLightOn");
-
-	glUniform3f(PointLightPosition, pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
-	glUniform1ui(PointLightOn, pointLightOn);
-
-	//headlamplight references
-	HeadLampPosition = glGetUniformLocation(shaderProgram, "HeadLampPosition");
-	glUniform3f(HeadLampPosition, headLampPosition.x, headLampPosition.y, headLampPosition.z);
-	headLampOn = glGetUniformLocation(shaderProgram, "HeadLampOn");
-
-	//light references 
-	Ruber = glGetUniformLocation(shaderProgram, "Ruber");
-	AmbientLightOn = glGetUniformLocation(shaderProgram, "AmbientLightOn");
-	// glUniform1f(ambientLightOn, true);
-	glUniform1ui(AmbientLightOn, ambientLightOn);
-
-	LightColor = glGetUniformLocation(shaderProgram, "LightColor");
-	glUniform3f(LightColor, lightColor.x, lightColor.y, lightColor.z);
-
-	ConstantAttentuation = glGetUniformLocation(shaderProgram, "ConstantAttenuation");
-	glUniform1ui(ConstantAttentuation, constantAttentuation);
-
-	LinearAttenuation = glGetUniformLocation(shaderProgram, "LinearAttenuation");
-	glUniform1ui(LinearAttenuation, linearAttenuation);
-
-	QuadraticAttenuation = glGetUniformLocation(shaderProgram, "QuadraticAttenuation");
-	glUniform1ui(QuadraticAttenuation, quadraticAttenuation);
-
-	shininess = glGetUniformLocation(shaderProgram, "Shininess");
-	glUniform1ui(Shininess, shininess);
-
-	strength = glGetUniformLocation(shaderProgram, "Strength");
-	glUniform1ui(Strength, strength);
 
 	//get ellapsed time
 	lastTime = glutGet(GLUT_ELAPSED_TIME);
@@ -699,7 +700,7 @@ void display()
 */
 
 // Update the position of the Point Light:
-	pointLightPosition = getPosition(object3D[RUBERINDEX]->getOrientationMatrix()* viewMatrix);
+	pointLightPosition = getPosition(object3D[RUBERINDEX]->getOrientationMatrix() * viewMatrix);
 	glUniform3f(PointLightPosition, pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
 
 // Associate shader variables with vertex arrays:
@@ -788,17 +789,16 @@ void display()
 		viewMatrix = mainCamera;
 		ModelViewProjectionMatrix = projectionMatrix * viewMatrix * object3D[index]->getModelMatrix();
 		glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
-
 		modelViewMatrix = viewMatrix * object3D[index]->getModelMatrix();
 		normalMatrix = glm::mat3(modelViewMatrix);
 		glUniformMatrix3fv(NormalMatrix, 1, GL_FALSE, glm::value_ptr(normalMatrix));
 		glUniformMatrix4fv(ModelViewMatrix, 1, GL_FALSE, glm::value_ptr(modelViewMatrix));
 
 		if (index == 0) {
-			glUniform1ui(Ruber, true);
+			glUniform1ui(SunObject, true);
 		}
 		else {
-			glUniform1ui(Ruber, false);
+			glUniform1ui(SunObject, false);
 		}
 
 		glBindVertexArray(VAO[index]); // set model for its instance. Have to rebind everytime its changed.
@@ -1415,39 +1415,44 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	case 'a':
 		// turn the ambient light effect on if off, and off if on.
-		if (ambientLightOn) {
-			ambientLightOn = false;
-			glUniform1ui(AmbientLightOn, ambientLightOn);
+		if (ambientOn) 
+		{
+			ambientOn = false;
+			glUniform1ui(AmbientOn, ambientOn);
 		}
-		else {
-			ambientLightOn = true;
-			glUniform1ui(AmbientLightOn, ambientLightOn);
+		else 
+		{
+			ambientOn = true;
+			glUniform1ui(AmbientOn, ambientOn);
 		}
 		printf("ambient light effect changed\n");
 		break;
 
 	case 'p':
 		// turn the point light effect on if off, and off if on.
-		if (pointLightOn) {
+		if (pointLightOn) 
+		{
 			pointLightOn = false;
-			glUniform1ui(PointLightRuber, pointLightOn);
+			glUniform1ui(PointLightOn, pointLightOn);
 		}
 		else {
 			pointLightOn = true;
-			glUniform1ui(PointLightRuber, pointLightOn);
+			glUniform1ui(PointLightOn, pointLightOn);
 		}
 		printf("pointlight effect changed\n");
 		break;
 
 	case 'h':
 		// turn the spot light effect on if off, and off if on.
-		if (headLampOn) {
-			headLampOn = false;
-			glUniform1ui(HeadLampOn, headLampOn);
+		if (directionalLightOn)
+		{
+			directionalLightOn = false;
+			glUniform1ui(DirectionalLightOn, directionalLightOn);
 		}
-		else {
-			headLampOn = true;
-			glUniform1ui(HeadLampOn, headLampOn);
+		else 
+		{
+			directionalLightOn = true;
+			glUniform1ui(DirectionalLightOn, directionalLightOn);
 		}
 		printf("headlamp effect changed\n");
 		break;
