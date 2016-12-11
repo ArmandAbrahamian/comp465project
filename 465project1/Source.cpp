@@ -328,6 +328,10 @@ GLuint DirectionalLightOn;
 glm::vec3 direction = glm::vec3(0.0, 0.0, 1.0);
 bool directionalLightOn = true;
 
+// Spot Light
+GLuint SpotLightOn;
+bool spotLightOn = true;
+
 // Light variables 
 GLuint LightColor;
 glm::vec3 lightColor = glm::vec3(1.0, 1.0, 1.0);
@@ -1413,8 +1417,8 @@ void keyboard(unsigned char key, int x, int y)
 		hasRestarted = false;
 
 		break;
-	case 'a':
-		// turn the ambient light effect on if off, and off if on.
+	case 'a': case'A':
+		// toggle ambient light.
 		if (ambientOn) 
 		{
 			ambientOn = false;
@@ -1428,8 +1432,8 @@ void keyboard(unsigned char key, int x, int y)
 		printf("ambient light effect changed\n");
 		break;
 
-	case 'p':
-		// turn the point light effect on if off, and off if on.
+	case 'p': case'P':
+		// toggle point light
 		if (pointLightOn) 
 		{
 			pointLightOn = false;
@@ -1442,8 +1446,8 @@ void keyboard(unsigned char key, int x, int y)
 		printf("pointlight effect changed\n");
 		break;
 
-	case 'h':
-		// turn the spot light effect on if off, and off if on.
+	case 'h': case'H':
+		// toggle head lamp light
 		if (directionalLightOn)
 		{
 			directionalLightOn = false;
@@ -1455,6 +1459,21 @@ void keyboard(unsigned char key, int x, int y)
 			glUniform1ui(DirectionalLightOn, directionalLightOn);
 		}
 		printf("headlamp effect changed\n");
+		break;
+
+	case 'l': case'L':
+		// toggle spot light
+		if (spotLightOn)
+		{
+			spotLightOn = false;
+			glUniform1ui(SpotLightOn, spotLightOn);
+		}
+		else
+		{
+			spotLightOn = true;
+			glUniform1ui(SpotLightOn, spotLightOn);
+		}
+		printf("spot light changed\n");
 		break;
 	}
 }

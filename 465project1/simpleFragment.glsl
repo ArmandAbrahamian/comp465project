@@ -23,6 +23,12 @@ uniform bool PointLightOn;
 uniform vec3 LightDirection; // Direction toward the light.
 uniform bool DirectionalLightOn; 
 
+// Spot Light Variables
+uniform bool SpotLightOn;
+uniform vec3 ConeDirection; // adding spotlight attributes
+uniform float SpotCosCutoff; // how wide the spot is, as a cosine
+uniform float SpotExponent; // control light fall-off in the spot
+
 //light Variables
 uniform vec3 LightColor; 
 uniform float ConstantAttenuation;
@@ -141,6 +147,63 @@ vec3 directionalLight()
 
 	return rgb;
 }
+
+/* Spot light from book:
+vec3 spotLight()
+{
+	float ambient;
+
+	// Check for whether to apply an ambient effect
+	if (AmbientOn)
+		ambient = 0.2f;
+	else
+		ambient = 0.0f;
+
+	// find the direction and distance of the light, which changes fragment to fragment for a local light
+	vec3 lightDirection = LightPosition - vec3(Position);
+	float lightDistance = length(lightDirection);
+
+	// normalize the light direction vector, so that a dot products give cosines
+	lightDirection = lightDirection / lightDistance; 
+
+	// Model how much light is available for this fragment:
+	float attenuation = 1.0 / (ConstantAttenuation +
+								LinearAttenuation * lightDistance +
+								QuadraticAttenuation * lightDistance
+								 * lightDistance);
+
+	// how close are we to being in the spot?
+	float spotCos = dot(lightDirection, -ConeDirection);
+
+	// attenuate more, based on spot-relative position
+	if (spotCos < SpotCosCutoff)
+		attenuation = 0.0;
+	else
+		attenuation *= pow(spotCos, SpotExponent);
+
+	vec3 halfVector = normalize(lightDirection + EyeDirection);
+
+	// compute cosine of the directions, using dot products,
+	// to see how much light would be reflected
+
+	float diffuse = max(0.0, dot(Normal, lightDirection));
+	float specular = max(0.0, dot(Normal, halfVector));
+
+	if (diffuse == 0)
+		specular = 0.0;
+	else
+		specular = pow(specular, Shininess) * Strength; // sharpen the highlight
+
+	// Calculate the scattered light and reflected light,
+	// then apply their effect to the color value of the fragment.
+	// Return the color value or white, whichever is minimal
+	vec3 scatteredLight = ambient + LightColor * diffuse * attenuation;
+	vec3 reflectedLight = LightColor * specular * attenuation;
+	vec3 rgb = min(Color.rgb * scatteredLight + reflectedLight, vec3(1.0));
+
+	return rgb;
+}
+*/
 
 void main() {
 
