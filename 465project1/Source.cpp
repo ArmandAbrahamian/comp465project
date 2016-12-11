@@ -307,23 +307,24 @@ glm::mat4 modelViewProjectionMatrix;
 
 /* Light Variables */
 GLuint Ruber;
-GLuint Ambient;
-bool ambient = true;
+GLuint AmbientLightOn;
+bool ambientLightOn = true;
 
 // Point Light from Ruber
 GLuint PointLightRuber;
 GLuint PointLightPosition;
 glm::vec3 pointLightRuber = glm::vec3(0, 0, 0);
 glm::vec3 pointLightPosition = glm::vec3(0.0, 0.0, 0.0);
-GLuint Point;
-bool point = true;
+GLuint PointLightOn;
+bool pointLightOn = true;
 
 //headlamp
 GLuint HeadLampPosition;
 glm::vec3 headLampPosition = glm::vec3(0.0, 0.0, 1.0);
-GLuint HeadLamp;
-bool headLamp = true;
+GLuint HeadLampOn;
+bool headLampOn = true;
 
+glm::vec3 direction = glm::vec3(0.0, 0.0, 1.0);
 // Light variables 
 GLuint LightColor;
 glm::vec3 lightColor = glm::vec3(1.0, 1.0, 1.0);
@@ -334,9 +335,10 @@ float linearAttenuation = 1.0f;
 GLuint QuadraticAttenuation;
 float quadraticAttenuation = 1.0f;
 GLuint Shininess;
-float shininess = 1.0;
+float shininess = 1.0f;
 GLuint Strength;
-float strength = 1.0;
+float strength = 1.0f;
+
 
 /* Square information used to draw the Square texture Box for the program */
 
@@ -541,17 +543,18 @@ void init()
 	PointLightRuber = glGetUniformLocation(shaderProgram, "pointLightRuber");
 	PointLightPosition = glGetUniformLocation(shaderProgram, "pointLightPosition");
 	glUniform3f(PointLightPosition, pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
+	glUniform1ui(PointLightOn, pointLightOn);
 
 	//headlamplight references
 	HeadLampPosition = glGetUniformLocation(shaderProgram, "headLampPosition");
 	glUniform3f(HeadLampPosition, headLampPosition.x, headLampPosition.y, headLampPosition.z);
-	headLamp = glGetUniformLocation(shaderProgram, "headLamp");
+	headLampOn = glGetUniformLocation(shaderProgram, "headLamp");
 
 	//light references 
 	Ruber = glGetUniformLocation(shaderProgram, "ruber");
-	Ambient = glGetUniformLocation(shaderProgram, "ambient");
-	glUniform1f(ambient, true);
-	glUniform1ui(Ambient, ambient);
+	AmbientLightOn = glGetUniformLocation(shaderProgram, "ambient");
+	glUniform1f(ambientLightOn, true);
+	glUniform1ui(AmbientLightOn, ambientLightOn);
 
 	LightColor = glGetUniformLocation(shaderProgram, "lightColor");
 	glUniform3f(LightColor, lightColor.x, lightColor.y, lightColor.z);
@@ -1400,37 +1403,37 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	case 'a':
 		// turn the ambient light effect on if off, and off if on.
-		if (ambient) {
-			ambient = false;
-			glUniform1ui(Ambient, ambient);
+		if (ambientLightOn) {
+			ambientLightOn = false;
+			glUniform1ui(AmbientLightOn, ambientLightOn);
 		}
 		else {
-			ambient = true;
-			glUniform1ui(Ambient, ambient);
+			ambientLightOn = true;
+			glUniform1ui(AmbientLightOn, ambientLightOn);
 		}
 		break;
 
 	case 'p':
 		// turn the point light effect on if off, and off if on.
-		if (point) {
-			point = false;
-			glUniform1ui(PointLightRuber, point);
+		if (pointLightOn) {
+			pointLightOn = false;
+			glUniform1ui(PointLightRuber, pointLightOn);
 		}
 		else {
-			point = true;
-			glUniform1ui(PointLightRuber, point);
+			pointLightOn = true;
+			glUniform1ui(PointLightRuber, pointLightOn);
 		}
 		break;
 
 	case 'h':
 		// turn the spot light effect on if off, and off if on.
-		if (headLamp) {
-			headLamp = false;
-			glUniform1ui(HeadLamp, headLamp);
+		if (headLampOn) {
+			headLampOn = false;
+			glUniform1ui(HeadLampOn, headLampOn);
 		}
 		else {
-			headLamp = true;
-			glUniform1ui(HeadLamp, headLamp);
+			headLampOn = true;
+			glUniform1ui(HeadLampOn, headLampOn);
 		}
 		break;
 	}
