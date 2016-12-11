@@ -1415,6 +1415,7 @@ void keyboard(unsigned char key, int x, int y)
 		playMusic();
 		SoundEngine->play2D("media/decloak_romulan.mp3");
 		hasRestarted = false;
+		currentCamera = SHIPCAMERAINDEX;
 
 		break;
 	case 'a': case'A':
