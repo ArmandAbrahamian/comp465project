@@ -37,6 +37,8 @@ User commands:
 'g' toggle gravity on or off
 't' cycle TQ value
 's' cycle ship speed
+'p' toggles point light
+'h' toggles head lamp light
 'up' ship moves forward
 'down' ship moves backward
 'left' ship "yaws" left
@@ -356,14 +358,6 @@ glm::mat4 translateSquare = glm::mat4();
 const int numberOfSquares = 6;
 float squareRotationAmount = 0.0f;	// default rotation amount
 
-/*Locations of the vertices*/
-static const GLfloat squareVertices[16] = {
-	-50000.0f, -50000.0f, 0.0f, 1.0f,	// BL
-	50000.0f, -50000.0f, 0.0f, 1.0f,	// BR
-	50000.0f, 50000.0f, 0.0f, 1.0f,		// TR
-	-50000.0f, 50000.0f, 0.0f, 1.0f		// TL
-};
-
 /*The order the vertices will be drawn*/
 static const unsigned int indices[] = {
 	0, 1, 2,
@@ -376,6 +370,14 @@ static const GLfloat textCoords[] = {
 	1.0f, 1.0f,
 	1.0f, 0.0f,
 	0.0f, 0.0f,
+};
+
+/*Locations of the vertices*/
+static const GLfloat squareVertices[16] = {
+	-50000.0f, -50000.0f, 0.0f, 1.0f,	// BL
+	50000.0f, -50000.0f, 0.0f, 1.0f,	// BR
+	50000.0f, 50000.0f, 0.0f, 1.0f,		// TR
+	-50000.0f, 50000.0f, 0.0f, 1.0f		// TL
 };
 
 /* Locations of each plane */
