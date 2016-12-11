@@ -544,38 +544,40 @@ void init()
 		printf("Texture in file %s NOT LOADED !!! \n");
 
 	//point light references
-	PointLightRuber = glGetUniformLocation(shaderProgram, "pointLightRuber");
-	PointLightPosition = glGetUniformLocation(shaderProgram, "pointLightPosition");
+	PointLightRuber = glGetUniformLocation(shaderProgram, "PointLightRuber");
+	PointLightPosition = glGetUniformLocation(shaderProgram, "PointLightPosition");
+	PointLightOn = glGetUniformLocation(shaderProgram, "PointLightOn");
+
 	glUniform3f(PointLightPosition, pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
 	glUniform1ui(PointLightOn, pointLightOn);
 
 	//headlamplight references
-	HeadLampPosition = glGetUniformLocation(shaderProgram, "headLampPosition");
+	HeadLampPosition = glGetUniformLocation(shaderProgram, "HeadLampPosition");
 	glUniform3f(HeadLampPosition, headLampPosition.x, headLampPosition.y, headLampPosition.z);
-	headLampOn = glGetUniformLocation(shaderProgram, "headLamp");
+	headLampOn = glGetUniformLocation(shaderProgram, "HeadLampOn");
 
 	//light references 
-	Ruber = glGetUniformLocation(shaderProgram, "ruber");
-	AmbientLightOn = glGetUniformLocation(shaderProgram, "ambient");
-	glUniform1f(ambientLightOn, true);
+	Ruber = glGetUniformLocation(shaderProgram, "Ruber");
+	AmbientLightOn = glGetUniformLocation(shaderProgram, "AmbientLightOn");
+	// glUniform1f(ambientLightOn, true);
 	glUniform1ui(AmbientLightOn, ambientLightOn);
 
-	LightColor = glGetUniformLocation(shaderProgram, "lightColor");
+	LightColor = glGetUniformLocation(shaderProgram, "LightColor");
 	glUniform3f(LightColor, lightColor.x, lightColor.y, lightColor.z);
 
-	ConstantAttentuation = glGetUniformLocation(shaderProgram, "constantAttenuation");
+	ConstantAttentuation = glGetUniformLocation(shaderProgram, "ConstantAttenuation");
 	glUniform1ui(ConstantAttentuation, constantAttentuation);
 
-	LinearAttenuation = glGetUniformLocation(shaderProgram, "linearAttenuation");
+	LinearAttenuation = glGetUniformLocation(shaderProgram, "LinearAttenuation");
 	glUniform1ui(LinearAttenuation, linearAttenuation);
 
-	QuadraticAttenuation = glGetUniformLocation(shaderProgram, "quadraticAttenuation");
+	QuadraticAttenuation = glGetUniformLocation(shaderProgram, "QuadraticAttenuation");
 	glUniform1ui(QuadraticAttenuation, quadraticAttenuation);
 
-	shininess = glGetUniformLocation(shaderProgram, "shininess");
+	shininess = glGetUniformLocation(shaderProgram, "Shininess");
 	glUniform1ui(Shininess, shininess);
 
-	strength = glGetUniformLocation(shaderProgram, "strength");
+	strength = glGetUniformLocation(shaderProgram, "Strength");
 	glUniform1ui(Strength, strength);
 
 	//get ellapsed time
@@ -696,12 +698,13 @@ void display()
 	attributes will be issued to the graphics pipeline. 
 */
 
+// Update the position of the Point Light:
+	pointLightPosition = getPosition(object3D[RUBERINDEX]->getOrientationMatrix()* viewMatrix);
+	glUniform3f(PointLightPosition, pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
+
 // Associate shader variables with vertex arrays:
 	for (int index = 0; index < nModels; index++)
 	{
-		glBindVertexArray(VAO[index]); // set model for its instance. Have to rebind everytime its changed.
-		//translationMatrix[index] = glm::translate(identityMatrix, translatePosition[index]);
-
 		switch (index)
 		{
 		case UNUMINDEX: // If it's planet Unum (planet closest to Ruber with no moons):
@@ -785,10 +788,11 @@ void display()
 		viewMatrix = mainCamera;
 		ModelViewProjectionMatrix = projectionMatrix * viewMatrix * object3D[index]->getModelMatrix();
 		glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
-		glDrawArrays(GL_TRIANGLES, 0, nVertices[index]);  // Initializes vertex shader, for contiguous groups of vertices.
-		//not sure about this being correct. 
-		pointLightPosition = getPosition(object3D[RUBERINDEX]->getOrientationMatrix()* viewMatrix);
-		glUniform3f(PointLightPosition, pointLightPosition.x, pointLightPosition.y, pointLightPosition.z);
+
+		modelViewMatrix = viewMatrix * object3D[index]->getModelMatrix();
+		normalMatrix = glm::mat3(modelViewMatrix);
+		glUniformMatrix3fv(NormalMatrix, 1, GL_FALSE, glm::value_ptr(normalMatrix));
+		glUniformMatrix4fv(ModelViewMatrix, 1, GL_FALSE, glm::value_ptr(modelViewMatrix));
 
 		if (index == 0) {
 			glUniform1ui(Ruber, true);
@@ -796,6 +800,10 @@ void display()
 		else {
 			glUniform1ui(Ruber, false);
 		}
+
+		glBindVertexArray(VAO[index]); // set model for its instance. Have to rebind everytime its changed.
+		glDrawArrays(GL_TRIANGLES, 0, nVertices[index]);  // Initializes vertex shader, for contiguous groups of vertices.
+		//not sure about this being correct. 
 	}
 
 		//indicate texture being drawn
