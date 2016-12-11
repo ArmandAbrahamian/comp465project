@@ -15,13 +15,13 @@ Bryant Barron
 # version 330 core
 
 //pointLight Variables
-uniform vec3 PointLightRuber; 
+uniform vec3 PointLightRuber;
 uniform vec3 PointLightPosition; 
 uniform bool PointLightOn;
 
 //headLamp Variables
-uniform vec3 HeadLampPosition;
-uniform bool HeadLampOn;
+uniform vec3 HeadLampPosition; // LightDirection
+uniform bool HeadLampOn; // DirectionalLightOn
 
 //light Variables
 uniform vec3 LightColor; 
@@ -30,8 +30,8 @@ uniform float LinearAttenuation;
 uniform float QuadraticAttenuation;
 uniform float Shininess; 
 uniform float Strength;
-uniform bool AmbientLightOn; 
-uniform bool Ruber;
+uniform bool AmbientLightOn; //AmbientOn
+uniform bool Ruber; // Sunobject
 
 //texture 
 uniform sampler2D Texture;
@@ -40,7 +40,7 @@ uniform bool IsTexture;
 //input info from vertex shader output
 in vec3 Position;
 in vec3 Normal;
-in vec4 color;
+in vec4 Color;
 in vec2 TextCoord;
 
 // output from fragment shader prog
@@ -50,7 +50,7 @@ out vec4 FragColor;
 // doesn't work for some reason, the minute
 // its not commented out we start getting a 
 // Cannot find PDB file error
-/*
+
 vec3 pointLight(vec3 lightPos){
 
 	vec3 lightDirection = lightPos - vec3(Position);
@@ -78,10 +78,10 @@ vec3 pointLight(vec3 lightPos){
 	vec3 rgb = min(Color.rgb * scatteredLight + reflectedLight, vec3(1.0));
 
 	return rgb;
-}*/
+}
 
 //HeadLamp Method
-/* also getting a PDB file error when this vec3 is created
+// also getting a PDB file error when this vec3 is created
 vec3 HeadLamp(){
 	float ambient;
 
@@ -90,9 +90,9 @@ vec3 HeadLamp(){
 	else 
 		ambient = 0.0f;
 
-	vec3 halfVector = normalize(lightDirection);
+	vec3 halfVector = normalize(HeadLampPosition);
 
-	float diffuse = max(dot(Normal, LightDirection), 0.0);
+	float diffuse = max(dot(Normal, HeadLampPosition), 0.0);
 	float specular = max(dot(Normal, halfVector), 0.0);
 
 	if (diffuse == 0)
@@ -106,11 +106,11 @@ vec3 HeadLamp(){
 
 	return rgb;
 }
-*/
+
 
 // 
 void main() {
- FragColor = color;
+ FragColor = Color;
 
   if(IsTexture) {
 	FragColor = texture(Texture, TextCoord);

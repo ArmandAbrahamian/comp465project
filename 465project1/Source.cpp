@@ -1532,6 +1532,7 @@ int main(int argc, char** argv)
 	if (!SoundEngine)
 	{
 		cout << "Error: Sound Engine could not be created." << endl;
+		system("pause");
 		return 0;
 	}
 
