@@ -464,9 +464,10 @@ void init()
 	ModelViewMatrix = glGetUniformLocation(shaderProgram, "ModelViewMatrix");
 	NormalMatrix = glGetUniformLocation(shaderProgram, "NormalMatrix");
 
+	// Set up vertex arrays (after shaders are loaded)
 	printf("Shader program variable locations:\n");
 	printf("  vPosition = %d  vColor = %d  vNormal = %d MVP = %d\n",
-		glGetAttribLocation(shaderProgram, "vPosition"),
+		glGetAttribLocation(shaderProgram, "vPosition"), // vPosition maps to shader var "vPosition"
 		glGetAttribLocation(shaderProgram, "vColor"),
 		glGetAttribLocation(shaderProgram, "vNormal"), MVP);
 

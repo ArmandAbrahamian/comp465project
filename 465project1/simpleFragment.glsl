@@ -25,6 +25,7 @@ uniform bool HeadLampOn; // DirectionalLightOn
 
 //light Variables
 uniform vec3 LightColor; 
+uniform vec3 Ambient;
 uniform float ConstantAttenuation;
 uniform float LinearAttenuation;
 uniform float QuadraticAttenuation;
@@ -53,23 +54,29 @@ out vec4 FragColor;
 
 vec3 pointLight(vec3 lightPos){
 
+<<<<<<< HEAD
 	float ambient = 0.2f;
 
 	// Check for whether to apply an ambient effect
 	if (!AmbientLightOn)
 		ambient = 0.0f;
 
+=======
+	// find the direction and distance of the light, which changes fragment to fragment for a local light
+>>>>>>> master
 	vec3 lightDirection = lightPos - vec3(Position);
-
 	float lightDistance = length(lightDirection);
 
+	// normalize the light direction vector, so that a dot products give cosines
 	lightDirection = lightDirection/lightDistance; 
 
+	// Model how much light is available for this fragment:
 	float attenuation = 1.0 / (ConstantAttenuation +
 								LinearAttenuation * lightDistance +
 								QuadraticAttenuation * lightDistance
 								 * lightDistance);
 
+	// The direction of maximum highlight also changes per fragment.
 	vec3 halfVector = normalize(lightDirection + PointLightPosition);
 
 	float diffuse = max(0.0, dot(Normal, lightDirection));
@@ -90,7 +97,7 @@ vec3 pointLight(vec3 lightPos){
 		specular = pow(specular, Shininess) * Strength;
 
 	vec3 scatteredLight = LightColor * diffuse * attenuation;
-	vec3 reflectedLight = LightColor * specular * Strength * attenuation;
+	vec3 reflectedLight = LightColor * specular * attenuation;
 	vec3 rgb = min(Color.rgb * scatteredLight + reflectedLight, vec3(1.0));
 
 	return rgb;
@@ -101,7 +108,13 @@ vec3 pointLight(vec3 lightPos){
 vec3 HeadLamp(){
 	float ambient = 0.2f;
 
+<<<<<<< HEAD
 	if(!AmbientLightOn)
+=======
+	if(AmbientLightOn)
+		ambient = 0.2f; // scale directional ambient
+	else 
+>>>>>>> master
 		ambient = 0.0f;
 
 	vec3 halfVector = normalize(HeadLampPosition);
@@ -131,7 +144,7 @@ void main() {
   }else {
 		
 		// Get the color of the fragment
-		vec3 tempColor = vec3(Color) * 0.1f;
+		vec3 tempColor = vec3(Color) * 0.1f; // initial value
 		
 		// if the directional light is on, apply directional light effect to color
 		if (HeadLampOn)
