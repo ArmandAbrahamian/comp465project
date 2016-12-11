@@ -54,16 +54,14 @@ out vec4 FragColor;
 
 vec3 pointLight(vec3 lightPos){
 
-<<<<<<< HEAD
 	float ambient = 0.2f;
 
 	// Check for whether to apply an ambient effect
 	if (!AmbientLightOn)
 		ambient = 0.0f;
 
-=======
 	// find the direction and distance of the light, which changes fragment to fragment for a local light
->>>>>>> master
+
 	vec3 lightDirection = lightPos - vec3(Position);
 	float lightDistance = length(lightDirection);
 
@@ -108,13 +106,7 @@ vec3 pointLight(vec3 lightPos){
 vec3 HeadLamp(){
 	float ambient = 0.2f;
 
-<<<<<<< HEAD
 	if(!AmbientLightOn)
-=======
-	if(AmbientLightOn)
-		ambient = 0.2f; // scale directional ambient
-	else 
->>>>>>> master
 		ambient = 0.0f;
 
 	vec3 halfVector = normalize(HeadLampPosition);
