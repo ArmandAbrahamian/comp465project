@@ -4,31 +4,90 @@
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\includes465\glmUtils465.hpp" />
-    <ClInclude Include="..\includes465\include465.hpp" />
-    <ClInclude Include="..\includes465\shader465.hpp" />
-    <ClInclude Include="..\includes465\texture.hpp" />
-    <ClInclude Include="..\includes465\triModel465.hpp" />
-    <ClInclude Include="Missile.hpp" />
-    <ClInclude Include="Object3D.hpp" />
-    <ClInclude Include="Warbird.hpp" />
+    <ClInclude Include="..\includes465\glmUtils465.hpp">
+      <Filter>includes465</Filter>
+    </ClInclude>
+    <ClInclude Include="..\includes465\include465.hpp">
+      <Filter>includes465</Filter>
+    </ClInclude>
+    <ClInclude Include="..\includes465\shader465.hpp">
+      <Filter>includes465</Filter>
+    </ClInclude>
+    <ClInclude Include="..\includes465\texture.hpp">
+      <Filter>includes465</Filter>
+    </ClInclude>
+    <ClInclude Include="..\includes465\triModel465.hpp">
+      <Filter>includes465</Filter>
+    </ClInclude>
+    <ClInclude Include="Warbird.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Missile.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Object3D.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="axes-r100.tri" />
-    <None Include="cube.tri" />
-    <None Include="secundus.tri" />
-    <None Include="duo.tri" />
-    <None Include="Missile.tri" />
-    <None Include="MissileSite.tri" />
-    <None Include="MountainPlanet.tri" />
-    <None Include="obelisk-10-20-10.tri" />
-    <None Include="unum.tri" />
-    <None Include="simpleFragment.glsl" />
-    <None Include="simpleVertex.glsl" />
-    <None Include="spaceShip-bs100.tri" />
-    <None Include="ruber.tri" />
-    <None Include="primus.tri" />
-    <None Include="warbird.tri" />
-    <None Include="stars.raw" />
+    <None Include="axes-r100.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="duo.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="cube.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Missile.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="MissileSite.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="MountainPlanet.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="obelisk-10-20-10.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="primus.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="ruber.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="secundus.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="stars.raw">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="unum.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="warbird.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="spaceShip-bs100.tri">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="simpleFragment.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="simpleVertex.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{b91f023b-e44f-49e0-885b-83d0c91d2c2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{59f42070-7ded-47be-a750-1cb6d1940c03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="includes465">
+      <UniqueIdentifier>{60028217-c69b-4618-ad90-cd9d2b16b733}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>
