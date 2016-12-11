@@ -49,12 +49,8 @@ out vec4 FragColor;
 
 //pointLight method in GLSL
 vec3 pointLight(vec3 lightPos){
-
-	float ambient = 0.0f;
-
-	//Check for whether to apply an ambient effect
-	if (AmbientLightOn)
-		ambient = 0.2f;
+	
+	float ambient = .2f;
 
 	// find the direction and distance of the light, which changes fragment to fragment for a local light
 	vec3 lightDirection = lightPos - vec3(Position);
@@ -80,8 +76,8 @@ vec3 pointLight(vec3 lightPos){
 	else
 		specular = pow(specular, Shininess) * Strength;
 
-	vec3 scatteredLight = Ambient + LightColor * diffuse * attenuation;
-	vec3 reflectedLight = LightColor * specular * attenuation ;
+	vec3 scatteredLight = ambient + LightColor * diffuse;
+	vec3 reflectedLight = LightColor * specular * Strength;
 	vec3 rgb = min(Color.rgb * scatteredLight + reflectedLight, vec3(1.0));
 
 	return rgb;
@@ -89,7 +85,7 @@ vec3 pointLight(vec3 lightPos){
 
 //HeadLamp Method
 vec3 HeadLamp(){
-	float ambient = 0.2f;
+	float ambient = .2f;
 
 	vec3 halfVector = normalize(HeadLampPosition);
 
@@ -119,7 +115,7 @@ void main() {
 		// if the directional light is on, apply directional light effect to color
 		if (HeadLampOn)
 			tempColor += HeadLamp();
-
+			
 		// if the point light is on, apply point light effect to color
 		if (PointLightOn) 
 			tempColor += pointLight(PointLightPosition);
