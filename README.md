@@ -103,13 +103,12 @@ Computer graphics class semester project at CSUN using OpenGL Version 3.3, Freeg
     * We wanted to have a graphic or texture displayed on the screen when the player wins or loses.
     * Lastly we wanted to have a way to display credits displaying the team’s names when the player wins the game.
 
-### Extra Things we Added:
-#### Sounds and Music
+### Extra Work we Added:
 **Warning: Make sure your sound is on low initially since it varies from system to system.**
 
 * Sounds and music were added using irrklang a cross platform sound library using C++, C#, and all .NET languages. We Simply had to download and copy the files to the project, link the library and create an object from that library and we were able to utilize its functionality.
 
-* Sounds:
+* *Sounds*:
     * Added various sounds from Star Trek: The Original Series, Star Trek: The Next Generation television series, and Star Trek: Armada video game.
         * When the user restarts the game all the sounds reset, the randomly selected music track replays and a uncloaking sound plays with a new warbird appears since a new student is trying out for the war college.
         * When the user’s ship collides with an object it plays an explosion sound from Star Trek TOS.
@@ -120,12 +119,12 @@ Computer graphics class semester project at CSUN using OpenGL Version 3.3, Freeg
         * We were planning on having a special missile firing sound for the missile site but didn’t get around to it.
         * Finally we were planning on adding 3D sound sources where the sound volume is based on its location or distance from the camera.
 
-* Voices
+* *Voices*
     * Various voices were added from Star Trek Armada 1.
         * When the program is started there are three voice lines that are randomly selected to play. You can keep pressing the restart button ‘r’ to hear all the three different voice lines!
         * When already fired the missile there are two different voice lines that may play to give feedback.
 
-* Music:
+* *Music*:
     * When the user restarts the game the music resets.
     * There are two different music tracks that can play.
         * Music is the Romulan Faction themes from Star Trek Armada 1 and Star Trek: Armada 2 Video Games.
@@ -139,18 +138,18 @@ See also the list of [contributors](https://github.com/your/project/contributors
 
 ## Acknowledgments
 
-Voice lines are from the Romulan Faction in Star Trek Armada 1.
+* Voice lines are from the Romulan Faction in Star Trek Armada 1.
 
-Various sounds from Star Trek: The Original Series, Star Trek: The Next Generation television series, and Star Trek: Armada video game.
+* Various sounds from Star Trek: The Original Series, Star Trek: The Next Generation television series, and Star Trek: Armada video game.
 
-Music is the Romulan Faction themes from Star Trek Armada 1 and Star Trek: Armada 2 Video Games, and Star Trek: TOS theme.
+* Music is the Romulan Faction themes from Star Trek Armada 1 and Star Trek: Armada 2 Video Games, and Star Trek: TOS theme.
 
-Warbird Model Credits:
-    The model we imported and used for our Warbird is modeled after the Warbird design from Star Trek TOS. We changed it to a tri model and colored it based on how it looked in the original series.
+* Warbird Model Credits:
+    * The model we imported and used for our Warbird is modeled after the Warbird design from Star Trek TOS. We changed it to a tri model and colored it based on how it looked in the original series.
 
 Romulan Bird of Prey, Classic Star Trek by jpcotedsbn is licensed under CC Attribution-NonCommercial-ShareAlike
 
 ![Warbird Model](/images/warbirdModel.png)
 
-This picture doesn't represent exactly what the model looks like but what its based on the warbird from an episode of Star Trek TOS.
+This picture doesn't represent exactly what the model looks like but what its based on from the warbird from an episode of Star Trek TOS.
  
