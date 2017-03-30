@@ -152,5 +152,5 @@ Romulan Bird of Prey, Classic Star Trek by jpcotedsbn is licensed under CC Attri
 
 ![Warbird Model](/images/warbirdModel.png)
 
-This picture doesn't represent exactly what the model looks like but what its based on from Star Trek TOS.
+This picture doesn't represent exactly what the model looks like but what its based on the warbird from an episode of Star Trek TOS.
  
