@@ -134,7 +134,7 @@ Computer graphics class semester project at CSUN using OpenGL Version 3.3, Freeg
 
 * **Armand Abrahamian** - [ArmandAbrahamian](https://github.com/ArmandAbrahamian)
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+See the list of [contributors](https://github.com/ArmandAbrahamian/comp465project/contributors) for who participated in this project.
 
 ## Acknowledgments
 
